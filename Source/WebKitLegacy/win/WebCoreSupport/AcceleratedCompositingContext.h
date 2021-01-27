@@ -26,7 +26,7 @@
 #ifndef AcceleratedCompositingContext_h
 #define AcceleratedCompositingContext_h
 
-#if USE(TEXTURE_MAPPER_GL)
+#if USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
 
 #include <WebCore/FloatRect.h>
 #include <WebCore/GLContext.h>
@@ -102,4 +102,4 @@ private:
 
 #endif // TEXTURE_MAPPER_GL
 
-#endif // AcceleratedCompositingContext_h
+#endif // TEXTURE_MAPPER_GL && !USE(COORDINATED_GRAPHICS)

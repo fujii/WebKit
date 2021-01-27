@@ -31,6 +31,14 @@
 #include <WebCore/NotImplemented.h>
 #include <WebCore/TextureMapperPlatformLayer.h>
 
+#if USE(NICOSIA)
+#include <WebCore/NicosiaPlatformLayer.h>
+#elif USE(COORDINATED_GRAPHICS)
+#include <WebCore/TextureMapperPlatformLayerProxyProvider.h>
+#elif USE(TEXTURE_MAPPER)
+#include <WebCore/TextureMapperPlatformLayer.h>
+#endif
+
 namespace WebKit {
 
 PlatformLayerContainer createVideoLayerRemote(MediaPlayerPrivateRemote* mediaPlayerPrivateRemote, LayerHostingContextID contextId)

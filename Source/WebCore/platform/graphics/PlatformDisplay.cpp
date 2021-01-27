@@ -128,7 +128,7 @@ PlatformDisplay& PlatformDisplay::sharedDisplay()
 {
 #if PLATFORM(WIN)
     // ANGLE D3D renderer isn't thread-safe. Don't destruct it on non-main threads which calls _exit().
-    ASSERT(isMainThread());
+    //ASSERT(isMainThread());
     static PlatformDisplay* display = createPlatformDisplay().release();
     return *display;
 #else

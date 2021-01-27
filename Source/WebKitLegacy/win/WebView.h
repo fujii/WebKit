@@ -68,7 +68,7 @@ class WebBackForwardList;
 class WebFrame;
 class WebInspector;
 class WebInspectorClient;
-#if USE(TEXTURE_MAPPER_GL)
+#if USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
 class AcceleratedCompositingContext;
 #endif
 class WebViewGroup;
@@ -704,7 +704,7 @@ protected:
 #if USE(CA)
     RefPtr<WebCore::CACFLayerTreeHost> m_layerTreeHost;
     RefPtr<WebCore::GraphicsLayer> m_backingLayer;
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     std::unique_ptr<AcceleratedCompositingContext> m_acceleratedCompositingContext;
 #endif
     bool m_isAcceleratedCompositing { false };

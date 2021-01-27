@@ -119,6 +119,7 @@ void EventDispatcher::wheelEvent(PageIdentifier pageID, const WebWheelEvent& whe
     }
 #endif
 
+    auto thisEventDispatcher = this;
     auto processingSteps = OptionSet<WebCore::WheelEventProcessingSteps> { WheelEventProcessingSteps::MainThreadForScrolling, WheelEventProcessingSteps::MainThreadForBlockingDOMEventDispatch };
 #if ENABLE(SCROLLING_THREAD)
     processingSteps = [&]() -> OptionSet<WheelEventProcessingSteps> {
@@ -139,7 +140,7 @@ void EventDispatcher::wheelEvent(PageIdentifier pageID, const WebWheelEvent& whe
 
         scrollingTree->willProcessWheelEvent();
 
-        ScrollingThread::dispatch([scrollingTree, wheelEvent, platformWheelEvent, processingSteps, pageID, protectedThis = makeRef(*this)] {
+        ScrollingThread::dispatch([scrollingTree, wheelEvent, platformWheelEvent, processingSteps, pageID, protectedThis = makeRef(*thisEventDispatcher)] {
             if (processingSteps.contains(WheelEventProcessingSteps::MainThreadForScrolling)) {
                 scrollingTree->willSendEventToMainThread(platformWheelEvent);
                 protectedThis->dispatchWheelEventViaMainThread(pageID, wheelEvent, processingSteps);

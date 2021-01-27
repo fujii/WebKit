@@ -202,7 +202,7 @@
 #if USE(CA)
 #include <WebCore/CACFLayerTreeHost.h>
 #include <WebCore/PlatformCALayer.h>
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
 #include "AcceleratedCompositingContext.h"
 #endif
 
@@ -918,7 +918,7 @@ void WebView::addToDirtyRegion(const IntRect& dirtyRect)
     if (isAcceleratedCompositing()) {
 #if USE(CA)
         m_backingLayer->setNeedsDisplayInRect(dirtyRect);
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
         m_acceleratedCompositingContext->setNonCompositedContentsNeedDisplay(dirtyRect);
 #endif
         return;
@@ -990,7 +990,7 @@ void WebView::scrollBackingStore(FrameView* frameView, int logicalDx, int logica
         // any newly-exposed tiles. <http://webkit.org/b/52714>
 #if USE(CA)
         m_backingLayer->setNeedsDisplayInRect(scrollViewRect);
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
         m_acceleratedCompositingContext->scrollNonCompositedContents(scrollViewRect, IntSize(dx, dy));
 #endif
         return;
@@ -1060,7 +1060,7 @@ void WebView::sizeChanged(const IntSize& newSize)
         m_backingLayer->setSize(newSize);
         m_backingLayer->setNeedsDisplay();
     }
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     if (m_acceleratedCompositingContext)
         m_acceleratedCompositingContext->resizeRootLayer(newSize);
 #endif
@@ -6559,7 +6559,7 @@ bool WebView::paintCompositedContentToHDC(HDC deviceContext)
 
 #if USE(CA)
     m_layerTreeHost->flushPendingLayerChangesNow();
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     m_acceleratedCompositingContext->flushAndRenderLayers();
 #endif
 
@@ -7219,7 +7219,7 @@ void WebView::setRootChildLayer(GraphicsLayer* layer)
     else
         m_backingLayer->removeAllChildren();
 
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     if (!m_acceleratedCompositingContext)
         return;
     m_acceleratedCompositingContext->setRootCompositingLayer(layer);
@@ -7234,7 +7234,7 @@ void WebView::flushPendingGraphicsLayerChangesSoon()
         return;
     }
     m_layerTreeHost->flushPendingGraphicsLayerChangesSoon();
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     if (!isAcceleratedCompositing()) {
         m_page->isolatedUpdateRendering();
         return;
@@ -7299,7 +7299,7 @@ void WebView::setAcceleratedCompositing(bool accelerated)
         m_backingLayer = nullptr;
         m_isAcceleratedCompositing = false;
     }
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     if (accelerated && !m_acceleratedCompositingContext)
         m_acceleratedCompositingContext = makeUnique<AcceleratedCompositingContext>(*this);
     m_isAcceleratedCompositing = accelerated;
@@ -7886,10 +7886,12 @@ HRESULT WebView::layerTreeAsString(_Deref_opt_out_ BSTR* treeBstr)
         return S_OK;
 
     String tree = m_layerTreeHost->layerTreeAsString();
-#elif USE(TEXTURE_MAPPER_GL)
+#elif USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
     if (!isAcceleratedCompositing())
         return S_OK;
     String tree = m_acceleratedCompositingContext->layerTreeAsString();
+#else
+    String tree;
 #endif
     *treeBstr = BString(tree).release();
     if (!*treeBstr && tree.length())

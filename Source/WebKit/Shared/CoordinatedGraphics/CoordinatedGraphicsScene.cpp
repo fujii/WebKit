@@ -208,7 +208,7 @@ void CoordinatedGraphicsScene::updateSceneState()
 
     // Store layer and impl references along with the corresponding update
     // for each type of possible layer backing.
-    struct {
+    struct LayersByBacking {
         struct BackingStore {
             std::reference_wrapper<TextureMapperLayer> layer;
             std::reference_wrapper<Nicosia::BackingStoreTextureMapperImpl> backingStore;

@@ -41,6 +41,10 @@
 #include "AcceleratedSurfaceLibWPE.h"
 #endif
 
+#if PLATFORM(WIN)
+#include "AcceleratedSurfaceWin.h"
+#endif
+
 namespace WebKit {
 using namespace WebCore;
 
@@ -61,6 +65,10 @@ std::unique_ptr<AcceleratedSurface> AcceleratedSurface::create(WebPage& webPage,
 #if USE(WPE_RENDERER)
     if (PlatformDisplay::sharedDisplay().type() == PlatformDisplay::Type::WPE)
         return AcceleratedSurfaceLibWPE::create(webPage, client);
+#endif
+#if PLATFORM(WIN)
+    if (PlatformDisplay::sharedDisplay().type() == PlatformDisplay::Type::Windows)
+        return AcceleratedSurfaceWin::create(webPage, client);
 #endif
     RELEASE_ASSERT_NOT_REACHED();
     return nullptr;

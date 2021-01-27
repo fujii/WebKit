@@ -25,7 +25,7 @@
 
 #include "AcceleratedCompositingContext.h"
 
-#if USE(TEXTURE_MAPPER_GL)
+#if USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)
 
 #include "WebView.h"
 
@@ -340,4 +340,4 @@ String AcceleratedCompositingContext::layerTreeAsString() const
     return m_rootLayer->layerTreeAsText(LayerTreeAsTextShowAll);
 }
 
-#endif // USE(TEXTURE_MAPPER_GL)
+#endif // USE(TEXTURE_MAPPER_GL) && !USE(COORDINATED_GRAPHICS)

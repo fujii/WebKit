@@ -15,6 +15,19 @@ list(APPEND WebCore_PRIVATE_INCLUDE_DIRECTORIES
 )
 
 list(APPEND WebCore_SOURCES
+    page/scrolling/nicosia/ScrollingCoordinatorNicosia.cpp
+    page/scrolling/nicosia/ScrollingStateNodeNicosia.cpp
+    page/scrolling/nicosia/ScrollingTreeFixedNode.cpp
+    page/scrolling/nicosia/ScrollingTreeFrameScrollingNodeNicosia.cpp
+    page/scrolling/nicosia/ScrollingTreeNicosia.cpp
+    page/scrolling/nicosia/ScrollingTreeOverflowScrollProxyNode.cpp
+    page/scrolling/nicosia/ScrollingTreeOverflowScrollingNodeNicosia.cpp
+    page/scrolling/nicosia/ScrollingTreePositionedNode.cpp
+    page/scrolling/nicosia/ScrollingTreeStickyNode.cpp
+
+    platform/ScrollAnimationKinetic.cpp
+    platform/ScrollAnimationSmooth.cpp
+
     page/win/FrameCairoWin.cpp
     page/win/ResourceUsageOverlayWin.cpp
     page/win/ResourceUsageThreadWin.cpp
@@ -24,6 +37,7 @@ list(APPEND WebCore_SOURCES
 
     platform/graphics/displaylists/DisplayListDrawGlyphsRecorderHarfBuzz.cpp
 
+    platform/graphics/win/DisplayRefreshMonitorWin.cpp
     platform/graphics/win/FontCustomPlatformDataCairo.cpp
     platform/graphics/win/FontPlatformDataCairoWin.cpp
     platform/graphics/win/GlyphPageTreeNodeCairoWin.cpp

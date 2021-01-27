@@ -31,6 +31,8 @@ list(APPEND WebKit_SOURCES
 
     Shared/API/c/curl/WKCertificateInfoCurl.cpp
 
+    Shared/CoordinatedGraphics/CoordinatedGraphicsScene.cpp
+
     Shared/Plugins/Netscape/NetscapePluginModuleNone.cpp
 
     Shared/win/AuxiliaryProcessMainWin.cpp
@@ -89,7 +91,7 @@ list(APPEND WebKit_SOURCES
 
     WebProcess/WebPage/CoordinatedGraphics/CompositingCoordinator.cpp
     WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphics.cpp
-    WebProcess/WebPage/CoordinatedGraphics/LayerTreeHostTextureMapper.cpp
+    WebProcess/WebPage/CoordinatedGraphics/LayerTreeHost.cpp
 
     WebProcess/WebPage/win/WebPageWin.cpp
 
@@ -156,6 +158,12 @@ if (${WTF_PLATFORM_WIN_CAIRO})
 
         Shared/API/c/cairo/WKImageCairo.cpp
 
+        Shared/CoordinatedGraphics/threadedcompositor/CompositingRunLoop.cpp
+        Shared/CoordinatedGraphics/threadedcompositor/ThreadedCompositor.cpp
+        Shared/CoordinatedGraphics/threadedcompositor/ThreadedDisplayRefreshMonitor.cpp
+
+        Shared/CoordinatedGraphics/SimpleViewportController.cpp
+
         Shared/cairo/ShareableBitmapCairo.cpp
 
         Shared/curl/WebCoreArgumentCodersCurl.cpp
@@ -165,6 +173,8 @@ if (${WTF_PLATFORM_WIN_CAIRO})
         UIProcess/cairo/BackingStoreCairo.cpp
 
         WebProcess/WebCoreSupport/curl/WebFrameNetworkingContext.cpp
+
+        WebProcess/WebPage/win/AcceleratedSurfaceWin.cpp
     )
 
     list(APPEND WebKit_INCLUDE_DIRECTORIES
