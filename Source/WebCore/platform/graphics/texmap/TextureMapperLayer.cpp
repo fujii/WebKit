@@ -35,8 +35,10 @@ public:
     { }
 
     TextureMapper& textureMapper;
-    TransformationMatrix transform; // accumulated replica transforms
-    TransformationMatrix surfaceTransform; // transform from the current surface to the screen. used for backdrop-filter
+    // accumulated replica transforms
+    TransformationMatrix transform;
+    // transform from the current surface to the screen for painting the Backdrop Root Image of backdrop-filter
+    TransformationMatrix surfaceTransform;
     RefPtr<BitmapTexture> surface;
     float opacity { 1 };
     IntSize offset;

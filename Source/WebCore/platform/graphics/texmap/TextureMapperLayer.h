@@ -122,15 +122,14 @@ private:
     enum class ComputeOverlapRegionMode : uint8_t {
         Intersection,
         Union,
-        Mask
     };
     struct ComputeOverlapRegionData {
-        ComputeOverlapRegionMode mode;
-        IntRect clipBounds;
+        std::optional<IntRect> clipBounds;
         Region& overlapRegion;
-        Region& nonOverlapRegion;
+        Region* nonOverlapRegion;
     };
-    void computeOverlapRegions(ComputeOverlapRegionData&, const TransformationMatrix&, bool includesReplica = true);
+    void computeOverlapRegions(ComputeOverlapRegionMode, ComputeOverlapRegionData&, const TransformationMatrix&, bool includesReplica = true);
+    void computeLocalSpaceSurfaceRegion(Region&);
 
     void paintRecursive(TextureMapperPaintOptions&);
     void paintSelfChildrenReplicaFilterAndMask(TextureMapperPaintOptions&);
@@ -147,6 +146,9 @@ private:
     bool isVisible() const;
 
     bool shouldBlend() const;
+    bool needsLocalSpaceSurface() const {
+        return hasFilters() || m_state.maskLayer;
+    }
 
     inline FloatRect layerRect() const
     {
