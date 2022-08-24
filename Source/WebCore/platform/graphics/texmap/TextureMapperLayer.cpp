@@ -255,10 +255,11 @@ void TextureMapperLayer::paintSelfAndChildren(TextureMapperPaintOptions& options
         TransformationMatrix clipTransform;
         clipTransform.translate(options.offset.width(), options.offset.height());
         clipTransform.multiply(options.transform);
-        clipTransform.multiply(m_layerTransforms.combined);
-        //options.textureMapper.beginClip(clipTransform, m_state.backdropFiltersRect);
+        if (!needsLocalSpaceSurface())
+            clipTransform.multiply(m_layerTransforms.combined);
+        options.textureMapper.beginClip(clipTransform, m_state.backdropFiltersRect);
         m_state.backdropLayer->paintRecursive(options);
-        //options.textureMapper.endClip();
+        options.textureMapper.endClip();
     }
 
     paintSelf(options);
