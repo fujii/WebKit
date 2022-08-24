@@ -351,6 +351,9 @@ static void resolveOverlaps(const IntRect& newRegion, Region& overlapRegion, Reg
 
 void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, ComputeOverlapRegionData& data, const TransformationMatrix& accumulatedReplicaTransform, bool includesReplica)
 {
+    if (!isVisible())
+        return;
+
     TransformationMatrix transform;
     transform.multiply(accumulatedReplicaTransform);
     transform.multiply(m_layerTransforms.combined);
@@ -403,9 +406,6 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, Co
 
 void TextureMapperLayer::computeLocalSpaceSurfaceRegion(Region& region)
 {
-    if (!m_state.visible || !m_state.contentsVisible)
-        return;
-
     region.unite(enclosingIntRect(layerRect()));
 
     if (!m_state.masksToBounds && !m_state.maskLayer) {
