@@ -42,7 +42,6 @@ public:
     IntSize offset;
     TextureMapperLayer* backdropLayer { nullptr };
     TextureMapperLayer* replicaLayer { nullptr };
-    TextureMapperLayer* localSpaceSurfaceLayer { nullptr };
     bool preserves3D { false };
 };
 
@@ -66,7 +65,7 @@ void TextureMapperLayer::computeTransformsRecursive()
         TransformationMatrix parentTransform;
         if (m_parent)
             parentTransform = m_parent->m_layerTransforms.combinedForChildren;
-        else if (m_effectTarget)
+        else if (m_effectTarget && !m_effectTarget->needsLocalSpaceSurface())
             parentTransform = m_effectTarget->m_layerTransforms.combined;
 
         const float originX = m_state.anchorPoint.x() * m_state.size.width();
@@ -166,7 +165,7 @@ void TextureMapperLayer::paintSelf(TextureMapperPaintOptions& options)
     TransformationMatrix transform;
     transform.translate(options.offset.width(), options.offset.height());
     transform.multiply(options.transform);
-    if (this != options.localSpaceSurfaceLayer)
+    if (!needsLocalSpaceSurface())
         transform.multiply(m_layerTransforms.combined);
 
     TextureMapperSolidColorLayer solidColorLayer;
@@ -253,7 +252,6 @@ void TextureMapperLayer::paintSelfAndChildren(TextureMapperPaintOptions& options
     } scopedPreserves3D(options, m_state.preserves3D && !options.preserves3D);
 
     if (m_state.backdropLayer && !options.backdropLayer) {
-        SetForScope scopedSurfaceLayer(options.localSpaceSurfaceLayer, options.localSpaceSurfaceLayer == this ? m_state.backdropLayer.get() : this);
         TransformationMatrix clipTransform;
         clipTransform.translate(options.offset.width(), options.offset.height());
         clipTransform.multiply(options.transform);
@@ -504,7 +502,6 @@ void TextureMapperLayer::paintSelfChildrenFilterAndMask(TextureMapperPaintOption
 
 void TextureMapperLayer::applyMask(TextureMapperPaintOptions& options)
 {
-    SetForScope scopedSurfaceLayer(options.localSpaceSurfaceLayer, this);
     options.textureMapper.setMaskMode(true);
     paintSelf(options);
     options.textureMapper.setMaskMode(false);
@@ -568,12 +565,10 @@ void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapp
         SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
         options.surfaceTransform.translate(options.offset.width(), options.offset.height());
         options.surfaceTransform.multiply(options.transform);
-        if (this != options.localSpaceSurfaceLayer)
-            options.surfaceTransform.multiply(m_layerTransforms.combined);
+        options.surfaceTransform.multiply(m_layerTransforms.combined);
         SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
         SetForScope scopedTransform(options.transform, TransformationMatrix());
         SetForScope scopedOpacity(options.opacity, 1);
-        SetForScope scopedSurfaceLayer(options.localSpaceSurfaceLayer, this);
 
         paintIntoSurface(options);
         surface = options.surface;
@@ -582,8 +577,7 @@ void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapp
     TransformationMatrix transform;
     transform.translate(options.offset.width(), options.offset.height());
     transform.multiply(options.transform);
-    if (this != options.localSpaceSurfaceLayer)
-        transform.multiply(m_layerTransforms.combined);
+    transform.multiply(m_layerTransforms.combined);
 
     options.textureMapper.bindSurface(options.surface.get());
     options.textureMapper.drawTexture(*surface, rect, transform, options.opacity);
