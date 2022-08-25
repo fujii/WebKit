@@ -356,12 +356,12 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, Co
 
     if (needsLocalSpaceSurface() || mode == ComputeOverlapRegionMode::Union) {
         Region region;
-        Function<void(const FloatRect&, const TransformationMatrix&)> collectLocalRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
+        auto collectLocalRect = [&](const FloatRect& passedRect, const TransformationMatrix& transform) {
             IntRect transformedRect = enclosingIntRect(transform.mapRect(passedRect));
             transformedRect.intersect(data.clipBounds);
             region.unite(transformedRect);
-        });
-        collectLocalSpaceRects(surfaceTransform, accumulatedReplicaTransform, collectLocalRect, includesReplica);
+        };
+        collectLocalSpaceRects(surfaceTransform, accumulatedReplicaTransform, WTFMove(collectLocalRect), includesReplica);
         resolveOverlaps(region, data.overlapRegion, data.nonOverlapRegion);
     } else {
         TransformationMatrix localTransform = surfaceTransform;
@@ -404,7 +404,8 @@ void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surf
 {
     TransformationMatrix localTransform = surfaceTransform;
     localTransform.multiply(accumulatedReplicaTransform);
-    localTransform.multiply(m_layerTransforms.combined);
+    if (!needsLocalSpaceSurface())
+        localTransform.multiply(m_layerTransforms.combined);
 
     Function<void(const FloatRect&, const TransformationMatrix&)> expandOutsetsAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
         FloatRect rect = passedRect;
@@ -424,6 +425,8 @@ void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surf
     }
 
     if (!m_state.masksToBounds && !m_state.maskLayer) {
+        if (needsLocalSpaceSurface())
+            localTransform.multiply(m_layerTransforms.combined);
         Function<void(const FloatRect&, const TransformationMatrix&)> transformAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
             FloatRect rect = transform.mapRect(passedRect);
             expandOutsetsAndCollectRect(rect, localTransform);
