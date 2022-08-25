@@ -130,7 +130,7 @@ private:
     };
     void computeOverlapRegions(ComputeOverlapRegionMode, ComputeOverlapRegionData&, const TransformationMatrix&, const TransformationMatrix&, bool includesReplica = true);
     void computeLocalSpaceSurfaceRegion(Region&);
-    void collectLocalSpaceRects(const TransformationMatrix&, const Function<void(const FloatRect&, const TransformationMatrix&)>&, bool includesReplica);
+    void collectLocalSpaceRects(const TransformationMatrix&, const TransformationMatrix&, const Function<void(const FloatRect&, const TransformationMatrix&)>&, bool includesReplica);
 
     void paintRecursive(TextureMapperPaintOptions&);
     void paintSelfChildrenReplicaFilterAndMask(TextureMapperPaintOptions&);

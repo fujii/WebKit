@@ -349,22 +349,11 @@ static void resolveOverlaps(const Region& newRegion, Region& overlapRegion, Regi
     nonOverlapRegion.unite(newNonOverlapRegion);
 }
 
-void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, ComputeOverlapRegionData& data, const TransformationMatrix& surfaceTansform, const TransformationMatrix& accumulatedReplicaTransform, bool includesReplica)
+void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, ComputeOverlapRegionData& data, const TransformationMatrix& surfaceTransform, const TransformationMatrix& accumulatedReplicaTransform, bool includesReplica)
 {
     if (!isVisible())
         return;
 
-    TransformationMatrix transform;
-    transform.multiply(surfaceTansform);
-    transform.multiply(accumulatedReplicaTransform);
-    transform.multiply(m_layerTransforms.combined);
-
-    auto collectRect = [&](const FloatRect& rect, const TransformationMatrix& transform) {
-        IntRect transformedRect = enclosingIntRect(transform.mapRect(rect));
-        transformedRect.intersect(data.clipBounds);
-        resolveOverlaps(Region(transformedRect), data.overlapRegion, data.nonOverlapRegion);
-    };
-    
     if (needsLocalSpaceSurface() || mode == ComputeOverlapRegionMode::Union) {
         Region region;
         Function<void(const FloatRect&, const TransformationMatrix&)> collectLocalRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
@@ -372,38 +361,51 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, Co
             transformedRect.intersect(data.clipBounds);
             region.unite(transformedRect);
         });
-        collectLocalSpaceRects(transform, collectLocalRect, includesReplica);
+        collectLocalSpaceRects(surfaceTransform, accumulatedReplicaTransform, collectLocalRect, includesReplica);
         resolveOverlaps(region, data.overlapRegion, data.nonOverlapRegion);
     } else {
-        collectRect(layerRect(), transform);
+        TransformationMatrix localTransform = surfaceTransform;
+        localTransform.multiply(accumulatedReplicaTransform);
+        localTransform.multiply(m_layerTransforms.combined);
+
+        auto collectRect = [&](const FloatRect& rect, const TransformationMatrix& transform) {
+            IntRect transformedRect = enclosingIntRect(transform.mapRect(rect));
+            transformedRect.intersect(data.clipBounds);
+            resolveOverlaps(Region(transformedRect), data.overlapRegion, data.nonOverlapRegion);
+        };
+    
+        collectRect(layerRect(), localTransform);
         if (m_state.replicaLayer && includesReplica) {
-            TransformationMatrix newReplicaTransform(accumulatedReplicaTransform);
+            TransformationMatrix newReplicaTransform = accumulatedReplicaTransform;
             newReplicaTransform.multiply(replicaTransform());
-            computeOverlapRegions(mode, data, surfaceTansform, newReplicaTransform, false);
+            computeOverlapRegions(mode, data, surfaceTransform, newReplicaTransform, false);
         }
-        for (auto* child : m_children) {
-            if (child->shouldBlend())
-                child->computeOverlapRegions(ComputeOverlapRegionMode::Union, data, surfaceTansform, accumulatedReplicaTransform);
-            else if (child->needsLocalSpaceSurface()) {
-                child->computeOverlapRegions(mode, data, transform, { });
-            } else
-                child->computeOverlapRegions(mode, data, surfaceTansform, accumulatedReplicaTransform);
+        if (!m_state.masksToBounds && !m_state.maskLayer) {
+            for (auto* child : m_children) {
+                if (child->shouldBlend())
+                    child->computeOverlapRegions(ComputeOverlapRegionMode::Union, data, surfaceTransform, accumulatedReplicaTransform);
+                else if (child->needsLocalSpaceSurface())
+                    child->computeOverlapRegions(mode, data, localTransform, { });
+                else
+                    child->computeOverlapRegions(mode, data, surfaceTransform, accumulatedReplicaTransform);
+            }
         }
     }
 }
 
 void TextureMapperLayer::computeLocalSpaceSurfaceRegion(Region& region)
 {
-    collectLocalSpaceRects({ }, [&](const FloatRect& rect, const TransformationMatrix& transform) {
+    collectLocalSpaceRects({ }, { }, [&](const FloatRect& rect, const TransformationMatrix& transform) {
         region.unite(enclosingIntRect(transform.mapRect(rect)));
     }, false);
 }
 
-void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& accumulatedTransform, const Function<void(const FloatRect&, const TransformationMatrix&)>& passedCollectRect, bool includesReplica)
+void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surfaceTransform, const TransformationMatrix& accumulatedReplicaTransform, const Function<void(const FloatRect&, const TransformationMatrix&)>& passedCollectRect, bool includesReplica)
 {
-    TransformationMatrix localTransform = accumulatedTransform;
-    if (!needsLocalSpaceSurface())
-        localTransform.multiply(m_layerTransforms.combined);
+    TransformationMatrix localTransform = surfaceTransform;
+    localTransform.multiply(accumulatedReplicaTransform);
+    localTransform.multiply(m_layerTransforms.combined);
+
     Function<void(const FloatRect&, const TransformationMatrix&)> expandOutsetsAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
         FloatRect rect = passedRect;
         auto outsets = m_currentFilters.outsets();
@@ -411,21 +413,35 @@ void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& accu
         rect.expand(outsets.left() + outsets.right(), outsets.top() + outsets.bottom());
         passedCollectRect(rect, transform);
     });
+
     bool shouldExpand = m_currentFilters.hasOutsets() && !m_state.masksToBounds && !m_state.maskLayer;
     auto& collectRect = shouldExpand ? expandOutsetsAndCollectRect : passedCollectRect;
     collectRect(layerRect(), localTransform);
+    if (m_state.replicaLayer && includesReplica) {
+        TransformationMatrix newReplicaTransform(accumulatedReplicaTransform);
+        newReplicaTransform.multiply(replicaTransform());
+        collectLocalSpaceRects(surfaceTransform, newReplicaTransform, passedCollectRect, false);
+    }
 
     if (!m_state.masksToBounds && !m_state.maskLayer) {
         Function<void(const FloatRect&, const TransformationMatrix&)> transformAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
             FloatRect rect = transform.mapRect(passedRect);
             expandOutsetsAndCollectRect(rect, localTransform);
         });
-        auto& collectRectForChild = shouldExpand ? transformAndCollectRect : passedCollectRect;
+        auto* collectRectForChild = &passedCollectRect;
+        TransformationMatrix newSurfaceTransform = surfaceTransform;
+        TransformationMatrix newLocalTransform = localTransform;
+        if (shouldExpand) {
+            collectRectForChild = &transformAndCollectRect;
+            newSurfaceTransform = { };
+            newLocalTransform = { };
+            ASSERT(accumulatedReplicaTransform.isIdentity());
+        }
         for (auto* child : m_children) {
-            TransformationMatrix newAccumulatedTransform = accumulatedTransform;
             if (child->needsLocalSpaceSurface())
-                newAccumulatedTransform.multiply(child->m_layerTransforms.combined);
-            child->collectLocalSpaceRects(newAccumulatedTransform, collectRectForChild, true);
+                child->collectLocalSpaceRects(newLocalTransform, { }, *collectRectForChild, true);
+            else
+                child->collectLocalSpaceRects(newSurfaceTransform, accumulatedReplicaTransform, *collectRectForChild, true);
         }
     }
 }
