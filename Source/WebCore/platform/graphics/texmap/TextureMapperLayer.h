@@ -124,9 +124,9 @@ private:
         Union,
     };
     struct ComputeOverlapRegionData {
-        std::optional<IntRect> clipBounds;
+        IntRect clipBounds;
         Region& overlapRegion;
-        Region* nonOverlapRegion;
+        Region& nonOverlapRegion;
     };
     void computeOverlapRegions(ComputeOverlapRegionMode, ComputeOverlapRegionData&, const TransformationMatrix&, const TransformationMatrix&, bool includesReplica = true);
     void computeLocalSpaceSurfaceRegion(Region&);

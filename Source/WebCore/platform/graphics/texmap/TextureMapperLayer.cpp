@@ -361,21 +361,19 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, Co
 
     auto collectRect = [&](const FloatRect& rect, const TransformationMatrix& transform) {
         IntRect transformedRect = enclosingIntRect(transform.mapRect(rect));
-        if (data.clipBounds)
-            transformedRect.intersect(*data.clipBounds);
-        resolveOverlaps(Region(transformedRect), data.overlapRegion, *data.nonOverlapRegion);
+        transformedRect.intersect(data.clipBounds);
+        resolveOverlaps(Region(transformedRect), data.overlapRegion, data.nonOverlapRegion);
     };
     
     if (needsLocalSpaceSurface() || mode == ComputeOverlapRegionMode::Union) {
         Region region;
         Function<void(const FloatRect&, const TransformationMatrix&)> collectLocalRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
             IntRect transformedRect = enclosingIntRect(transform.mapRect(passedRect));
-            if (data.clipBounds)
-                transformedRect.intersect(*data.clipBounds);
+            transformedRect.intersect(data.clipBounds);
             region.unite(transformedRect);
         });
         collectLocalSpaceRects(transform, collectLocalRect, includesReplica);
-        resolveOverlaps(region, data.overlapRegion, *data.nonOverlapRegion);
+        resolveOverlaps(region, data.overlapRegion, data.nonOverlapRegion);
     } else {
         collectRect(layerRect(), transform);
         if (m_state.replicaLayer && includesReplica) {
@@ -439,9 +437,9 @@ void TextureMapperLayer::paintUsingOverlapRegions(TextureMapperPaintOptions& opt
     ComputeOverlapRegionData data {
         options.textureMapper.clipBounds(),
         overlapRegion,
-        &nonOverlapRegion
+        nonOverlapRegion
     };
-    data.clipBounds->move(-options.offset);
+    data.clipBounds.move(-options.offset);
     computeOverlapRegions(ComputeOverlapRegionMode::Intersection, data, { }, options.transform);
     if (overlapRegion.isEmpty()) {
         paintSelfChildrenReplicaFilterAndMask(options);
