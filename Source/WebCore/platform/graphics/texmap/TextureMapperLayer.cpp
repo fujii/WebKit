@@ -406,9 +406,10 @@ void TextureMapperLayer::computeLocalSpaceSurfaceRegion(Region& region)
 void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surfaceTransform, const TransformationMatrix& accumulatedReplicaTransform, const Function<void(const FloatRect&, const TransformationMatrix&)>& passedCollectRect, bool includesReplica)
 {
     TransformationMatrix localTransform = surfaceTransform;
-    localTransform.multiply(accumulatedReplicaTransform);
-    if (!needsLocalSpaceSurface())
+    if (!needsLocalSpaceSurface()) {
+        localTransform.multiply(accumulatedReplicaTransform);
         localTransform.multiply(m_layerTransforms.combined);
+    }
 
     Function<void(const FloatRect&, const TransformationMatrix&)> expandOutsetsAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
         FloatRect rect = passedRect;
@@ -422,9 +423,17 @@ void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surf
     auto& collectRect = shouldExpand ? expandOutsetsAndCollectRect : passedCollectRect;
     collectRect(layerRect(), localTransform);
     if (m_state.replicaLayer && includesReplica) {
-        TransformationMatrix newReplicaTransform(accumulatedReplicaTransform);
+        TransformationMatrix newSurfaceTransform = surfaceTransform;
+        TransformationMatrix newReplicaTransform = accumulatedReplicaTransform;
         newReplicaTransform.multiply(replicaTransform());
-        collectLocalSpaceRects(surfaceTransform, newReplicaTransform, passedCollectRect, false);
+        if (needsLocalSpaceSurface()) {
+            TransformationMatrix newLocalTransform = localTransform;
+            newLocalTransform.multiply(newReplicaTransform);
+            newLocalTransform.multiply(m_layerTransforms.combined);
+            newSurfaceTransform = newLocalTransform;
+            newReplicaTransform = { };
+        }
+        collectLocalSpaceRects(newSurfaceTransform, newReplicaTransform, passedCollectRect, false);
     }
 
     if (!m_state.masksToBounds && !m_state.maskLayer) {
@@ -442,6 +451,7 @@ void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surf
         for (auto* child : m_children) {
             if (child->needsLocalSpaceSurface()) {
                 TransformationMatrix newLocalTransform = localTransform;
+                newLocalTransform.multiply(accumulatedReplicaTransform);
                 newLocalTransform.multiply(child->m_layerTransforms.combined);
                 child->collectLocalSpaceRects(newLocalTransform, { }, *collectRectForChild, true);
             } else
