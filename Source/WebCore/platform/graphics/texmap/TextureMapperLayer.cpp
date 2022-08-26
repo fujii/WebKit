@@ -428,25 +428,23 @@ void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surf
     }
 
     if (!m_state.masksToBounds && !m_state.maskLayer) {
-        if (needsLocalSpaceSurface())
-            localTransform.multiply(m_layerTransforms.combined);
         Function<void(const FloatRect&, const TransformationMatrix&)> transformAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
             FloatRect rect = transform.mapRect(passedRect);
             expandOutsetsAndCollectRect(rect, localTransform);
         });
         auto* collectRectForChild = &passedCollectRect;
         TransformationMatrix newSurfaceTransform = surfaceTransform;
-        TransformationMatrix newLocalTransform = localTransform;
         if (shouldExpand) {
             collectRectForChild = &transformAndCollectRect;
             newSurfaceTransform = { };
-            newLocalTransform = { };
             ASSERT(accumulatedReplicaTransform.isIdentity());
         }
         for (auto* child : m_children) {
-            if (child->needsLocalSpaceSurface())
+            if (child->needsLocalSpaceSurface()) {
+                TransformationMatrix newLocalTransform = localTransform;
+                newLocalTransform.multiply(child->m_layerTransforms.combined);
                 child->collectLocalSpaceRects(newLocalTransform, { }, *collectRectForChild, true);
-            else
+            } else
                 child->collectLocalSpaceRects(newSurfaceTransform, accumulatedReplicaTransform, *collectRectForChild, true);
         }
     }
