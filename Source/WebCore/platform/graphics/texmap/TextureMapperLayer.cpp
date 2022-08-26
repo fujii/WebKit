@@ -366,7 +366,8 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, Co
     } else {
         TransformationMatrix localTransform = surfaceTransform;
         localTransform.multiply(accumulatedReplicaTransform);
-        localTransform.multiply(m_layerTransforms.combined);
+        if (!needsLocalSpaceSurface())
+            localTransform.multiply(m_layerTransforms.combined);
 
         auto collectRect = [&](const FloatRect& rect, const TransformationMatrix& transform) {
             IntRect transformedRect = enclosingIntRect(transform.mapRect(rect));
@@ -381,6 +382,8 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, Co
             computeOverlapRegions(mode, data, surfaceTransform, newReplicaTransform, false);
         }
         if (!m_state.masksToBounds && !m_state.maskLayer) {
+            if (needsLocalSpaceSurface())
+                localTransform.multiply(m_layerTransforms.combined);
             for (auto* child : m_children) {
                 if (child->shouldBlend())
                     child->computeOverlapRegions(ComputeOverlapRegionMode::Union, data, surfaceTransform, accumulatedReplicaTransform);
