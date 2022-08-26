@@ -37,8 +37,12 @@ public:
     TextureMapper& textureMapper;
     // accumulated replica transform
     TransformationMatrix transform;
-    // transform from the current surface to the screen for painting the Backdrop Root Image
+    // accumulated replica transform without reflection flipping
+    TransformationMatrix backdropTransform;
+    // transform from the current surface to the screen
     TransformationMatrix surfaceTransform;
+    // transform from the current surface to the screen without reflection flipping for painting the Backdrop Root Image
+    TransformationMatrix backdropSurfaceTransform;
     RefPtr<BitmapTexture> surface;
     float opacity { 1 };
     IntSize offset;
@@ -327,6 +331,8 @@ void TextureMapperLayer::paintSelfAndChildrenWithReplica(TextureMapperPaintOptio
         SetForScope scopedReplicaLayer(options.replicaLayer, this);
         SetForScope scopedTransform(options.transform, options.transform);
         options.transform.multiply(replicaTransform());
+        SetForScope scopedBackdropTransform(options.backdropTransform, options.backdropTransform);
+        options.backdropTransform.multiply(backdropReplicaTransform());
         paintSelfAndChildren(options);
     }
 
@@ -337,6 +343,21 @@ TransformationMatrix TextureMapperLayer::replicaTransform()
 {
     return TransformationMatrix(m_state.replicaLayer->m_layerTransforms.combined)
         .multiply(m_layerTransforms.combined.inverse().value_or(TransformationMatrix()));
+}
+
+TransformationMatrix TextureMapperLayer::backdropReplicaTransform()
+{
+    TransformationMatrix::Decomposed2Type decompose;
+    m_state.replicaLayer->m_layerTransforms.localTransform.decompose2(decompose);
+    FloatPoint position;
+    if (decompose.scaleX < 0)
+        position.setX(decompose.scaleX * (decompose.translateX + m_state.size.width()));
+    else
+        position.setY(decompose.scaleY * (decompose.translateY + m_state.size.height()));
+    TransformationMatrix transform = m_layerTransforms.combined;
+    transform.translate(position.x(), position.y());
+    transform.multiply(m_layerTransforms.combined.inverse().value_or(TransformationMatrix()));
+    return transform;
 }
 
 static void resolveOverlaps(const Region& newRegion, Region& overlapRegion, Region& nonOverlapRegion)
@@ -546,16 +567,24 @@ void TextureMapperLayer::applyMask(TextureMapperPaintOptions& options)
     options.textureMapper.setMaskMode(false);
 }
 
+
+void TextureMapperLayer::paintBackdropRootImage(TextureMapperPaintOptions& options)
+{
+    SetForScope scopedTransform(options.transform, options.backdropSurfaceTransform.inverse().value_or(TransformationMatrix()));
+    SetForScope scopedSurfaceTransform(options.surfaceTransform, TransformationMatrix());
+    SetForScope scopedBackdropTransform(options.backdropTransform, TransformationMatrix());
+    SetForScope scopedBackdropSurfaceTransform(options.backdropSurfaceTransform, TransformationMatrix());
+    SetForScope scopedReplicaLayer(options.replicaLayer, nullptr);
+    SetForScope scopedBackdropLayer(options.backdropLayer, this);
+    rootLayer().paintSelfAndChildren(options);
+}
+
 void TextureMapperLayer::paintIntoSurface(TextureMapperPaintOptions& options)
 {
     options.textureMapper.bindSurface(options.surface.get());
-    if (m_isBackdrop) {
-        SetForScope scopedTransform(options.transform, options.surfaceTransform.inverse().value_or(TransformationMatrix()));
-        SetForScope scopedSurfaceTransform(options.surfaceTransform, TransformationMatrix());
-        SetForScope scopedReplicaLayer(options.replicaLayer, nullptr);
-        SetForScope scopedBackdropLayer(options.backdropLayer, this);
-        rootLayer().paintSelfAndChildren(options);
-    } else
+    if (m_isBackdrop)
+        paintBackdropRootImage(options);
+    else
         paintSelfAndChildren(options);
 
     bool hasMask = !!m_state.maskLayer;
@@ -586,6 +615,10 @@ void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions&
         options.surfaceTransform.translate(options.offset.width(), options.offset.height());
         options.surfaceTransform.multiply(options.transform);
         options.surfaceTransform.multiply(m_layerTransforms.combined);
+        SetForScope scopedBackdropSurfaceTransform(options.backdropSurfaceTransform, options.backdropSurfaceTransform);
+        options.backdropSurfaceTransform.translate(options.offset.width(), options.offset.height());
+        options.backdropSurfaceTransform.multiply(options.backdropTransform);
+        options.backdropSurfaceTransform.multiply(m_layerTransforms.combined);
         SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
         SetForScope scopedOpacity(options.opacity, 1);
 
@@ -605,8 +638,13 @@ void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapp
         options.surfaceTransform.translate(options.offset.width(), options.offset.height());
         options.surfaceTransform.multiply(options.transform);
         options.surfaceTransform.multiply(m_layerTransforms.combined);
-        SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
         SetForScope scopedTransform(options.transform, TransformationMatrix());
+        SetForScope scopedBackdropSurfaceTransform(options.backdropSurfaceTransform, options.backdropSurfaceTransform);
+        options.backdropSurfaceTransform.translate(options.offset.width(), options.offset.height());
+        options.backdropSurfaceTransform.multiply(options.backdropTransform);
+        options.backdropSurfaceTransform.multiply(m_layerTransforms.combined);
+        SetForScope scopedBackdropTransform(options.backdropTransform, TransformationMatrix());
+        SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
         SetForScope scopedOpacity(options.opacity, 1);
 
         paintIntoSurface(options);
@@ -638,6 +676,8 @@ void TextureMapperLayer::paintSelfChildrenReplicaFilterAndMask(TextureMapperPain
             SetForScope scopedReplicaLayer(options.replicaLayer, this);
             SetForScope scopedTransform(options.transform, options.transform);
             options.transform.multiply(replicaTransform());
+            SetForScope scopedBackdropTransform(options.backdropTransform, options.backdropTransform);
+            options.backdropTransform.multiply(backdropReplicaTransform());
             paintSelfChildrenFilterAndMask(options);
         }
         paintSelfChildrenFilterAndMask(options);

@@ -116,6 +116,7 @@ private:
     static void sortByZOrder(Vector<TextureMapperLayer* >& array);
 
     TransformationMatrix replicaTransform();
+    TransformationMatrix backdropReplicaTransform();
     void removeFromParent();
     void removeAllChildren();
 
@@ -135,6 +136,7 @@ private:
     void paintRecursive(TextureMapperPaintOptions&);
     void paintSelfChildrenReplicaFilterAndMask(TextureMapperPaintOptions&);
     void paintUsingOverlapRegions(TextureMapperPaintOptions&);
+    void paintBackdropRootImage(TextureMapperPaintOptions&);
     void paintIntoSurface(TextureMapperPaintOptions&);
     void paintWithIntermediateSurface(TextureMapperPaintOptions&, const IntRect&);
     void paintSelfAndChildrenWithIntermediateSurface(TextureMapperPaintOptions&, const IntRect&);
