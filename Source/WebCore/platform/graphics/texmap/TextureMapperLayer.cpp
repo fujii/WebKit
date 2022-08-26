@@ -67,7 +67,7 @@ void TextureMapperLayer::computeTransformsRecursive()
         TransformationMatrix parentTransform;
         if (m_parent)
             parentTransform = m_parent->m_layerTransforms.combinedForChildren;
-        else if (m_effectTarget && !m_effectTarget->needsLocalSpaceSurface())
+        else if (m_effectTarget && m_isReplica)
             parentTransform = m_effectTarget->m_layerTransforms.combined;
 
         const float originX = m_state.anchorPoint.x() * m_state.size.width();
