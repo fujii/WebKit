@@ -604,6 +604,8 @@ void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions&
     auto surface = options.textureMapper.acquireTextureFromPool(rect.size(), BitmapTexture::SupportsAlpha);
     {
         SetForScope scopedSurface(options.surface, surface);
+        SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
+        options.surfaceTransform.translate(rect.location().x(), rect.location().y());
         SetForScope scopedOffset(options.offset, options.offset);
         options.offset.contract(rect.location().x(), rect.location().y());
         SetForScope scopedOpacity(options.opacity, 1);
@@ -621,6 +623,7 @@ void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapp
     {
         SetForScope scopedSurface(options.surface, surface);
         SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
+        options.surfaceTransform.translate(options.offset.width(), options.offset.height());
         options.surfaceTransform.multiply(options.transform);
         options.surfaceTransform.multiply(m_layerTransforms.combined);
         SetForScope scopedTransform(options.transform, TransformationMatrix());
