@@ -621,7 +621,6 @@ void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapp
     {
         SetForScope scopedSurface(options.surface, surface);
         SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
-        options.surfaceTransform.translate(options.offset.width(), options.offset.height());
         options.surfaceTransform.multiply(options.transform);
         options.surfaceTransform.multiply(m_layerTransforms.combined);
         SetForScope scopedTransform(options.transform, TransformationMatrix());
