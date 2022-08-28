@@ -339,21 +339,6 @@ TransformationMatrix TextureMapperLayer::replicaTransform()
         .multiply(m_layerTransforms.combined.inverse().value_or(TransformationMatrix()));
 }
 
-TransformationMatrix TextureMapperLayer::backdropReplicaTransform()
-{
-    TransformationMatrix::Decomposed2Type decompose;
-    m_state.replicaLayer->m_layerTransforms.localTransform.decompose2(decompose);
-    FloatPoint position;
-    if (decompose.scaleX < 0)
-        position.setX(decompose.translateX < 0 ? -decompose.translateX - m_state.size.width() : decompose.translateX);
-    else
-        position.setY(decompose.translateY < 0 ? -decompose.translateY - m_state.size.height() : decompose.translateY);
-    TransformationMatrix transform = m_layerTransforms.combined;
-    transform.translate(position.x(), position.y());
-    transform.multiply(m_layerTransforms.combined.inverse().value_or(TransformationMatrix()));
-    return transform;
-}
-
 static void resolveOverlaps(const Region& newRegion, Region& overlapRegion, Region& nonOverlapRegion)
 {
     Region newOverlapRegion(newRegion);

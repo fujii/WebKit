@@ -116,7 +116,6 @@ private:
     static void sortByZOrder(Vector<TextureMapperLayer* >& array);
 
     TransformationMatrix replicaTransform();
-    TransformationMatrix backdropReplicaTransform();
     void removeFromParent();
     void removeAllChildren();
 
