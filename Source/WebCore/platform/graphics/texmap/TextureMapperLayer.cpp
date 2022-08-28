@@ -35,7 +35,7 @@ public:
     { }
 
     TextureMapper& textureMapper;
-    // accumulated replica transform
+    // accumulated replica transform in the current surface
     TransformationMatrix transform;
     // transform from the current surface to the screen
     TransformationMatrix surfaceTransform;
