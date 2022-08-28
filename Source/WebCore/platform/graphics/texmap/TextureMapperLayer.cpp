@@ -564,8 +564,10 @@ void TextureMapperLayer::applyMask(TextureMapperPaintOptions& options)
 
 void TextureMapperLayer::paintBackdropRootImage(TextureMapperPaintOptions& options)
 {
-    ASSERT(options.surfaceTransform.isInvertible());
-    SetForScope scopedTransform(options.transform, options.surfaceTransform.inverse().value_or(TransformationMatrix()));
+    auto inversedSurfaceTransform = options.surfaceTransform.inverse();
+    if (!inversedSurfaceTransform)
+        return;
+    SetForScope scopedTransform(options.transform, *inversedSurfaceTransform);
     SetForScope scopedSurfaceTransform(options.surfaceTransform, TransformationMatrix());
     SetForScope scopedReplicaLayer(options.replicaLayer, nullptr);
     SetForScope scopedBackdropLayer(options.backdropLayer, this);
@@ -591,14 +593,6 @@ void TextureMapperLayer::paintIntoSurface(TextureMapperPaintOptions& options)
         m_state.replicaLayer->m_state.maskLayer->applyMask(options);
 }
 
-static void commitSurface(TextureMapperPaintOptions& options, BitmapTexture& surface, const IntRect& rect, float opacity)
-{
-    IntRect targetRect(rect);
-    //targetRect.move(options.offset);
-    options.textureMapper.bindSurface(options.surface.get());
-    options.textureMapper.drawTexture(surface, targetRect, { }, opacity);
-}
-
 void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions& options, const IntRect& rect)
 {
     auto surface = options.textureMapper.acquireTextureFromPool(rect.size(), BitmapTexture::SupportsAlpha);
@@ -614,7 +608,8 @@ void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions&
         paintSelfChildrenReplicaFilterAndMask(options);
     }
 
-    commitSurface(options, *surface, rect, options.opacity);
+    options.textureMapper.bindSurface(options.surface.get());
+    options.textureMapper.drawTexture(*surface, rect, { }, options.opacity);
 }
 
 void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapperPaintOptions& options, const IntRect& rect)
