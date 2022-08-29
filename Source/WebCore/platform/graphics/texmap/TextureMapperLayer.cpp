@@ -585,16 +585,17 @@ void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions&
         SetForScope scopedSurface(options.surface, surface);
         SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
         options.surfaceTransform.translate(rect.location().x(), rect.location().y());
-        SetForScope scopedOffset(options.offset, options.offset);
-        options.offset.contract(rect.location().x(), rect.location().y());
+        SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
         SetForScope scopedOpacity(options.opacity, 1);
 
         options.textureMapper.bindSurface(options.surface.get());
         paintSelfChildrenReplicaFilterAndMask(options);
     }
 
+    IntRect targetRect(rect);
+    targetRect.move(options.offset);
     options.textureMapper.bindSurface(options.surface.get());
-    options.textureMapper.drawTexture(*surface, rect, { }, options.opacity);
+    options.textureMapper.drawTexture(*surface, targetRect, { }, options.opacity);
 }
 
 void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapperPaintOptions& options, const IntRect& rect)
