@@ -66,7 +66,7 @@ void TextureMapperLayer::computeTransformsRecursive()
     // Compute transforms recursively on the way down to leafs.
     {
         TransformationMatrix parentTransform;
-        if (m_parent && !m_is3DRoot)
+        if (m_parent)
             parentTransform = m_parent->m_layerTransforms.combinedForChildren;
         else if (m_isReplica)
             parentTransform = m_effectTarget->m_layerTransforms.combined;
@@ -558,6 +558,14 @@ void TextureMapperLayer::paintIntoSurface(TextureMapperPaintOptions& options)
         m_state.replicaLayer->m_state.maskLayer->applyMask(options);
 }
 
+static void commitSurface(TextureMapperPaintOptions& options, BitmapTexture& surface, const IntRect& rect, float opacity)
+{
+    IntRect targetRect(rect);
+    targetRect.move(options.offset);
+    options.textureMapper.bindSurface(options.surface.get());
+    options.textureMapper.drawTexture(surface, targetRect, { }, opacity);
+}
+
 void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions& options, const IntRect& rect)
 {
     auto surface = options.textureMapper.acquireTextureFromPool(rect.size(), BitmapTexture::SupportsAlpha);
@@ -572,10 +580,7 @@ void TextureMapperLayer::paintWithIntermediateSurface(TextureMapperPaintOptions&
         paintSelfChildrenReplicaFilterAndMask(options);
     }
 
-    IntRect targetRect(rect);
-    targetRect.move(options.offset);
-    options.textureMapper.bindSurface(options.surface.get());
-    options.textureMapper.drawTexture(*surface, targetRect, { }, options.opacity);
+    commitSurface(options, *surface, rect, options.opacity);
 }
 
 void TextureMapperLayer::paintSelfAndChildrenWithIntermediateSurface(TextureMapperPaintOptions& options, const IntRect& rect)
@@ -664,9 +669,7 @@ void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& 
                 {
                     SetForScope scopedSurface(options.surface, surface);
                     SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
-                    options.surfaceTransform.translate(options.offset.width(), options.offset.height());
-                    options.surfaceTransform.multiply(options.transform);
-                    SetForScope scopedTransform(options.transform, TransformationMatrix());
+                    options.surfaceTransform.translate(rect.location().x(), rect.location().y());
                     SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
 
                     options.textureMapper.bindSurface(options.surface.get());
@@ -674,13 +677,7 @@ void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& 
                     paintSelfAndChildrenWithReplica(options);
                     options.textureMapper.endPreserves3D();
                 }
-                TransformationMatrix transform;
-                transform.translate(options.offset.width(), options.offset.height());
-                transform.multiply(options.transform);
-                transform.multiply(m_parent->m_layerTransforms.combinedForChildren);
-
-                options.textureMapper.bindSurface(options.surface.get());
-                options.textureMapper.drawTexture(*surface, rect, transform, options.opacity);
+                commitSurface(options, *surface, rect, options.opacity);
             }
         }
     }
