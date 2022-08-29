@@ -259,6 +259,8 @@ void BitmapTextureGL::initializeStencil()
 
 void BitmapTextureGL::initializeDepthBuffer()
 {
+    if (!(flags() & DepthBuffer))
+        return;
     if (m_depthBufferObject)
         return;
 
@@ -289,6 +291,7 @@ void BitmapTextureGL::createFboIfNeeded()
     glGenFramebuffers(1, &m_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id(), 0);
+    initializeDepthBuffer();
     m_shouldClear = true;
 }
 

@@ -133,6 +133,7 @@ private:
     void collectLocalSpaceRects(const TransformationMatrix&, const TransformationMatrix&, const Function<void(const FloatRect&, const TransformationMatrix&)>&, bool includesReplica);
 
     void paintRecursive(TextureMapperPaintOptions&);
+    void paintWith3DRenderingContext(TextureMapperPaintOptions&);
     void paintSelfChildrenReplicaFilterAndMask(TextureMapperPaintOptions&);
     void paintUsingOverlapRegions(TextureMapperPaintOptions&);
     void paintBackdropRootImage(TextureMapperPaintOptions&);
@@ -227,6 +228,7 @@ private:
 #endif
     bool m_isBackdrop { false };
     bool m_isReplica { false };
+    bool m_is3DRoot { false };
 
     struct {
         TransformationMatrix localTransform;

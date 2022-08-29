@@ -90,7 +90,6 @@ private:
 
     GLuint m_id { 0 };
     IntSize m_textureSize;
-    IntRect m_dirtyRect;
     GLuint m_fbo { 0 };
     GLuint m_rbo { 0 };
     GLuint m_depthBufferObject { 0 };

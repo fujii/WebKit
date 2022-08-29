@@ -44,7 +44,6 @@ public:
     IntSize offset;
     TextureMapperLayer* backdropLayer { nullptr };
     TextureMapperLayer* replicaLayer { nullptr };
-    bool preserves3D { false };
 };
 
 TextureMapperLayer::TextureMapperLayer() = default;
@@ -62,10 +61,12 @@ void TextureMapperLayer::computeTransformsRecursive()
     if (m_state.size.isEmpty() && m_state.masksToBounds)
         return;
 
+    m_is3DRoot = m_state.preserves3D && (!m_parent || !m_parent->m_state.preserves3D);
+
     // Compute transforms recursively on the way down to leafs.
     {
         TransformationMatrix parentTransform;
-        if (m_parent)
+        if (m_parent && !m_is3DRoot)
             parentTransform = m_parent->m_layerTransforms.combinedForChildren;
         else if (m_isReplica)
             parentTransform = m_effectTarget->m_layerTransforms.combined;
@@ -233,27 +234,6 @@ void TextureMapperLayer::paintSelfAndChildren(TextureMapperPaintOptions& options
 {
     if (m_state.backdropLayer && m_state.backdropLayer == options.backdropLayer)
         return;
-
-    struct Preserves3DScope {
-        Preserves3DScope(TextureMapperPaintOptions& passedOptions, bool passedEnable)
-            : options(passedOptions)
-            , enable(passedEnable)
-        {
-            if (enable) {
-                options.preserves3D = true;
-                options.textureMapper.beginPreserves3D();
-            }
-        }
-        ~Preserves3DScope()
-        {
-            if (enable) {
-                options.preserves3D = false;
-                options.textureMapper.endPreserves3D();
-            }
-        }
-        TextureMapperPaintOptions& options;
-        bool enable;
-    } scopedPreserves3D(options, m_state.preserves3D && !options.preserves3D);
 
     if (m_state.backdropLayer && !options.backdropLayer) {
         TransformationMatrix clipTransform;
@@ -654,10 +634,56 @@ void TextureMapperLayer::paintRecursive(TextureMapperPaintOptions& options)
 
     SetForScope scopedOpacity(options.opacity, options.opacity * m_currentOpacity);
 
-    if (shouldBlend())
+    if (m_is3DRoot)
+        paintWith3DRenderingContext(options);
+    else if (shouldBlend())
         paintUsingOverlapRegions(options);
     else
         paintSelfChildrenReplicaFilterAndMask(options);
+}
+
+void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& options)
+{
+    Region overlapRegion;
+    computeLocalSpaceSurfaceRegion(overlapRegion);
+
+    auto rects = overlapRegion.rects();
+    static const size_t OverlapRegionConsolidationThreshold = 4;
+    if (rects.size() > OverlapRegionConsolidationThreshold) {
+        rects.clear();
+        rects.append(overlapRegion.bounds());
+    }
+
+    IntSize maxTextureSize = options.textureMapper.maxTextureSize();
+    for (auto& rect : rects) {
+        for (int x = rect.x(); x < rect.maxX(); x += maxTextureSize.width()) {
+            for (int y = rect.y(); y < rect.maxY(); y += maxTextureSize.height()) {
+                IntRect tileRect(IntPoint(x, y), maxTextureSize);
+                tileRect.intersect(rect);
+                auto surface = options.textureMapper.acquireTextureFromPool(tileRect.size(), BitmapTexture::SupportsAlpha | BitmapTexture::DepthBuffer);
+                {
+                    SetForScope scopedSurface(options.surface, surface);
+                    SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
+                    options.surfaceTransform.translate(options.offset.width(), options.offset.height());
+                    options.surfaceTransform.multiply(options.transform);
+                    SetForScope scopedTransform(options.transform, TransformationMatrix());
+                    SetForScope scopedOffset(options.offset, -toIntSize(rect.location()));
+
+                    options.textureMapper.bindSurface(options.surface.get());
+                    options.textureMapper.beginPreserves3D();
+                    paintSelfAndChildrenWithReplica(options);
+                    options.textureMapper.endPreserves3D();
+                }
+                TransformationMatrix transform;
+                transform.translate(options.offset.width(), options.offset.height());
+                transform.multiply(options.transform);
+                transform.multiply(m_parent->m_layerTransforms.combinedForChildren);
+
+                options.textureMapper.bindSurface(options.surface.get());
+                options.textureMapper.drawTexture(*surface, rect, transform, options.opacity);
+            }
+        }
+    }
 }
 
 void TextureMapperLayer::setChildren(const Vector<TextureMapperLayer*>& newChildren)

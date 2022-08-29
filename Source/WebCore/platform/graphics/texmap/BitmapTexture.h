@@ -46,6 +46,7 @@ public:
     enum Flag {
         NoFlag = 0,
         SupportsAlpha = 0x01,
+        DepthBuffer = 1 << 1,
     };
 
     typedef unsigned Flags;
