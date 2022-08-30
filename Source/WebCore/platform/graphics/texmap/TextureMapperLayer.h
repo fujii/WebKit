@@ -228,6 +228,7 @@ private:
 #endif
     bool m_isBackdrop { false };
     bool m_isReplica { false };
+    bool m_is3DRoot { false };
 
     struct {
         TransformationMatrix localTransform;

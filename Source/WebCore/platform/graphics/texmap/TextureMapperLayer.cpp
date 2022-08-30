@@ -41,7 +41,6 @@ public:
     IntSize offset;
     TextureMapperLayer* backdropLayer { nullptr };
     TextureMapperLayer* replicaLayer { nullptr };
-    bool preserves3D { false };
 };
 
 struct TextureMapperLayer::ComputeTransformData {
@@ -72,10 +71,16 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
     if (m_state.size.isEmpty() && m_state.masksToBounds)
         return;
 
+    m_is3DRoot = m_state.preserves3D && (!m_parent || !m_parent->m_state.preserves3D);
+
     // Compute transforms recursively on the way down to leafs.
     {
         TransformationMatrix parentTransform;
-        if (m_parent)
+        if (m_is3DRoot) {
+            parentTransform.translate3d(-m_parent->m_state.pos.x(), -m_parent->m_state.pos.y(), -m_parent->m_state.anchorPoint.z());
+            parentTransform.multiply(m_parent->m_state.childrenTransform);
+            parentTransform.translate3d(m_parent->m_state.pos.x(), m_parent->m_state.pos.y(), m_parent->m_state.anchorPoint.z());
+        } if (m_parent)
             parentTransform = m_parent->m_layerTransforms.combinedForChildren;
         else if (m_effectTarget)
             parentTransform = m_effectTarget->m_layerTransforms.combined;
@@ -754,7 +759,7 @@ void TextureMapperLayer::paintRecursive(TextureMapperPaintOptions& options)
 
     SetForScope scopedOpacity(options.opacity, options.opacity * m_currentOpacity);
 
-    if (m_state.preserves3D)
+    if (m_is3DRoot)
         paintWith3DRenderingContext(options);
     else if (shouldBlend())
         paintUsingOverlapRegions(options);
@@ -764,21 +769,21 @@ void TextureMapperLayer::paintRecursive(TextureMapperPaintOptions& options)
 
 void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& options)
 {
-    if (options.preserves3D) {
-        paintSelfAndChildrenWithReplica(options);
+    auto inversedTransform = m_parent->m_layerTransforms.combined.inverse();
+    if (!inversedTransform)
         return;
-    }
-    SetForScope scopedPreserves3D(options.preserves3D, true);
+    auto clipBounds = options.textureMapper.clipBounds();
+    clipBounds.move(-options.offset);
+    auto inversedClipBounds = inversedTransform->mapRect(clipBounds);
 
     Region overlapRegion;
     Region nonOverlapRegion;
     ComputeOverlapRegionData data {
         ComputeOverlapRegionMode::Union,
-        options.textureMapper.clipBounds(),
+        inversedClipBounds,
         overlapRegion,
         nonOverlapRegion
     };
-    data.clipBounds.move(-options.offset);
     computeOverlapRegions(data, options.transform, false);
     ASSERT(nonOverlapRegion.isEmpty());
 
@@ -800,11 +805,18 @@ void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& 
                     SetForScope scopedSurface(options.surface, surface);
                     SetForScope scopedOffset(options.offset, -toIntSize(tileRect.location()));
                     SetForScope scopedOpacity(options.opacity, 1);
+                    SetForScope scopedTransform(options.transform, TransformationMatrix());
 
                     options.textureMapper.bindSurface(options.surface.get());
                     paintSelfAndChildrenWithReplica(options);
                 }
-                commitSurface(options, *surface, tileRect, options.opacity);
+                TransformationMatrix transform;
+                transform.translate(options.offset.width(), options.offset.height());
+                transform.multiply(options.transform);
+                transform.multiply(m_parent->m_layerTransforms.combined);
+
+                options.textureMapper.bindSurface(options.surface.get());
+                options.textureMapper.drawTexture(*surface, tileRect, transform, options.opacity);
             }
         }
     }
