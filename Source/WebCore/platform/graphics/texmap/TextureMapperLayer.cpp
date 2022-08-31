@@ -77,10 +77,12 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
     {
         TransformationMatrix parentTransform;
         if (m_is3DRoot) {
-            parentTransform.translate3d(-m_parent->m_state.pos.x(), -m_parent->m_state.pos.y(), -m_parent->m_state.anchorPoint.z());
+            const float parentOriginX = m_parent->m_state.anchorPoint.x() * m_parent->m_state.size.width();
+            const float parentOriginY = m_parent->m_state.anchorPoint.y() * m_parent->m_state.size.height();
+            parentTransform.translate3d(parentOriginX, parentOriginY, m_parent->m_state.anchorPoint.z());
             parentTransform.multiply(m_parent->m_state.childrenTransform);
-            parentTransform.translate3d(m_parent->m_state.pos.x(), m_parent->m_state.pos.y(), m_parent->m_state.anchorPoint.z());
-        } if (m_parent)
+            parentTransform.translate3d(-parentOriginX, -parentOriginY, -m_parent->m_state.anchorPoint.z());
+        } else if (m_parent)
             parentTransform = m_parent->m_layerTransforms.combinedForChildren;
         else if (m_effectTarget)
             parentTransform = m_effectTarget->m_layerTransforms.combined;
