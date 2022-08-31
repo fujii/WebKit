@@ -140,6 +140,7 @@ private:
     void paintWith3DRenderingContext(TextureMapperPaintOptions&);
     void paintSelfChildrenReplicaFilterAndMask(TextureMapperPaintOptions&);
     void paintUsingOverlapRegions(TextureMapperPaintOptions&);
+    void paintBackdropRootImage(TextureMapperPaintOptions&);
     void paintIntoSurface(TextureMapperPaintOptions&);
     void paintWithIntermediateSurface(TextureMapperPaintOptions&, const IntRect&);
     void paintSelfAndChildrenWithIntermediateSurface(TextureMapperPaintOptions&, const IntRect&);

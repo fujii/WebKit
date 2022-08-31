@@ -35,7 +35,10 @@ public:
     { }
 
     TextureMapper& textureMapper;
+    // accumulated replica transform in the current surface
     TransformationMatrix transform;
+    // transform from the current surface to the screen
+    TransformationMatrix surfaceTransform;
     RefPtr<BitmapTexture> surface;
     float opacity { 1 };
     IntSize offset;
@@ -107,7 +110,9 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
         m_layerTransforms.combinedForChildren.translate3d(-originX, -originY, -m_state.anchorPoint.z());
 
 #if USE(COORDINATED_GRAPHICS)
-        // Compute transforms for the future as well.
+        // Compute transforms for the future for computing tile coverage.
+        // Because futureCombined is used for computing visible tiles, it is calculated only in the screen
+        // space not in the local space.
         TransformationMatrix futureParentTransform;
         if (m_parent)
             futureParentTransform = m_parent->m_layerTransforms.futureCombinedForChildren;
@@ -671,15 +676,22 @@ void TextureMapperLayer::applyMask(TextureMapperPaintOptions& options)
     options.textureMapper.setMaskMode(false);
 }
 
+void TextureMapperLayer::paintBackdropRootImage(TextureMapperPaintOptions& options)
+{
+    ASSERT(options.surfaceTransform.inverse());
+    SetForScope scopedTransform(options.transform, *options.surfaceTransform.inverse());
+    SetForScope scopedSurfaceTransform(options.surfaceTransform, TransformationMatrix());
+    SetForScope scopedReplicaLayer(options.replicaLayer, nullptr);
+    SetForScope scopedBackdropLayer(options.backdropLayer, this);
+    rootLayer().paintSelfAndChildren(options);
+}
+
 void TextureMapperLayer::paintIntoSurface(TextureMapperPaintOptions& options)
 {
     options.textureMapper.bindSurface(options.surface.get());
-    if (m_isBackdrop) {
-        SetForScope scopedTransform(options.transform, TransformationMatrix());
-        SetForScope scopedReplicaLayer(options.replicaLayer, nullptr);
-        SetForScope scopedBackdropLayer(options.backdropLayer, this);
-        rootLayer().paintSelfAndChildren(options);
-    } else
+    if (m_isBackdrop)
+        paintBackdropRootImage(options);
+    else
         paintSelfAndChildren(options);
 
     bool hasMask = !!m_state.maskLayer;
@@ -805,6 +817,10 @@ void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& 
                 auto surface = options.textureMapper.acquireTextureFromPool(tileRect.size(), BitmapTexture::SupportsAlpha | BitmapTexture::DepthBuffer);
                 {
                     SetForScope scopedSurface(options.surface, surface);
+                    SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
+                    options.surfaceTransform.translate(rect.location().x(), rect.location().y());
+                    options.surfaceTransform.multiply(options.transform);
+                    options.surfaceTransform.multiply(m_parent->m_layerTransforms.combined);
                     SetForScope scopedOffset(options.offset, -toIntSize(tileRect.location()));
                     SetForScope scopedOpacity(options.opacity, 1);
                     SetForScope scopedTransform(options.transform, TransformationMatrix());
