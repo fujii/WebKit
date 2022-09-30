@@ -37,7 +37,7 @@ public:
     TextureMapper& textureMapper;
     // accumulated replica transform in the current surface
     TransformationMatrix transform;
-    // transform from the current surface to the screen
+    // transform from the current surface to the viewport
     TransformationMatrix surfaceTransform;
     RefPtr<BitmapTexture> surface;
     float opacity { 1 };
@@ -111,7 +111,7 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
 
 #if USE(COORDINATED_GRAPHICS)
         // Compute transforms for the future for computing tile coverage.
-        // Because futureCombined is used for computing visible tiles, it is calculated only in the screen
+        // Because futureCombined is used for computing visible tiles, it is calculated only in the viewport
         // space not in the local space.
         TransformationMatrix futureParentTransform;
         if (m_parent)
