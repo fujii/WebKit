@@ -788,13 +788,13 @@ void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& 
         return;
     auto clipBounds = options.textureMapper.clipBounds();
     clipBounds.move(-options.offset);
-    auto inversedClipBounds = inversedTransform->mapRect(clipBounds);
+    auto projectedClipBounds = inversedTransform->projectQuad(FloatRect { clipBounds }).enclosingBoundingBox();
 
     Region overlapRegion;
     Region nonOverlapRegion;
     ComputeOverlapRegionData data {
         ComputeOverlapRegionMode::Union,
-        inversedClipBounds,
+        projectedClipBounds,
         overlapRegion,
         nonOverlapRegion
     };
