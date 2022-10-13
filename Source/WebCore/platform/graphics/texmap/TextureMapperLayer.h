@@ -137,6 +137,7 @@ private:
     void computeOverlapRegions(ComputeOverlapRegionData&, const TransformationMatrix&, bool includesReplica = true);
 
     void paintRecursive(TextureMapperPaintOptions&);
+    void paint2DRoot(TextureMapperPaintOptions&);
     void paintWith3DRenderingContext(TextureMapperPaintOptions&);
     void paintSelfChildrenReplicaFilterAndMask(TextureMapperPaintOptions&);
     void paintUsingOverlapRegions(TextureMapperPaintOptions&);
@@ -229,6 +230,7 @@ private:
 #endif
     bool m_isBackdrop { false };
     bool m_isReplica { false };
+    bool m_is2DRoot { false };
     bool m_is3DRoot { false };
 
     struct {

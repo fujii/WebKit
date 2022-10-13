@@ -74,6 +74,7 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
     if (m_state.size.isEmpty() && m_state.masksToBounds)
         return;
 
+    m_is2DRoot = !m_state.preserves3D && (m_parent && m_parent->m_state.preserves3D);
     m_is3DRoot = m_state.preserves3D && (!m_parent || !m_parent->m_state.preserves3D);
 
     // Compute transforms recursively on the way down to leafs.
@@ -94,15 +95,19 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
         const float originY = m_state.anchorPoint.y() * m_state.size.height();
 
         m_layerTransforms.combined = parentTransform;
+
+        if (!m_isReplica)
+            m_layerTransforms.combined.translate(m_state.pos.x(), m_state.pos.y());
+
         m_layerTransforms.combined
-            .translate3d(originX + (m_state.pos.x() - m_state.boundsOrigin.x()), originY + (m_state.pos.y() - m_state.boundsOrigin.y()), m_state.anchorPoint.z())
+            .translate3d(originX - m_state.boundsOrigin.x(), originY - m_state.boundsOrigin.y(), m_state.anchorPoint.z())
             .multiply(m_layerTransforms.localTransform);
 
-        m_layerTransforms.combinedForChildren = m_layerTransforms.combined;
+        if (m_is2DRoot)
+            m_layerTransforms.combinedForChildren = TransformationMatrix().translate3d(originX, originY, m_state.anchorPoint.z());
+        else
+            m_layerTransforms.combinedForChildren = m_layerTransforms.combined;
         m_layerTransforms.combined.translate3d(-originX, -originY, -m_state.anchorPoint.z());
-
-        if (m_isReplica)
-            m_layerTransforms.combined.translate(-m_state.pos.x(), -m_state.pos.y());
 
         if (!m_state.preserves3D)
             m_layerTransforms.combinedForChildren = m_layerTransforms.combinedForChildren.to2dTransform();
@@ -203,7 +208,8 @@ void TextureMapperLayer::paintSelf(TextureMapperPaintOptions& options)
     TransformationMatrix transform;
     transform.translate(options.offset.width(), options.offset.height());
     transform.multiply(options.transform);
-    transform.multiply(m_layerTransforms.combined);
+    if (!m_is2DRoot)
+        transform.multiply(m_layerTransforms.combined);
 
     TextureMapperSolidColorLayer solidColorLayer;
     TextureMapperBackingStore* backingStore = m_backingStore;
@@ -271,7 +277,8 @@ void TextureMapperLayer::paintSelfAndChildren(TextureMapperPaintOptions& options
         TransformationMatrix clipTransform;
         clipTransform.translate(options.offset.width(), options.offset.height());
         clipTransform.multiply(options.transform);
-        clipTransform.multiply(m_layerTransforms.combined);
+        if (!m_is2DRoot)
+            clipTransform.multiply(m_layerTransforms.combined);
         options.textureMapper.beginClip(clipTransform, m_state.backdropFiltersRect);
         m_state.backdropLayer->paintRecursive(options);
         options.textureMapper.endClip();
@@ -287,7 +294,8 @@ void TextureMapperLayer::paintSelfAndChildren(TextureMapperPaintOptions& options
         TransformationMatrix clipTransform;
         clipTransform.translate(options.offset.width(), options.offset.height());
         clipTransform.multiply(options.transform);
-        clipTransform.multiply(m_layerTransforms.combined);
+        if (!m_is2DRoot)
+            clipTransform.multiply(m_layerTransforms.combined);
         if (m_state.contentsRectClipsDescendants)
             options.textureMapper.beginClip(clipTransform, m_state.contentsClippingRect);
         else {
@@ -552,7 +560,8 @@ void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionData& data, c
     }
 
     TransformationMatrix transform(accumulatedReplicaTransform);
-    transform.multiply(m_layerTransforms.combined);
+    if (!m_is2DRoot)
+        transform.multiply(m_layerTransforms.combined);
 
     IntRect viewportBoundingRect = transformedBoundingBox(transform, localBoundingRect, data.clipBounds);
 
@@ -773,12 +782,73 @@ void TextureMapperLayer::paintRecursive(TextureMapperPaintOptions& options)
 
     SetForScope scopedOpacity(options.opacity, options.opacity * m_currentOpacity);
 
-    if (m_is3DRoot)
+    if (m_is2DRoot)
+        paint2DRoot(options);
+    else if (m_is3DRoot)
         paintWith3DRenderingContext(options);
     else if (shouldBlend())
         paintUsingOverlapRegions(options);
     else
         paintSelfChildrenReplicaFilterAndMask(options);
+}
+
+void TextureMapperLayer::paint2DRoot(TextureMapperPaintOptions& options)
+{
+    auto inversedTransform = m_layerTransforms.combined.inverse();
+    if (!inversedTransform)
+        return;
+    auto clipBounds = options.textureMapper.clipBounds();
+    clipBounds.move(-options.offset);
+    auto projectedClipBounds = inversedTransform->projectQuad(FloatRect { clipBounds }).enclosingBoundingBox();
+
+    Region overlapRegion;
+    Region nonOverlapRegion;
+    ComputeOverlapRegionData data {
+        ComputeOverlapRegionMode::Union,
+        projectedClipBounds,
+        overlapRegion,
+        nonOverlapRegion
+    };
+    computeOverlapRegions(data, options.transform, false);
+    ASSERT(nonOverlapRegion.isEmpty());
+
+    auto rects = overlapRegion.rects();
+    static const size_t OverlapRegionConsolidationThreshold = 4;
+    if (rects.size() > OverlapRegionConsolidationThreshold) {
+        rects.clear();
+        rects.append(overlapRegion.bounds());
+    }
+
+    IntSize maxTextureSize = options.textureMapper.maxTextureSize();
+    for (auto& rect : rects) {
+        for (int x = rect.x(); x < rect.maxX(); x += maxTextureSize.width()) {
+            for (int y = rect.y(); y < rect.maxY(); y += maxTextureSize.height()) {
+                IntRect tileRect(IntPoint(x, y), maxTextureSize);
+                tileRect.intersect(rect);
+                auto surface = options.textureMapper.acquireTextureFromPool(tileRect.size(), BitmapTexture::SupportsAlpha);
+                {
+                    SetForScope scopedSurface(options.surface, surface);
+                    SetForScope scopedSurfaceTransform(options.surfaceTransform, options.surfaceTransform);
+                    options.surfaceTransform.translate(rect.location().x(), rect.location().y());
+                    options.surfaceTransform.multiply(options.transform);
+                    options.surfaceTransform.multiply(m_layerTransforms.combined);
+                    SetForScope scopedOffset(options.offset, -toIntSize(tileRect.location()));
+                    SetForScope scopedOpacity(options.opacity, 1);
+                    SetForScope scopedTransform(options.transform, TransformationMatrix());
+
+                    options.textureMapper.bindSurface(options.surface.get());
+                    paintSelfAndChildrenWithReplica(options);
+                }
+                TransformationMatrix transform;
+                transform.translate(options.offset.width(), options.offset.height());
+                transform.multiply(options.transform);
+                transform.multiply(m_layerTransforms.combined);
+
+                options.textureMapper.bindSurface(options.surface.get());
+                options.textureMapper.drawTexture(*surface, tileRect, transform, options.opacity);
+            }
+        }
+    }
 }
 
 void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& options)
