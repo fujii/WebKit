@@ -109,8 +109,6 @@ void TextureMapperLayer::computeTransformsRecursive(ComputeTransformData& data)
             m_layerTransforms.combinedForChildren = m_layerTransforms.combined;
         m_layerTransforms.combined.translate3d(-originX, -originY, -m_state.anchorPoint.z());
 
-        if (!m_state.preserves3D)
-            m_layerTransforms.combinedForChildren = m_layerTransforms.combinedForChildren.to2dTransform();
         m_layerTransforms.combinedForChildren.multiply(m_state.childrenTransform);
         m_layerTransforms.combinedForChildren.translate3d(-originX, -originY, -m_state.anchorPoint.z());
 
