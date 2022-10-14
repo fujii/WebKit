@@ -126,15 +126,15 @@ private:
     enum class ComputeOverlapRegionMode : uint8_t {
         Intersection,
         Union,
-        Mask
     };
     struct ComputeOverlapRegionData {
-        ComputeOverlapRegionMode mode;
         IntRect clipBounds;
         Region& overlapRegion;
         Region& nonOverlapRegion;
     };
-    void computeOverlapRegions(ComputeOverlapRegionData&, const TransformationMatrix&, bool includesReplica = true);
+    void computeOverlapRegions(ComputeOverlapRegionMode, ComputeOverlapRegionData&, const TransformationMatrix&, const TransformationMatrix&, bool includesReplica = true);
+    void computeLocalSpaceSurfaceRegion(Region&);
+    void collectLocalSpaceRects(const TransformationMatrix&, const TransformationMatrix&, const Function<void(const FloatRect&, const TransformationMatrix&)>&, bool includesReplica);
 
     void paintRecursive(TextureMapperPaintOptions&);
     void paint2DRoot(TextureMapperPaintOptions&);

@@ -540,48 +540,126 @@ IntRect transformedBoundingBox(const TransformationMatrix& transform, FloatRect 
     return { };
 }
 
-void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionData& data, const TransformationMatrix& accumulatedReplicaTransform, bool includesReplica)
+static void resolveOverlaps(const Region& newRegion, Region& overlapRegion, Region& nonOverlapRegion)
 {
-    if (!m_state.visible || !m_state.contentsVisible)
+    Region newOverlapRegion(newRegion);
+    newOverlapRegion.intersect(nonOverlapRegion);
+    nonOverlapRegion.subtract(newOverlapRegion);
+    overlapRegion.unite(newOverlapRegion);
+
+    Region newNonOverlapRegion(newRegion);
+    newNonOverlapRegion.subtract(overlapRegion);
+    nonOverlapRegion.unite(newNonOverlapRegion);
+}
+
+void TextureMapperLayer::computeOverlapRegions(ComputeOverlapRegionMode mode, ComputeOverlapRegionData& data, const TransformationMatrix& surfaceTransform, const TransformationMatrix& accumulatedReplicaTransform, bool includesReplica)
+{
+    if (!isVisible())
         return;
 
-    FloatRect localBoundingRect;
-    if (m_backingStore || m_state.masksToBounds || m_state.maskLayer || hasFilters())
-        localBoundingRect = layerRect();
-    else if (m_contentsLayer || m_state.solidColor.isVisible())
-        localBoundingRect = m_state.contentsRect;
+    if (m_is2DRoot || mode == ComputeOverlapRegionMode::Union) {
+        Region region;
+        auto collectLocalRect = [&](const FloatRect& passedRect, const TransformationMatrix& transform) {
+            IntRect transformedRect = enclosingIntRect(transform.mapRect(passedRect));
+            transformedRect.intersect(data.clipBounds);
+            region.unite(transformedRect);
+        };
+        collectLocalSpaceRects(surfaceTransform, accumulatedReplicaTransform, WTFMove(collectLocalRect), includesReplica);
+        resolveOverlaps(region, data.overlapRegion, data.nonOverlapRegion);
+    } else {
+        TransformationMatrix localTransform = surfaceTransform;
+        localTransform.multiply(accumulatedReplicaTransform);
+        if (!m_is2DRoot)
+            localTransform.multiply(m_layerTransforms.combined);
 
-    if (m_currentFilters.hasOutsets() && !m_state.backdropLayer && !m_state.masksToBounds && !m_state.maskLayer) {
+        auto collectRect = [&](const FloatRect& rect, const TransformationMatrix& transform) {
+            IntRect transformedRect = enclosingIntRect(transform.mapRect(rect));
+            transformedRect.intersect(data.clipBounds);
+            resolveOverlaps(Region(transformedRect), data.overlapRegion, data.nonOverlapRegion);
+        };
+    
+        collectRect(layerRect(), localTransform);
+        if (m_state.replicaLayer && includesReplica) {
+            TransformationMatrix newReplicaTransform = accumulatedReplicaTransform;
+            newReplicaTransform.multiply(replicaTransform());
+            computeOverlapRegions(mode, data, surfaceTransform, newReplicaTransform, false);
+        }
+        if (!m_state.masksToBounds && !m_state.maskLayer) {
+            if (m_is2DRoot)
+                localTransform.multiply(m_layerTransforms.combined);
+            for (auto* child : m_children) {
+                if (child->shouldBlend())
+                    child->computeOverlapRegions(ComputeOverlapRegionMode::Union, data, surfaceTransform, accumulatedReplicaTransform);
+                else if (child->m_is2DRoot)
+                    child->computeOverlapRegions(mode, data, localTransform, { });
+                else
+                    child->computeOverlapRegions(mode, data, surfaceTransform, accumulatedReplicaTransform);
+            }
+        }
+    }
+}
+
+void TextureMapperLayer::computeLocalSpaceSurfaceRegion(Region& region)
+{
+    collectLocalSpaceRects({ }, { }, [&](const FloatRect& rect, const TransformationMatrix& transform) {
+        region.unite(enclosingIntRect(transform.mapRect(rect)));
+    }, false);
+}
+
+void TextureMapperLayer::collectLocalSpaceRects(const TransformationMatrix& surfaceTransform, const TransformationMatrix& accumulatedReplicaTransform, const Function<void(const FloatRect&, const TransformationMatrix&)>& passedCollectRect, bool includesReplica)
+{
+    TransformationMatrix localTransform = surfaceTransform;
+    if (!m_is2DRoot) {
+        localTransform.multiply(accumulatedReplicaTransform);
+        localTransform.multiply(m_layerTransforms.combined);
+    }
+
+    Function<void(const FloatRect&, const TransformationMatrix&)> expandOutsetsAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
+        FloatRect rect = passedRect;
         auto outsets = m_currentFilters.outsets();
-        localBoundingRect.move(-outsets.left(), -outsets.top());
-        localBoundingRect.expand(outsets.left() + outsets.right(), outsets.top() + outsets.bottom());
-    }
+        rect.move(-outsets.left(), -outsets.top());
+        rect.expand(outsets.left() + outsets.right(), outsets.top() + outsets.bottom());
+        passedCollectRect(rect, transform);
+    });
 
-    TransformationMatrix transform(accumulatedReplicaTransform);
-    if (!m_is2DRoot)
-        transform.multiply(m_layerTransforms.combined);
-
-    IntRect viewportBoundingRect = transformedBoundingBox(transform, localBoundingRect, data.clipBounds);
-
-    switch (data.mode) {
-    case ComputeOverlapRegionMode::Intersection:
-        resolveOverlaps(viewportBoundingRect, data.overlapRegion, data.nonOverlapRegion);
-        break;
-    case ComputeOverlapRegionMode::Union:
-    case ComputeOverlapRegionMode::Mask:
-        data.overlapRegion.unite(viewportBoundingRect);
-        break;
-    }
-
+    bool shouldExpand = m_currentFilters.hasOutsets() && !m_state.masksToBounds && !m_state.maskLayer;
+    auto& collectRect = shouldExpand ? expandOutsetsAndCollectRect : passedCollectRect;
+    collectRect(layerRect(), localTransform);
     if (m_state.replicaLayer && includesReplica) {
-        TransformationMatrix newReplicaTransform(accumulatedReplicaTransform);
+        TransformationMatrix newSurfaceTransform = surfaceTransform;
+        TransformationMatrix newReplicaTransform = accumulatedReplicaTransform;
         newReplicaTransform.multiply(replicaTransform());
-        computeOverlapRegions(data, newReplicaTransform, false);
+        if (m_is2DRoot) {
+            TransformationMatrix newLocalTransform = localTransform;
+            newLocalTransform.multiply(newReplicaTransform);
+            newLocalTransform.multiply(m_layerTransforms.combined);
+            newSurfaceTransform = newLocalTransform;
+            newReplicaTransform = { };
+        }
+        collectLocalSpaceRects(newSurfaceTransform, newReplicaTransform, passedCollectRect, false);
     }
 
-    if (!m_state.masksToBounds && data.mode != ComputeOverlapRegionMode::Mask) {
-        for (auto* child : m_children)
-            child->computeOverlapRegions(data, accumulatedReplicaTransform);
+    if (!m_state.masksToBounds && !m_state.maskLayer) {
+        Function<void(const FloatRect&, const TransformationMatrix&)> transformAndCollectRect([&](const FloatRect& passedRect, const TransformationMatrix& transform) {
+            FloatRect rect = transform.mapRect(passedRect);
+            expandOutsetsAndCollectRect(rect, localTransform);
+        });
+        auto* collectRectForChild = &passedCollectRect;
+        TransformationMatrix newSurfaceTransform = surfaceTransform;
+        if (shouldExpand) {
+            collectRectForChild = &transformAndCollectRect;
+            newSurfaceTransform = { };
+            ASSERT(accumulatedReplicaTransform.isIdentity());
+        }
+        for (auto* child : m_children) {
+            if (child->m_is2DRoot) {
+                TransformationMatrix newLocalTransform = localTransform;
+                newLocalTransform.multiply(accumulatedReplicaTransform);
+                newLocalTransform.multiply(child->m_layerTransforms.combined);
+                child->collectLocalSpaceRects(newLocalTransform, { }, *collectRectForChild, true);
+            } else
+                child->collectLocalSpaceRects(newSurfaceTransform, accumulatedReplicaTransform, *collectRectForChild, true);
+        }
     }
 }
 
@@ -589,15 +667,13 @@ void TextureMapperLayer::paintUsingOverlapRegions(TextureMapperPaintOptions& opt
 {
     Region overlapRegion;
     Region nonOverlapRegion;
-    auto mode = ComputeOverlapRegionMode::Intersection;
     ComputeOverlapRegionData data {
-        mode,
         options.textureMapper.clipBounds(),
         overlapRegion,
         nonOverlapRegion
     };
     data.clipBounds.move(-options.offset);
-    computeOverlapRegions(data, options.transform);
+    computeOverlapRegions(ComputeOverlapRegionMode::Intersection, data, { }, options.transform);
     if (overlapRegion.isEmpty()) {
         paintSelfChildrenReplicaFilterAndMask(options);
         return;
@@ -643,18 +719,15 @@ void TextureMapperLayer::paintSelfChildrenFilterAndMask(TextureMapperPaintOption
 {
     Region overlapRegion;
     Region nonOverlapRegion;
-    auto mode = ComputeOverlapRegionMode::Union;
-    if (m_state.maskLayer || (options.replicaLayer == this && m_state.replicaLayer->m_state.maskLayer))
-        mode = ComputeOverlapRegionMode::Mask;
     ComputeOverlapRegionData data {
-        mode,
         options.textureMapper.clipBounds(),
         overlapRegion,
         nonOverlapRegion
     };
     data.clipBounds.move(-options.offset);
-    computeOverlapRegions(data, options.transform, false);
-    ASSERT(nonOverlapRegion.isEmpty());
+    computeOverlapRegions(ComputeOverlapRegionMode::Union, data, { }, options.transform, false);
+    ASSERT(overlapRegion.isEmpty());
+    overlapRegion = nonOverlapRegion;
 
     auto rects = overlapRegion.rects();
     static const size_t OverlapRegionConsolidationThreshold = 4;
@@ -802,13 +875,13 @@ void TextureMapperLayer::paint2DRoot(TextureMapperPaintOptions& options)
     Region overlapRegion;
     Region nonOverlapRegion;
     ComputeOverlapRegionData data {
-        ComputeOverlapRegionMode::Union,
         projectedClipBounds,
         overlapRegion,
         nonOverlapRegion
     };
-    computeOverlapRegions(data, options.transform, false);
-    ASSERT(nonOverlapRegion.isEmpty());
+    computeOverlapRegions(ComputeOverlapRegionMode::Union, data, { }, options.transform, false);
+    ASSERT(overlapRegion.isEmpty());
+    overlapRegion = nonOverlapRegion;
 
     auto rects = overlapRegion.rects();
     static const size_t OverlapRegionConsolidationThreshold = 4;
@@ -861,13 +934,13 @@ void TextureMapperLayer::paintWith3DRenderingContext(TextureMapperPaintOptions& 
     Region overlapRegion;
     Region nonOverlapRegion;
     ComputeOverlapRegionData data {
-        ComputeOverlapRegionMode::Union,
         projectedClipBounds,
         overlapRegion,
         nonOverlapRegion
     };
-    computeOverlapRegions(data, options.transform, false);
-    ASSERT(nonOverlapRegion.isEmpty());
+    computeOverlapRegions(ComputeOverlapRegionMode::Union, data, { }, options.transform, false);
+    ASSERT(overlapRegion.isEmpty());
+    overlapRegion = nonOverlapRegion;
 
     auto rects = overlapRegion.rects();
     static const size_t OverlapRegionConsolidationThreshold = 4;
