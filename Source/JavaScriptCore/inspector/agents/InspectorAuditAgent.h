@@ -41,31 +41,31 @@ namespace Inspector {
 class InjectedScript;
 class InjectedScriptManager;
 
-class JS_EXPORT_PRIVATE InspectorAuditAgent : public InspectorAgentBase, public AuditBackendDispatcherHandler {
+class InspectorAuditAgent : public InspectorAgentBase, public AuditBackendDispatcherHandler {
     WTF_MAKE_NONCOPYABLE(InspectorAuditAgent);
     WTF_MAKE_TZONE_ALLOCATED(InspectorAuditAgent);
 public:
-    ~InspectorAuditAgent() override;
+    JS_EXPORT_PRIVATE ~InspectorAuditAgent() override;
 
     // InspectorAgentBase
-    void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
-    void willDestroyFrontendAndBackend(DisconnectReason) final;
+    JS_EXPORT_PRIVATE void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
+    JS_EXPORT_PRIVATE void willDestroyFrontendAndBackend(DisconnectReason) final;
 
     // AuditBackendDispatcherHandler
-    Protocol::ErrorStringOr<void> setup(std::optional<Protocol::Runtime::ExecutionContextId>&&) final;
-    Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::optional<bool> /* wasThrown */>> run(const String& test, std::optional<Protocol::Runtime::ExecutionContextId>&&) final;
-    Protocol::ErrorStringOr<void> teardown() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setup(std::optional<Protocol::Runtime::ExecutionContextId>&&) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::optional<bool> /* wasThrown */>> run(const String& test, std::optional<Protocol::Runtime::ExecutionContextId>&&) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> teardown() final;
 
-    bool hasActiveAudit() const;
+    JS_EXPORT_PRIVATE bool hasActiveAudit() const;
 
 protected:
-    InspectorAuditAgent(AgentContext&);
+    JS_EXPORT_PRIVATE InspectorAuditAgent(AgentContext&);
 
     InjectedScriptManager& injectedScriptManager() { return m_injectedScriptManager; }
 
     virtual InjectedScript injectedScriptForEval(Protocol::ErrorString&, std::optional<Protocol::Runtime::ExecutionContextId>&&) = 0;
 
-    virtual void populateAuditObject(JSC::JSGlobalObject*, JSC::Strong<JSC::JSObject>& auditObject);
+    JS_EXPORT_PRIVATE virtual void populateAuditObject(JSC::JSGlobalObject*, JSC::Strong<JSC::JSObject>& auditObject);
 
     virtual void muteConsole() { };
     virtual void unmuteConsole() { };

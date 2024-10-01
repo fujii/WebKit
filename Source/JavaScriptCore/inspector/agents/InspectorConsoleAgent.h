@@ -48,25 +48,25 @@ class InspectorHeapAgent;
 class ScriptArguments;
 class ScriptCallStack;
 
-class JS_EXPORT_PRIVATE InspectorConsoleAgent : public InspectorAgentBase, public ConsoleBackendDispatcherHandler {
+class InspectorConsoleAgent : public InspectorAgentBase, public ConsoleBackendDispatcherHandler {
     WTF_MAKE_NONCOPYABLE(InspectorConsoleAgent);
     WTF_MAKE_TZONE_ALLOCATED(InspectorConsoleAgent);
 public:
-    InspectorConsoleAgent(AgentContext&);
-    ~InspectorConsoleAgent() override;
+    JS_EXPORT_PRIVATE InspectorConsoleAgent(AgentContext&);
+    JS_EXPORT_PRIVATE ~InspectorConsoleAgent() override;
 
     // InspectorAgentBase
-    void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
-    void willDestroyFrontendAndBackend(DisconnectReason) final;
-    void discardValues() final;
+    JS_EXPORT_PRIVATE void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
+    JS_EXPORT_PRIVATE void willDestroyFrontendAndBackend(DisconnectReason) final;
+    JS_EXPORT_PRIVATE void discardValues() final;
 
     // ConsoleBackendDispatcherHandler
-    Protocol::ErrorStringOr<void> enable() final;
-    Protocol::ErrorStringOr<void> disable() final;
-    Protocol::ErrorStringOr<void> clearMessages() override;
-    Protocol::ErrorStringOr<void> setConsoleClearAPIEnabled(bool) override;
-    Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::Console::Channel>>> getLoggingChannels() override;
-    Protocol::ErrorStringOr<void> setLoggingChannelLevel(Protocol::Console::ChannelSource, Protocol::Console::ChannelLevel) override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> enable() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> disable() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> clearMessages() override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setConsoleClearAPIEnabled(bool) override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::Console::Channel>>> getLoggingChannels() override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setLoggingChannelLevel(Protocol::Console::ChannelSource, Protocol::Console::ChannelLevel) override;
 
     void setHeapAgent(InspectorHeapAgent* agent) { m_heapAgent = agent; }
 
@@ -74,16 +74,16 @@ public:
     bool developerExtrasEnabled() const;
 
     // InspectorInstrumentation
-    void mainFrameNavigated();
+    JS_EXPORT_PRIVATE void mainFrameNavigated();
 
-    void addMessageToConsole(std::unique_ptr<ConsoleMessage>);
+    JS_EXPORT_PRIVATE void addMessageToConsole(std::unique_ptr<ConsoleMessage>);
 
-    void startTiming(JSC::JSGlobalObject*, const String& label);
-    void logTiming(JSC::JSGlobalObject*, const String& label, Ref<ScriptArguments>&&);
-    void stopTiming(JSC::JSGlobalObject*, const String& label);
-    void takeHeapSnapshot(const String& title);
-    void count(JSC::JSGlobalObject*, const String& label);
-    void countReset(JSC::JSGlobalObject*, const String& label);
+    JS_EXPORT_PRIVATE void startTiming(JSC::JSGlobalObject*, const String& label);
+    JS_EXPORT_PRIVATE void logTiming(JSC::JSGlobalObject*, const String& label, Ref<ScriptArguments>&&);
+    JS_EXPORT_PRIVATE void stopTiming(JSC::JSGlobalObject*, const String& label);
+    JS_EXPORT_PRIVATE void takeHeapSnapshot(const String& title);
+    JS_EXPORT_PRIVATE void count(JSC::JSGlobalObject*, const String& label);
+    JS_EXPORT_PRIVATE void countReset(JSC::JSGlobalObject*, const String& label);
 
 protected:
     void addConsoleMessage(std::unique_ptr<ConsoleMessage>);

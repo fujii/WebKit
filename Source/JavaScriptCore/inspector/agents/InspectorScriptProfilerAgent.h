@@ -38,20 +38,20 @@ class Profile;
 
 namespace Inspector {
 
-class JS_EXPORT_PRIVATE InspectorScriptProfilerAgent final : public InspectorAgentBase, public ScriptProfilerBackendDispatcherHandler, public JSC::Debugger::ProfilingClient {
+class InspectorScriptProfilerAgent final : public InspectorAgentBase, public ScriptProfilerBackendDispatcherHandler, public JSC::Debugger::ProfilingClient {
     WTF_MAKE_NONCOPYABLE(InspectorScriptProfilerAgent);
     WTF_MAKE_TZONE_ALLOCATED(InspectorScriptProfilerAgent);
 public:
-    InspectorScriptProfilerAgent(AgentContext&);
-    ~InspectorScriptProfilerAgent() final;
+    JS_EXPORT_PRIVATE InspectorScriptProfilerAgent(AgentContext&);
+    JS_EXPORT_PRIVATE ~InspectorScriptProfilerAgent() final;
 
     // InspectorAgentBase
     void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
     void willDestroyFrontendAndBackend(DisconnectReason) final;
 
     // ScriptProfilerBackendDispatcherHandler
-    Protocol::ErrorStringOr<void> startTracking(std::optional<bool>&& includeSamples) final;
-    Protocol::ErrorStringOr<void> stopTracking() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> startTracking(std::optional<bool>&& includeSamples) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> stopTracking() final;
 
     // JSC::Debugger::ProfilingClient
     bool isAlreadyProfiling() const final;

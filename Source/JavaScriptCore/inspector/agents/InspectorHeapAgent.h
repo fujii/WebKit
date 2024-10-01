@@ -42,35 +42,35 @@ namespace Inspector {
 
 class InjectedScriptManager;
 
-class JS_EXPORT_PRIVATE InspectorHeapAgent : public InspectorAgentBase, public HeapBackendDispatcherHandler, public JSC::HeapObserver {
+class InspectorHeapAgent : public InspectorAgentBase, public HeapBackendDispatcherHandler, public JSC::HeapObserver {
     WTF_MAKE_NONCOPYABLE(InspectorHeapAgent);
     WTF_MAKE_TZONE_ALLOCATED(InspectorHeapAgent);
 public:
-    InspectorHeapAgent(AgentContext&);
-    ~InspectorHeapAgent() override;
+    JS_EXPORT_PRIVATE InspectorHeapAgent(AgentContext&);
+    JS_EXPORT_PRIVATE ~InspectorHeapAgent() override;
 
     // InspectorAgentBase
-    void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
-    void willDestroyFrontendAndBackend(DisconnectReason) final;
+    JS_EXPORT_PRIVATE void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
+    JS_EXPORT_PRIVATE void willDestroyFrontendAndBackend(DisconnectReason) final;
 
     // HeapBackendDispatcherHandler
-    Protocol::ErrorStringOr<void> enable() override;
-    Protocol::ErrorStringOr<void> disable() override;
-    Protocol::ErrorStringOr<void> gc() final;
-    Protocol::ErrorStringOr<std::tuple<double, Protocol::Heap::HeapSnapshotData>> snapshot() final;
-    Protocol::ErrorStringOr<void> startTracking() final;
-    Protocol::ErrorStringOr<void> stopTracking() final;
-    Protocol::ErrorStringOr<std::tuple<String, RefPtr<Protocol::Debugger::FunctionDetails>, RefPtr<Protocol::Runtime::ObjectPreview>>> getPreview(int heapObjectId) final;
-    Protocol::ErrorStringOr<Ref<Protocol::Runtime::RemoteObject>> getRemoteObject(int heapObjectId, const String& objectGroup) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> enable() override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> disable() override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> gc() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<double, Protocol::Heap::HeapSnapshotData>> snapshot() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> startTracking() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> stopTracking() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<String, RefPtr<Protocol::Debugger::FunctionDetails>, RefPtr<Protocol::Runtime::ObjectPreview>>> getPreview(int heapObjectId) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<Ref<Protocol::Runtime::RemoteObject>> getRemoteObject(int heapObjectId, const String& objectGroup) final;
 
     // JSC::HeapObserver
-    void willGarbageCollect() final;
-    void didGarbageCollect(JSC::CollectionScope) final;
+    JS_EXPORT_PRIVATE void willGarbageCollect() final;
+    JS_EXPORT_PRIVATE void didGarbageCollect(JSC::CollectionScope) final;
 
 protected:
-    void clearHeapSnapshots();
+    JS_EXPORT_PRIVATE void clearHeapSnapshots();
 
-    virtual void dispatchGarbageCollectedEvent(Protocol::Heap::GarbageCollection::Type, Seconds startTime, Seconds endTime);
+    JS_EXPORT_PRIVATE virtual void dispatchGarbageCollectedEvent(Protocol::Heap::GarbageCollection::Type, Seconds startTime, Seconds endTime);
 
 private:
     std::optional<JSC::HeapSnapshotNode> nodeForHeapObjectIdentifier(Protocol::ErrorString&, unsigned heapObjectIdentifier);

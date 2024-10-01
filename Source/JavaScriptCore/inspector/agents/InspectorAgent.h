@@ -41,12 +41,12 @@ namespace Inspector {
 class BackendDispatcher;
 class InspectorEnvironment;
 
-class JS_EXPORT_PRIVATE InspectorAgent final : public InspectorAgentBase, public InspectorBackendDispatcherHandler {
+class InspectorAgent final : public InspectorAgentBase, public InspectorBackendDispatcherHandler {
     WTF_MAKE_NONCOPYABLE(InspectorAgent);
     WTF_MAKE_TZONE_ALLOCATED(InspectorAgent);
 public:
-    InspectorAgent(AgentContext&);
-    ~InspectorAgent() final;
+    JS_EXPORT_PRIVATE InspectorAgent(AgentContext&);
+    JS_EXPORT_PRIVATE ~InspectorAgent() final;
 
     // InspectorAgentBase
     void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
@@ -58,9 +58,9 @@ public:
     Protocol::ErrorStringOr<void> initialized() final;
 
     // CommandLineAPI
-    void inspect(Ref<Protocol::Runtime::RemoteObject>&&, Ref<JSON::Object>&& hints);
+    JS_EXPORT_PRIVATE void inspect(Ref<Protocol::Runtime::RemoteObject>&&, Ref<JSON::Object>&& hints);
 
-    void evaluateForTestInFrontend(const String& script);
+    JS_EXPORT_PRIVATE void evaluateForTestInFrontend(const String& script);
 
 private:
     InspectorEnvironment& m_environment;

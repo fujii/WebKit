@@ -51,7 +51,7 @@ class AsyncStackTrace;
 class InjectedScript;
 class InjectedScriptManager;
 
-class JS_EXPORT_PRIVATE InspectorDebuggerAgent
+class InspectorDebuggerAgent
     : public InspectorAgentBase
     , public DebuggerBackendDispatcherHandler
     , public JSC::Debugger::Client
@@ -59,74 +59,74 @@ class JS_EXPORT_PRIVATE InspectorDebuggerAgent
     WTF_MAKE_NONCOPYABLE(InspectorDebuggerAgent);
     WTF_MAKE_TZONE_ALLOCATED(InspectorDebuggerAgent);
 public:
-    ~InspectorDebuggerAgent() override;
+    JS_EXPORT_PRIVATE ~InspectorDebuggerAgent() override;
 
-    static RefPtr<JSC::Breakpoint> debuggerBreakpointFromPayload(Protocol::ErrorString&, RefPtr<JSON::Object>&& options);
+    JS_EXPORT_PRIVATE static RefPtr<JSC::Breakpoint> debuggerBreakpointFromPayload(Protocol::ErrorString&, RefPtr<JSON::Object>&& options);
 
     static const ASCIILiteral backtraceObjectGroup;
 
     // InspectorAgentBase
-    void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
-    void willDestroyFrontendAndBackend(DisconnectReason) final;
+    JS_EXPORT_PRIVATE void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) final;
+    JS_EXPORT_PRIVATE void willDestroyFrontendAndBackend(DisconnectReason) final;
     virtual bool enabled() const { return m_enabled; }
 
     // DebuggerBackendDispatcherHandler
-    Protocol::ErrorStringOr<void> enable() final;
-    Protocol::ErrorStringOr<void> disable() final;
-    Protocol::ErrorStringOr<void> setAsyncStackTraceDepth(int) final;
-    Protocol::ErrorStringOr<void> setBreakpointsActive(bool) final;
-    Protocol::ErrorStringOr<std::tuple<Protocol::Debugger::BreakpointId, Ref<JSON::ArrayOf<Protocol::Debugger::Location>>>> setBreakpointByUrl(int lineNumber, const String& url, const String& urlRegex, std::optional<int>&& columnNumber, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<std::tuple<Protocol::Debugger::BreakpointId, Ref<Protocol::Debugger::Location>>> setBreakpoint(Ref<JSON::Object>&& location, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<void> removeBreakpoint(const Protocol::Debugger::BreakpointId&) final;
-    Protocol::ErrorStringOr<void> addSymbolicBreakpoint(const String& symbol, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<void> removeSymbolicBreakpoint(const String& symbol, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex) final;
-    Protocol::ErrorStringOr<void> continueUntilNextRunLoop() final;
-    Protocol::ErrorStringOr<void> continueToLocation(Ref<JSON::Object>&& location) final;
-    Protocol::ErrorStringOr<void> stepNext() final;
-    Protocol::ErrorStringOr<void> stepOver() final;
-    Protocol::ErrorStringOr<void> stepInto() final;
-    Protocol::ErrorStringOr<void> stepOut() final;
-    Protocol::ErrorStringOr<void> pause() final;
-    Protocol::ErrorStringOr<void> resume() final;
-    Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::GenericTypes::SearchMatch>>> searchInContent(const Protocol::Debugger::ScriptId&, const String& query, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex) final;
-    Protocol::ErrorStringOr<String> getScriptSource(const Protocol::Debugger::ScriptId&) final;
-    Protocol::ErrorStringOr<Ref<Protocol::Debugger::FunctionDetails>> getFunctionDetails(const String& functionId) final;
-    Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::Debugger::Location>>> getBreakpointLocations(Ref<JSON::Object>&& start, Ref<JSON::Object>&& end) final;
-    Protocol::ErrorStringOr<void> setPauseOnDebuggerStatements(bool enabled, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<void> setPauseOnExceptions(const String& state, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<void> setPauseOnAssertions(bool enabled, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<void> setPauseOnMicrotasks(bool enabled, RefPtr<JSON::Object>&& options) final;
-    Protocol::ErrorStringOr<void> setPauseForInternalScripts(bool shouldPause) final;
-    Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::optional<bool> /* wasThrown */, std::optional<int> /* savedResultIndex */>> evaluateOnCallFrame(const Protocol::Debugger::CallFrameId&, const String& expression, const String& objectGroup, std::optional<bool>&& includeCommandLineAPI, std::optional<bool>&& doNotPauseOnExceptionsAndMuteConsole, std::optional<bool>&& returnByValue, std::optional<bool>&& generatePreview, std::optional<bool>&& saveResult, std::optional<bool>&& emulateUserGesture) override;
-    Protocol::ErrorStringOr<void> setShouldBlackboxURL(const String& url, bool shouldBlackbox, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex, RefPtr<JSON::Array>&& sourceRanges) final;
-    Protocol::ErrorStringOr<void> setBlackboxBreakpointEvaluations(bool) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> enable() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> disable() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setAsyncStackTraceDepth(int) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setBreakpointsActive(bool) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<Protocol::Debugger::BreakpointId, Ref<JSON::ArrayOf<Protocol::Debugger::Location>>>> setBreakpointByUrl(int lineNumber, const String& url, const String& urlRegex, std::optional<int>&& columnNumber, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<Protocol::Debugger::BreakpointId, Ref<Protocol::Debugger::Location>>> setBreakpoint(Ref<JSON::Object>&& location, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> removeBreakpoint(const Protocol::Debugger::BreakpointId&) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> addSymbolicBreakpoint(const String& symbol, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> removeSymbolicBreakpoint(const String& symbol, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> continueUntilNextRunLoop() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> continueToLocation(Ref<JSON::Object>&& location) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> stepNext() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> stepOver() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> stepInto() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> stepOut() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> pause() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> resume() final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::GenericTypes::SearchMatch>>> searchInContent(const Protocol::Debugger::ScriptId&, const String& query, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<String> getScriptSource(const Protocol::Debugger::ScriptId&) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<Ref<Protocol::Debugger::FunctionDetails>> getFunctionDetails(const String& functionId) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::Debugger::Location>>> getBreakpointLocations(Ref<JSON::Object>&& start, Ref<JSON::Object>&& end) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setPauseOnDebuggerStatements(bool enabled, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setPauseOnExceptions(const String& state, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setPauseOnAssertions(bool enabled, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setPauseOnMicrotasks(bool enabled, RefPtr<JSON::Object>&& options) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setPauseForInternalScripts(bool shouldPause) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::optional<bool> /* wasThrown */, std::optional<int> /* savedResultIndex */>> evaluateOnCallFrame(const Protocol::Debugger::CallFrameId&, const String& expression, const String& objectGroup, std::optional<bool>&& includeCommandLineAPI, std::optional<bool>&& doNotPauseOnExceptionsAndMuteConsole, std::optional<bool>&& returnByValue, std::optional<bool>&& generatePreview, std::optional<bool>&& saveResult, std::optional<bool>&& emulateUserGesture) override;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setShouldBlackboxURL(const String& url, bool shouldBlackbox, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex, RefPtr<JSON::Array>&& sourceRanges) final;
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<void> setBlackboxBreakpointEvaluations(bool) final;
 
     // JSC::Debugger::Client
-    bool isInspectorDebuggerAgent() const final;
-    JSC::JSObject* debuggerScopeExtensionObject(JSC::Debugger&, JSC::JSGlobalObject*, JSC::DebuggerCallFrame&) final;
+    JS_EXPORT_PRIVATE bool isInspectorDebuggerAgent() const final;
+    JS_EXPORT_PRIVATE JSC::JSObject* debuggerScopeExtensionObject(JSC::Debugger&, JSC::JSGlobalObject*, JSC::DebuggerCallFrame&) final;
 
     // JSC::Debugger::Observer
-    void didParseSource(JSC::SourceID, const JSC::Debugger::Script&) final;
-    void failedToParseSource(const String& url, const String& data, int firstLine, int errorLine, const String& errorMessage) final;
-    void didCreateNativeExecutable(JSC::NativeExecutable&) final;
-    void willCallNativeExecutable(JSC::CallFrame*) final;
-    void willEnter(JSC::CallFrame*) final;
-    void didQueueMicrotask(JSC::JSGlobalObject*, JSC::MicrotaskIdentifier) final;
-    void willRunMicrotask(JSC::JSGlobalObject*, JSC::MicrotaskIdentifier) final;
-    void didRunMicrotask(JSC::JSGlobalObject*, JSC::MicrotaskIdentifier) final;
-    void didPause(JSC::JSGlobalObject*, JSC::DebuggerCallFrame&, JSC::JSValue exceptionOrCaughtValue) final;
-    void didContinue() final;
-    void applyBreakpoints(JSC::CodeBlock*) final;
-    void breakpointActionSound(JSC::BreakpointActionID) final;
-    void breakpointActionProbe(JSC::JSGlobalObject*, JSC::BreakpointActionID, unsigned batchId, unsigned sampleId, JSC::JSValue sample) final;
-    void didDeferBreakpointPause(JSC::BreakpointID) final;
+    JS_EXPORT_PRIVATE void didParseSource(JSC::SourceID, const JSC::Debugger::Script&) final;
+    JS_EXPORT_PRIVATE void failedToParseSource(const String& url, const String& data, int firstLine, int errorLine, const String& errorMessage) final;
+    JS_EXPORT_PRIVATE void didCreateNativeExecutable(JSC::NativeExecutable&) final;
+    JS_EXPORT_PRIVATE void willCallNativeExecutable(JSC::CallFrame*) final;
+    JS_EXPORT_PRIVATE void willEnter(JSC::CallFrame*) final;
+    JS_EXPORT_PRIVATE void didQueueMicrotask(JSC::JSGlobalObject*, JSC::MicrotaskIdentifier) final;
+    JS_EXPORT_PRIVATE void willRunMicrotask(JSC::JSGlobalObject*, JSC::MicrotaskIdentifier) final;
+    JS_EXPORT_PRIVATE void didRunMicrotask(JSC::JSGlobalObject*, JSC::MicrotaskIdentifier) final;
+    JS_EXPORT_PRIVATE void didPause(JSC::JSGlobalObject*, JSC::DebuggerCallFrame&, JSC::JSValue exceptionOrCaughtValue) final;
+    JS_EXPORT_PRIVATE void didContinue() final;
+    JS_EXPORT_PRIVATE void applyBreakpoints(JSC::CodeBlock*) final;
+    JS_EXPORT_PRIVATE void breakpointActionSound(JSC::BreakpointActionID) final;
+    JS_EXPORT_PRIVATE void breakpointActionProbe(JSC::JSGlobalObject*, JSC::BreakpointActionID, unsigned batchId, unsigned sampleId, JSC::JSValue sample) final;
+    JS_EXPORT_PRIVATE void didDeferBreakpointPause(JSC::BreakpointID) final;
 
-    bool isPaused() const;
-    bool breakpointsActive() const;
+    JS_EXPORT_PRIVATE bool isPaused() const;
+    JS_EXPORT_PRIVATE bool breakpointsActive() const;
 
-    void setSuppressAllPauses(bool);
+    JS_EXPORT_PRIVATE void setSuppressAllPauses(bool);
 
-    void handleConsoleAssert(const String& message);
+    JS_EXPORT_PRIVATE void handleConsoleAssert(const String& message);
 
     enum class AsyncCallType {
         DOMTimer,
@@ -136,21 +136,21 @@ public:
         Microtask,
     };
 
-    void didScheduleAsyncCall(JSC::JSGlobalObject*, AsyncCallType, uint64_t callbackId, bool singleShot);
-    void didCancelAsyncCall(AsyncCallType, uint64_t callbackId);
-    void willDispatchAsyncCall(AsyncCallType, uint64_t callbackId);
-    void didDispatchAsyncCall(AsyncCallType, uint64_t callbackId);
+    JS_EXPORT_PRIVATE void didScheduleAsyncCall(JSC::JSGlobalObject*, AsyncCallType, uint64_t callbackId, bool singleShot);
+    JS_EXPORT_PRIVATE void didCancelAsyncCall(AsyncCallType, uint64_t callbackId);
+    JS_EXPORT_PRIVATE void willDispatchAsyncCall(AsyncCallType, uint64_t callbackId);
+    JS_EXPORT_PRIVATE void didDispatchAsyncCall(AsyncCallType, uint64_t callbackId);
     AsyncStackTrace* currentParentStackTrace() const;
 
     void schedulePauseAtNextOpportunity(DebuggerFrontendDispatcher::Reason, RefPtr<JSON::Object>&& data = nullptr);
     void cancelPauseAtNextOpportunity();
     bool pauseOnNextStatementEnabled() const { return m_javaScriptPauseScheduled; }
 
-    bool schedulePauseForSpecialBreakpoint(JSC::Breakpoint&, DebuggerFrontendDispatcher::Reason, RefPtr<JSON::Object>&& data = nullptr);
-    bool cancelPauseForSpecialBreakpoint(JSC::Breakpoint&);
+    JS_EXPORT_PRIVATE bool schedulePauseForSpecialBreakpoint(JSC::Breakpoint&, DebuggerFrontendDispatcher::Reason, RefPtr<JSON::Object>&& data = nullptr);
+    JS_EXPORT_PRIVATE bool cancelPauseForSpecialBreakpoint(JSC::Breakpoint&);
 
-    void breakProgram(DebuggerFrontendDispatcher::Reason, RefPtr<JSON::Object>&& data = nullptr, RefPtr<JSC::Breakpoint>&& specialBreakpoint = nullptr);
-    void scriptExecutionBlockedByCSP(const String& directiveText);
+    JS_EXPORT_PRIVATE void breakProgram(DebuggerFrontendDispatcher::Reason, RefPtr<JSON::Object>&& data = nullptr, RefPtr<JSC::Breakpoint>&& specialBreakpoint = nullptr);
+    JS_EXPORT_PRIVATE void scriptExecutionBlockedByCSP(const String& directiveText);
 
     class Listener {
     public:
@@ -162,11 +162,11 @@ public:
     void removeListener(Listener& listener) { m_listeners.remove(&listener); }
 
 protected:
-    InspectorDebuggerAgent(AgentContext&);
-    virtual void internalEnable();
-    virtual void internalDisable(bool isBeingDestroyed);
+    JS_EXPORT_PRIVATE InspectorDebuggerAgent(AgentContext&);
+    JS_EXPORT_PRIVATE virtual void internalEnable();
+    JS_EXPORT_PRIVATE virtual void internalDisable(bool isBeingDestroyed);
 
-    Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::optional<bool> /* wasThrown */, std::optional<int> /* savedResultIndex */>> evaluateOnCallFrame(InjectedScript&, const Protocol::Debugger::CallFrameId&, const String& expression, const String& objectGroup, std::optional<bool>&& includeCommandLineAPI, std::optional<bool>&& doNotPauseOnExceptionsAndMuteConsole, std::optional<bool>&& returnByValue, std::optional<bool>&& generatePreview, std::optional<bool>&& saveResult, std::optional<bool>&& emulateUserGesture);
+    JS_EXPORT_PRIVATE Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::optional<bool> /* wasThrown */, std::optional<int> /* savedResultIndex */>> evaluateOnCallFrame(InjectedScript&, const Protocol::Debugger::CallFrameId&, const String& expression, const String& objectGroup, std::optional<bool>&& includeCommandLineAPI, std::optional<bool>&& doNotPauseOnExceptionsAndMuteConsole, std::optional<bool>&& returnByValue, std::optional<bool>&& generatePreview, std::optional<bool>&& saveResult, std::optional<bool>&& emulateUserGesture);
 
     InjectedScriptManager& injectedScriptManager() const { return m_injectedScriptManager; }
     virtual InjectedScript injectedScriptForEval(Protocol::ErrorString&, std::optional<Protocol::Runtime::ExecutionContextId>&&) = 0;
@@ -176,10 +176,10 @@ protected:
     virtual void muteConsole() = 0;
     virtual void unmuteConsole() = 0;
 
-    virtual String sourceMapURLForScript(const JSC::Debugger::Script&);
+    JS_EXPORT_PRIVATE virtual String sourceMapURLForScript(const JSC::Debugger::Script&);
 
-    void didClearGlobalObject();
-    virtual void didClearAsyncStackTraceData();
+    JS_EXPORT_PRIVATE void didClearGlobalObject();
+    JS_EXPORT_PRIVATE virtual void didClearAsyncStackTraceData();
 
 private:
     void setBlackboxConfiguration(JSC::SourceID, const JSC::Debugger::Script&);
