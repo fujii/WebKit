@@ -227,6 +227,9 @@ void JSRopeString::resolveToBufferSlow(JSString* fiber0, JSString* fiber1, JSStr
     auto* position = end; // We will be working backwards over the rope.
     Vector<JSString*, 32, UnsafeVectorOverflow> workQueue; // These strings are kept alive by the parent rope, so using a Vector is OK.
 
+    ALWAYS_LOG_WITH_STREAM(stream << "workQueue " << &workQueue << "-" << (&workQueue + 1) << " " << sizeof(workQueue));
+    ALWAYS_LOG_WITH_STREAM(stream << "buffer " << &buffer << "-"  << (&buffer + 1) << " " << sizeof(buffer));
+
     workQueue.append(fiber0);
     if (fiber1) {
         workQueue.append(fiber1);
