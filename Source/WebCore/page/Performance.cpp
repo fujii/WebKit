@@ -455,4 +455,9 @@ void Performance::scheduleTaskIfNeeded()
     });
 }
 
+ScriptExecutionContext* Performance::scriptExecutionContext() const
+{
+    return ContextDestructionObserver::scriptExecutionContext();
+}
+
 } // namespace WebCore
