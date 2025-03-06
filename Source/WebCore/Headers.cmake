@@ -733,12 +733,14 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     animation/CustomAnimationOptions.h
     animation/CompositeOperation.h
     animation/EffectTiming.h
+    animation/ElementAnimationRareData.h
     animation/FillMode.h
     animation/FrameRateAligner.h
     animation/GetAnimationsOptions.h
     animation/IterationCompositeOperation.h
     animation/KeyframeAnimationOptions.h
     animation/KeyframeEffectOptions.h
+    animation/KeyframeEffectStack.h
     animation/KeyframeInterpolation.h
     animation/PlaybackDirection.h
     animation/ScrollAxis.h
@@ -801,6 +803,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     bindings/js/JSDOMOperation.h
     bindings/js/JSDOMPromiseDeferred.h
     bindings/js/JSDOMPromiseDeferredForward.h
+    bindings/js/JSDOMSetLike.h
     bindings/js/JSDOMWindowBase.h
     bindings/js/JSDOMWrapper.h
     bindings/js/JSDOMWrapperCache.h
@@ -978,6 +981,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/typedom/CSSKeywordValue.h
     css/typedom/CSSNumericValue.h
     css/typedom/CSSStyleValue.h
+    css/typedom/MainThreadStylePropertyMapReadOnly.h
+    css/typedom/StylePropertyMap.h
+    css/typedom/StylePropertyMapReadOnly.h
 
     css/typedom/numeric/CSSNumericBaseType.h
     css/typedom/numeric/CSSNumericType.h
@@ -1049,6 +1055,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/CaretPosition.h
     dom/CharacterData.h
     dom/CheckVisibilityOptions.h
+    dom/ChildNodeList.h
     dom/CollectionIndexCache.h
     dom/CollectionIndexCacheInlines.h
     dom/CommandEvent.h
@@ -1060,6 +1067,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/CustomElementDefaultARIA.h
     dom/CustomElementReactionQueue.h
     dom/CustomElementRegistry.h
+    dom/CustomStateSet.h
     dom/DOMException.h
     dom/DOMHighResTimeStamp.h
     dom/DOMImplementation.h
@@ -1068,6 +1076,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/DOMRectInit.h
     dom/DOMRectList.h
     dom/DOMRectReadOnly.h
+    dom/DatasetDOMStringMap.h
     dom/DataTransfer.h
     dom/DeviceOrientationClient.h
     dom/DeviceOrientationData.h
@@ -1098,6 +1107,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/ElementIterator.h
     dom/ElementIteratorAssertions.h
     dom/ElementIteratorInlines.h
+    dom/ElementRareData.h
     dom/ElementTraversal.h
     dom/EpochTimeStamp.h
     dom/Event.h
@@ -1137,6 +1147,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/MouseRelatedEvent.h
     dom/MutationEvent.h
     dom/MutationObserver.h
+    dom/MutationObserverRegistration.h
     dom/NameNodeList.h
     dom/NamedNodeMap.h
     dom/NativeNodeFilter.h
@@ -1147,6 +1158,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/NodeFilterCondition.h
     dom/NodeIterator.h
     dom/NodeList.h
+    dom/NodeRareData.h
     dom/NodeRenderStyle.h
     dom/NodeTraversal.h
     dom/OverflowEvent.h
@@ -1189,11 +1201,13 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/StartViewTransitionOptions.h
     dom/StaticRange.h
     dom/StyledElement.h
+    dom/TagCollection.h
     dom/TaskSource.h
     dom/Text.h
     dom/TextEvent.h
     dom/TextEventInputType.h
     dom/ToggleEvent.h
+    dom/ToggleEventTask.h
     dom/Touch.h
     dom/Traversal.h
     dom/TreeScope.h
@@ -1417,6 +1431,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/PDFDocument.h
     html/PermissionsPolicy.h
     html/PluginDocument.h
+    html/HTMLSlotElement.h
     html/StepRange.h
     html/SwitchTrigger.h
     html/TimeRanges.h
@@ -1681,6 +1696,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/ImageAnalysisQueue.h
     page/ImmediateActionStage.h
     page/InteractionRegion.h
+    page/IntersectionObserverCallback.h
+    page/IntersectionObserver.h
     page/IsLoggedIn.h
     page/LayoutMilestone.h
     page/LinkDecorationFilteringData.h
@@ -1725,6 +1742,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/RemoteFrameView.h
     page/RemoteUserInputEventData.h
     page/RenderingUpdateScheduler.h
+    page/ResizeObserverBoxOptions.h
+    page/ResizeObserverCallback.h
+    page/ResizeObserver.h
     page/ScreenOrientationLockType.h
     page/ScreenOrientationType.h
     page/ScriptTelemetryCategory.h

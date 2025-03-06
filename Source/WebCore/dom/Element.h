@@ -407,7 +407,7 @@ public:
     virtual bool rendererIsNeeded(const RenderStyle&);
     virtual bool isReplaced(const RenderStyle&) const { return false; }
 
-    inline ShadowRoot* shadowRoot() const; // Defined in ElementRareData.h
+    inline ShadowRoot* shadowRoot() const;
     RefPtr<ShadowRoot> shadowRootForBindings(JSC::JSGlobalObject&) const;
     RefPtr<Element> resolveReferenceTarget() const;
     RefPtr<Element> retargetReferenceTargetForBindings(RefPtr<Element>) const;
@@ -949,7 +949,7 @@ private:
     void cloneShadowTreeIfPossible(Element& newHost, CustomElementRegistry*);
     virtual Ref<Element> cloneElementWithoutAttributesAndChildren(Document&, CustomElementRegistry*);
 
-    inline void removeShadowRoot(); // Defined in ElementRareData.h.
+    inline void removeShadowRoot();
     void removeShadowRootSlow(ShadowRoot&);
 
     enum class ResolveComputedStyleMode : uint8_t { Normal, RenderedOnly, Editability };

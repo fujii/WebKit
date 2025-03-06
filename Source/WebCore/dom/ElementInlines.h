@@ -29,6 +29,7 @@
 #include "DocumentInlines.h"
 #include "Element.h"
 #include "ElementData.h"
+#include "ElementRareData.h"
 #include "HTMLNames.h"
 #include "RenderStyleInlines.h"
 #include "StyleChange.h"
@@ -230,6 +231,25 @@ inline void Element::hideNonce()
     if (LIKELY(!isConnected() || !hasAttributeWithoutSynchronization(HTMLNames::nonceAttr)))
         return;
     hideNonceSlow();
+}
+
+inline ElementRareData* Element::elementRareData() const
+{
+    ASSERT_WITH_SECURITY_IMPLICATION(hasRareData());
+    return static_cast<ElementRareData*>(rareData());
+}
+
+inline ShadowRoot* Element::shadowRoot() const
+{
+    return hasRareData() ? elementRareData()->shadowRoot() : nullptr;
+}
+
+inline void Element::removeShadowRoot()
+{
+    RefPtr shadowRoot = this->shadowRoot();
+    if (LIKELY(!shadowRoot))
+        return;
+    removeShadowRootSlow(*shadowRoot);
 }
 
 inline Element* Document::cssTarget() const

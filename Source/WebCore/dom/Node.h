@@ -268,8 +268,8 @@ public:
     WEBCORE_EXPORT Element* shadowHost() const;
     ShadowRoot* containingShadowRoot() const;
     RefPtr<ShadowRoot> protectedContainingShadowRoot() const;
-    inline ShadowRoot* shadowRoot() const; // Defined in ElementRareData.h
-    inline RefPtr<ShadowRoot> protectedShadowRoot() const; // Defined in ElementRareData.h
+    inline ShadowRoot* shadowRoot() const;
+    inline RefPtr<ShadowRoot> protectedShadowRoot() const;
     bool isClosedShadowHidden(const Node&) const;
 
     HTMLSlotElement* assignedSlot() const;

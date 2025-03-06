@@ -22,8 +22,9 @@
 
 #include "CharacterData.h"
 #include "Document.h"
-#include "Element.h"
+#include "ElementInlines.h"
 #include "Node.h"
+#include "ShadowRoot.h"
 #include "WebCoreOpaqueRoot.h"
 
 namespace WebCore {
@@ -140,6 +141,18 @@ inline void Node::setParentNode(ContainerNode* parent)
 inline RefPtr<ContainerNode> Node::protectedParentNode() const
 {
     return parentNode();
+}
+
+inline ShadowRoot* Node::shadowRoot() const
+{
+    if (auto* element = dynamicDowncast<Element>(*this))
+        return element->shadowRoot();
+    return nullptr;
+}
+
+inline RefPtr<ShadowRoot> Node::protectedShadowRoot() const
+{
+    return shadowRoot();
 }
 
 inline void collectChildNodes(Node& node, NodeVector& children)

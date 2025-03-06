@@ -33,7 +33,6 @@
 #include "Document.h"
 #include "ElementAncestorIteratorInlines.h"
 #include "ElementChildIteratorInlines.h"
-#include "ElementRareData.h"
 #include "EventHandler.h"
 #include "EventLoop.h"
 #include "FloatRect.h"

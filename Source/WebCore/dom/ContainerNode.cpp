@@ -33,7 +33,6 @@
 #include "ContainerNodeAlgorithms.h"
 #include "Editor.h"
 #include "ElementChildIteratorInlines.h"
-#include "ElementRareData.h"
 #include "ElementTraversal.h"
 #include "EventNames.h"
 #include "FloatRect.h"

@@ -38,7 +38,6 @@
 #include "ContentSecurityPolicy.h"
 #include "DOMTokenList.h"
 #include "ElementInlines.h"
-#include "ElementRareData.h"
 #include "HTMLElement.h"
 #include "HTMLParserIdioms.h"
 #include "InlineStylePropertyMap.h"

@@ -29,7 +29,6 @@
 #include "CustomElementReactionQueue.h"
 #include "Document.h"
 #include "DocumentInlines.h"
-#include "ElementRareData.h"
 #include "ElementTraversal.h"
 #include "HTMLElementFactory.h"
 #include "JSCustomElementInterface.h"

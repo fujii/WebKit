@@ -27,7 +27,7 @@
 #include "HTMLMaybeFormAssociatedCustomElement.h"
 
 #include "Document.h"
-#include "ElementRareData.h"
+#include "ElementInlines.h"
 #include "FormAssociatedCustomElement.h"
 #include <wtf/TZoneMallocInlines.h>
 

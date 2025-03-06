@@ -28,7 +28,6 @@
 
 #include "ElementAncestorIteratorInlines.h"
 #include "ElementChildIteratorInlines.h"
-#include "ElementRareData.h"
 #include "HTMLBDIElement.h"
 #include "HTMLInputElement.h"
 #include "HTMLSlotElement.h"

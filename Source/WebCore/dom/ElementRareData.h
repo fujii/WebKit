@@ -369,35 +369,4 @@ inline bool ElementRareData::hasRandomKeyMap() const
     return !m_randomKeyMaps.isEmpty();
 }
 
-inline ElementRareData* Element::elementRareData() const
-{
-    ASSERT_WITH_SECURITY_IMPLICATION(hasRareData());
-    return static_cast<ElementRareData*>(rareData());
-}
-
-inline ShadowRoot* Node::shadowRoot() const
-{
-    if (auto* element = dynamicDowncast<Element>(*this))
-        return element->shadowRoot();
-    return nullptr;
-}
-
-inline ShadowRoot* Element::shadowRoot() const
-{
-    return hasRareData() ? elementRareData()->shadowRoot() : nullptr;
-}
-
-inline RefPtr<ShadowRoot> Node::protectedShadowRoot() const
-{
-    return shadowRoot();
-}
-
-inline void Element::removeShadowRoot()
-{
-    RefPtr shadowRoot = this->shadowRoot();
-    if (LIKELY(!shadowRoot))
-        return;
-    removeShadowRootSlow(*shadowRoot);
-}
-
 } // namespace WebCore

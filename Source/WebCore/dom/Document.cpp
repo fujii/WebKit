@@ -90,7 +90,6 @@
 #include "ElementChildIteratorInlines.h"
 #include "ElementCreationOptions.h"
 #include "ElementIterator.h"
-#include "ElementRareData.h"
 #include "ElementTraversal.h"
 #include "EmptyHTMLCollection.h"
 #include "EventHandler.h"
