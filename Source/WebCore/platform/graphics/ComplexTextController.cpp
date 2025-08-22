@@ -25,6 +25,8 @@
 #include "config.h"
 #include "ComplexTextController.h"
 
+#if !USE(HARFBUZZ_SHAPER)
+
 #include "FloatSize.h"
 #include "FontCascade.h"
 #include "FontCascadeInlines.h"
@@ -152,34 +154,6 @@ ComplexTextController::ComplexTextController(const TextRun& run, const FontCasca
     , m_run(run)
     , m_end(run.length())
 {
-}
-
-std::pair<float, float> ComplexTextController::enclosingGlyphBoundsForTextRun(const FontCascade& fontCascade, const TextRun& textRun)
-{
-    auto textController = ComplexTextController { textRun, fontCascade };
-    textController.collectComplexTextRuns();
-
-    auto enclosingAscent = std::optional<float> { };
-    auto enclosingDescent = std::optional<float> { };
-
-    for (size_t runIndex = 0; runIndex < textController.m_complexTextRuns.size(); ++runIndex) {
-        auto& complexTextRun = *textController.m_complexTextRuns[runIndex];
-        auto& font = complexTextRun.font();
-        auto glyphs = complexTextRun.glyphs();
-        ASSERT(glyphs.size() == complexTextRun.glyphCount());
-
-#if USE(CORE_TEXT)
-        auto glyphBounds = font.boundsForGlyphs(glyphs);
-        for (auto& bounds : glyphBounds) {
-#else
-        for (auto& glyph : glyphs) {
-            auto bounds = font.boundsForGlyph(glyph);
-#endif
-            enclosingAscent = std::min(enclosingAscent.value_or(bounds.y()), bounds.y());
-            enclosingDescent = std::max(enclosingDescent.value_or(bounds.maxY()), bounds.maxY());
-        }
-    }
-    return { enclosingAscent.value_or(0.f), enclosingDescent.value_or(0.f) };
 }
 
 void ComplexTextController::finishConstruction()
@@ -935,3 +909,5 @@ ComplexTextController::ComplexTextRun::ComplexTextRun(const Vector<FloatSize>& a
 }
 
 } // namespace WebCore
+
+#endif // !USE(HARFBUZZ_SHAPER)

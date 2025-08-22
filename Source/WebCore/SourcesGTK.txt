@@ -86,6 +86,10 @@ platform/graphics/gtk/IconGtk.cpp
 platform/graphics/gtk/ImageAdapterGtk.cpp
 platform/graphics/gtk/SystemFontDatabaseGTK.cpp
 
+platform/graphics/harfbuzz/FontCascadeHarfBuzz.cpp
+platform/graphics/harfbuzz/HarfBuzzFace.cpp
+platform/graphics/harfbuzz/HarfBuzzShaper.cpp
+
 platform/graphics/opentype/OpenTypeVerticalData.cpp
 
 platform/graphics/x11/XErrorTrapper.cpp @no-unify

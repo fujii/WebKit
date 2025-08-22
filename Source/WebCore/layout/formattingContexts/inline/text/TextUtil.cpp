@@ -28,7 +28,6 @@
 #include "TextUtil.h"
 
 #include "BreakLines.h"
-#include "ComplexTextController.h"
 #include "FontCascade.h"
 #include "InlineLineTypes.h"
 #include "InlineTextItem.h"
@@ -226,7 +225,7 @@ TextUtil::EnclosingAscentDescent TextUtil::enclosingGlyphBoundsForText(StringVie
         return { };
 
     if (shouldUseSimpleGlyphOverflowCodePath == ShouldUseSimpleGlyphOverflowCodePath::No) {
-        auto overflow = ComplexTextController::enclosingGlyphBoundsForTextRun(style.fontCascade(), TextRun { textContent });
+        auto overflow = style.fontCascade().enclosingGlyphBoundsForTextRun(TextRun { textContent });
         return { overflow.first, overflow.second };
     }
 

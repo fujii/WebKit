@@ -25,6 +25,8 @@
 #include "config.h"
 #include "ComplexTextController.h"
 
+#if !USE(HARFBUZZ_SHAPER)
+
 #include "FontCascade.h"
 #include "FontFeatureValues.h"
 #include "FontTaggedSettings.h"
@@ -242,3 +244,5 @@ void ComplexTextController::collectComplexTextRunsForCharacters(std::span<const 
 }
 
 } // namespace WebCore
+
+#endif // !USE(HARFBUZZ_SHAPER)

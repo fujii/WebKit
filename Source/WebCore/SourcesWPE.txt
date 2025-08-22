@@ -83,6 +83,10 @@ platform/graphics/gbm/GraphicsContextGLTextureMapperGBM.cpp @no-unify
 platform/graphics/gbm/MemoryMappedGPUBuffer.cpp
 platform/graphics/gbm/PlatformDisplayGBM.cpp @no-unify
 
+platform/graphics/harfbuzz/FontCascadeHarfBuzz.cpp
+platform/graphics/harfbuzz/HarfBuzzFace.cpp
+platform/graphics/harfbuzz/HarfBuzzShaper.cpp
+
 platform/graphics/libwpe/PlatformDisplayLibWPE.cpp
 
 platform/graphics/opentype/OpenTypeVerticalData.cpp

@@ -164,6 +164,7 @@ void FontCascade::update(RefPtr<FontSelector>&& fontSelector) const
     FontCache::forCurrentThread()->updateFontCascade(*this);
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 GlyphBuffer FontCascade::layoutText(CodePath codePathToUse, const TextRun& run, unsigned from, unsigned to, ForTextEmphasisOrNot forTextEmphasis) const
 {
     if (codePathToUse != CodePath::Complex)
@@ -171,6 +172,7 @@ GlyphBuffer FontCascade::layoutText(CodePath codePathToUse, const TextRun& run, 
 
     return layoutComplexText(run, from, to, forTextEmphasis);
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 float FontCascade::letterSpacing() const
 {
@@ -259,6 +261,7 @@ RefPtr<const DisplayList::DisplayList> FontCascade::displayListForTextRun(Graphi
     return recordingContext.takeDisplayList();
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 float FontCascade::widthOfTextRange(const TextRun& run, unsigned from, unsigned to, SingleThreadWeakHashSet<const Font>* fallbackFonts, float* outWidthBeforeRange, float* outWidthAfterRange) const
 {
     ASSERT(from <= to);
@@ -302,6 +305,7 @@ float FontCascade::widthOfTextRange(const TextRun& run, unsigned from, unsigned 
 
     return offsetAfterRange - offsetBeforeRange;
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 float FontCascade::width(StringView text) const
 {
@@ -309,6 +313,7 @@ float FontCascade::width(StringView text) const
     return width (run);
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 float FontCascade::width(const TextRun& run, SingleThreadWeakHashSet<const Font>* fallbackFonts, GlyphOverflow* glyphOverflow) const
 {
     if (!run.length())
@@ -343,6 +348,7 @@ float FontCascade::width(const TextRun& run, SingleThreadWeakHashSet<const Font>
         *cacheEntry = result;
     return result;
 }
+
 NEVER_INLINE float FontCascade::widthForSimpleTextSlow(StringView text, TextDirection textDirection, float* cacheEntry) const
 {
     GlyphBuffer glyphBuffer;
@@ -371,6 +377,7 @@ NEVER_INLINE float FontCascade::widthForSimpleTextSlow(StringView text, TextDire
         *cacheEntry = width;
     return width;
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 float FontCascade::widthForSimpleTextWithFixedPitch(StringView text, bool whitespaceIsCollapsed) const
 {
@@ -537,6 +544,7 @@ bool FontCascade::fastAverageCharWidthIfAvailable(float& width) const
     return success;
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 Vector<LayoutRect> FontCascade::characterSelectionRectsForText(const TextRun& run, const LayoutRect& selectionRect, unsigned from, std::optional<unsigned> toOrEndOfRun) const
 {
     unsigned to = toOrEndOfRun.value_or(run.length());
@@ -588,6 +596,7 @@ int FontCascade::offsetForPosition(const TextRun& run, float x, bool includePart
 
     return offsetForPositionForComplexText(run, x, includePartialGlyphs);
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 template <typename CharacterType>
 static inline String normalizeSpacesInternal(std::span<const CharacterType> characters)
@@ -646,7 +655,7 @@ FontCascade::CodePath FontCascade::codePath(const TextRun& run, std::optional<un
     if (s_codePath != CodePath::Auto)
         return s_codePath;
 
-#if !USE(FREETYPE)
+#if !USE(FREETYPE) && !USE(HARFBUZZ_SHAPER)
     // FIXME: Use the fast code path once it handles partial runs with kerning and ligatures. See http://webkit.org/b/100050
     if ((enableKerning() || requiresShaping()) && (from.value_or(0) || to.value_or(run.length()) != run.length()))
         return CodePath::Complex;
@@ -657,7 +666,7 @@ FontCascade::CodePath FontCascade::codePath(const TextRun& run, std::optional<un
 
     // FIXME: https://bugs.webkit.org/show_bug.cgi?id=150791: @font-face features should also cause this to be complex.
 
-#if !USE(FONT_VARIANT_VIA_FEATURES) && !USE(FREETYPE)
+#if !USE(FONT_VARIANT_VIA_FEATURES) && !USE(FREETYPE) && !USE(HARFBUZZ_SHAPER)
     if (run.length() > 1 && (enableKerning() || requiresShaping()))
         return CodePath::Complex;
 #endif
@@ -1439,6 +1448,7 @@ float FontCascade::floatEmphasisMarkHeight(const AtomString& mark) const
     return { };
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 GlyphBuffer FontCascade::layoutSimpleText(const TextRun& run, unsigned from, unsigned to, ForTextEmphasisOrNot forTextEmphasis) const
 {
     GlyphBuffer glyphBuffer;
@@ -1508,6 +1518,7 @@ GlyphBuffer FontCascade::layoutComplexText(const TextRun& run, unsigned from, un
 
     return glyphBuffer;
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 inline bool shouldDrawIfLoading(const Font& font, FontCascade::CustomFontNotReadyAction customFontNotReadyAction)
 {
@@ -1605,6 +1616,7 @@ void FontCascade::drawEmphasisMarks(GraphicsContext& context, const GlyphBuffer&
     drawGlyphBuffer(context, markBuffer, startPoint, CustomFontNotReadyAction::DoNotPaintIfFontNotReady);
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 float FontCascade::widthForSimpleText(const TextRun& run, SingleThreadWeakHashSet<const Font>* fallbackFonts, GlyphOverflow* glyphOverflow) const
 {
     WidthIterator it(*this, run, fallbackFonts, glyphOverflow);
@@ -1632,6 +1644,34 @@ float FontCascade::widthForComplexText(const TextRun& run, SingleThreadWeakHashS
         glyphOverflow->right = std::max<double>(0, controller.maxGlyphBoundingBoxX() - controller.totalAdvance().width());
     }
     return controller.totalAdvance().width();
+}
+
+std::pair<float, float> FontCascade::enclosingGlyphBoundsForTextRun(const TextRun& textRun)
+{
+    auto textController = ComplexTextController { textRun, *this };
+    textController.collectComplexTextRuns();
+
+    auto enclosingAscent = std::optional<float> { };
+    auto enclosingDescent = std::optional<float> { };
+
+    for (size_t runIndex = 0; runIndex < textController.m_complexTextRuns.size(); ++runIndex) {
+        auto& complexTextRun = *textController.m_complexTextRuns[runIndex];
+        auto& font = complexTextRun.font();
+        auto glyphs = complexTextRun.glyphs();
+        ASSERT(glyphs.size() == complexTextRun.glyphCount());
+
+#if USE(CORE_TEXT)
+        auto glyphBounds = font.boundsForGlyphs(glyphs);
+        for (auto& bounds : glyphBounds) {
+#else
+        for (auto& glyph : glyphs) {
+            auto bounds = font.boundsForGlyph(glyph);
+#endif
+            enclosingAscent = std::min(enclosingAscent.value_or(bounds.y()), bounds.y());
+            enclosingDescent = std::max(enclosingDescent.value_or(bounds.maxY()), bounds.maxY());
+        }
+    }
+    return { enclosingAscent.value_or(0.f), enclosingDescent.value_or(0.f) };
 }
 
 float FontCascade::widthForCharacterInRun(const TextRun& run, unsigned characterPosition) const
@@ -1679,6 +1719,7 @@ void FontCascade::adjustSelectionRectForComplexText(const TextRun& run, LayoutRe
         selectionRect.move(beforeWidth, 0);
     selectionRect.setWidth(LayoutUnit::fromFloatCeil(afterWidth - beforeWidth));
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 void FontCascade::adjustSelectionRectForSimpleTextWithFixedPitch(const TextRun& run, LayoutRect& selectionRect, unsigned from, unsigned to) const
 {
@@ -1693,6 +1734,7 @@ void FontCascade::adjustSelectionRectForSimpleTextWithFixedPitch(const TextRun& 
     selectionRect.setWidth(LayoutUnit::fromFloatCeil(afterWidth - beforeWidth));
 }
 
+#if !USE(HARFBUZZ_SHAPER)
 int FontCascade::offsetForPositionForSimpleText(const TextRun& run, float x, bool includePartialGlyphs) const
 {
     float delta = x;
@@ -1742,6 +1784,7 @@ int FontCascade::offsetForPositionForComplexText(const TextRun& run, float x, bo
     ComplexTextController controller(*this, run);
     return controller.offsetForPosition(x, includePartialGlyphs);
 }
+#endif // !USE(HARFBUZZ_SHAPER)
 
 #if !PLATFORM(COCOA) && !USE(HARFBUZZ)
 // FIXME: Unify this with the macOS and iOS implementation.

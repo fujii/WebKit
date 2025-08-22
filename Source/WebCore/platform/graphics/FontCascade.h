@@ -156,6 +156,7 @@ public:
     float widthForTextUsingSimplifiedMeasuring(StringView text, TextDirection = TextDirection::LTR) const;
     WEBCORE_EXPORT float widthForSimpleTextWithFixedPitch(StringView text, bool whitespaceIsCollapsed) const;
     float widthForCharacterInRun(const TextRun&, unsigned) const;
+    std::pair<float, float> enclosingGlyphBoundsForTextRun(const TextRun&) const;
 
     std::unique_ptr<TextLayout, TextLayoutDeleter> createLayout(RenderText&, float xPos, bool collapseWhiteSpace) const;
     float widthOfSpaceString() const

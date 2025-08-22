@@ -24,6 +24,8 @@
 
 #pragma once
 
+#if !USE(HARFBUZZ_SHAPER)
+
 #include <WebCore/FloatPoint.h>
 #include <WebCore/GlyphBuffer.h>
 #include <WebCore/TextSpacing.h>
@@ -61,8 +63,6 @@ class ComplexTextController {
     WTF_MAKE_TZONE_ALLOCATED(ComplexTextController);
 public:
     ComplexTextController(const FontCascade&, const TextRun&, bool mayUseNaturalWritingDirection = false, SingleThreadWeakHashSet<const Font>* fallbackFonts = 0, bool forTextEmphasis = false);
-
-    static std::pair<float, float> enclosingGlyphBoundsForTextRun(const FontCascade&, const TextRun&);
 
     class ComplexTextRun;
     WEBCORE_EXPORT ComplexTextController(const FontCascade&, const TextRun&, Vector<Ref<ComplexTextRun>>&);
@@ -230,3 +230,5 @@ private:
 };
 
 } // namespace WebCore
+
+#endif // !USE(HARFBUZZ_SHAPER)
