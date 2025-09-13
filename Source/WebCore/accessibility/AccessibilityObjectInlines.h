@@ -292,4 +292,10 @@ inline std::optional<AXID> AccessibilityObject::treeID() const
     return cache ? std::optional { cache->treeID() } : std::nullopt;
 }
 
+inline void AccessibilityObject::recomputeIsIgnored()
+{
+    // isIgnoredWithoutCache will update m_lastKnownIsIgnoredValue and perform any necessary actions if it has changed.
+    isIgnoredWithoutCache(axObjectCache());
+}
+
 } // namespace WebCore

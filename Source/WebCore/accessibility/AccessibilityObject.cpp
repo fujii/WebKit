@@ -42,6 +42,7 @@
 #include "AXTextMarker.h"
 #include "AXUtilities.h"
 #include "AccessibilityMockObject.h"
+#include "AccessibilityObjectInlines.h"
 #include "AccessibilityRenderObject.h"
 #include "AccessibilityScrollView.h"
 #include "Chrome.h"
