@@ -1913,8 +1913,6 @@ static bool isCandidateForOpaquenessTest(const RenderBox& childBox)
 
 bool RenderBox::foregroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect, unsigned maxDepthToTest) const
 {
-    ASSERT(!isSkippedContentRoot(*this));
-
     if (!maxDepthToTest)
         return false;
 
