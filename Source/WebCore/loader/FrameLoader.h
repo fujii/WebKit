@@ -377,6 +377,8 @@ public:
     WEBCORE_EXPORT void continueLoadURLIntoChildFrame(const URL&, const String& referer, LocalFrame&);
     WEBCORE_EXPORT FrameLoadRequest createFrameLoadRequest(URL&&);
 
+    bool isDispatchingPageSwapEvent() const  { return m_isDispatchingPageSwapEvent; }
+
 private:
     enum FormSubmissionCacheLoadPolicy {
         MayAttemptCacheOnlyLoadForFormSubmissionItem,
@@ -566,6 +568,7 @@ private:
 
     bool m_errorOccurredInLoading { false };
     bool m_doNotAbortNavigationAPI { false };
+    bool m_isDispatchingPageSwapEvent { false };
     RefPtr<HistoryItem> m_pendingNavigationAPIItem;
     uint64_t m_requiredCookiesVersion { 0 };
 
