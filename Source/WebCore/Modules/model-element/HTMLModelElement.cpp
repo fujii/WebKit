@@ -85,6 +85,7 @@
 #include "Settings.h"
 #include <JavaScriptCore/ConsoleTypes.h>
 #include <JavaScriptCore/HeapInlines.h>
+#include <WebCore/HTTPStatusCodes.h>
 #include <wtf/Seconds.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/URL.h>
@@ -1294,7 +1295,7 @@ void HTMLModelElement::environmentMapResetAndReject(Exception&& exception)
 void HTMLModelElement::environmentMapResourceFinished()
 {
     int status = m_environmentMapResource->response().httpStatusCode();
-    if (m_environmentMapResource->loadFailedOrCanceled() || (status && (status < 200 || status > 299))) {
+    if (m_environmentMapResource->loadFailedOrCanceled() || !isHttpOkStatus(status)) {
         environmentMapResetAndReject(Exception { ExceptionCode::NetworkError });
 
         // sending a message with empty data to indicate resource removal

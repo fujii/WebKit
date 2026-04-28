@@ -1197,15 +1197,16 @@ void DocumentLoader::continueAfterContentPolicy(PolicyAction policy)
     if (m_response.isInHTTPFamily()) {
         int status = m_response.httpStatusCode(); // Status may be zero when loading substitute data, in particular from a WebArchive.
         if (status) {
-            if (status < httpStatus200OK || status >= httpStatus300MultipleChoices) {
+            if (!isHttpOkStatus(status)) {
                 if (RefPtr owner = dynamicDowncast<HTMLObjectElement>(frame->ownerElement())) {
                     owner->renderFallbackContent();
                     // object elements are no longer rendered after we fallback, so don't
                     // keep trying to process data from their load
                     cancelMainResourceLoad(protect(frameLoader())->cancelledError(m_request));
                 }
-            } else if (status == httpStatus204NoContent || status == httpStatus205ResetContent) {
-                // 204/205 responses should abort navigation without changing the document.
+            } else if (isHttpNullBodyStatus(status)) {
+                // Implementing step 21 of https://fetch.spec.whatwg.org/#main-fetch.
+                // null-body responses should abort navigation without changing the document.
                 stopLoadingForPolicyChange();
                 return;
             }
@@ -1979,7 +1980,7 @@ URL DocumentLoader::urlForHistory() const
 
 bool DocumentLoader::urlForHistoryReflectsFailure() const
 {
-    return m_substituteData.isValid() || m_response.httpStatusCode() >= 400;
+    return m_substituteData.isValid() || m_response.httpStatusCode() >= httpStatus400BadRequest;
 }
 
 URL DocumentLoader::documentURL() const
