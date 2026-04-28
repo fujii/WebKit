@@ -112,4 +112,30 @@ private:
     String m_label;
 };
 
+#define WEBMODEL_WEB_MODEL_PLAYER_DECLARE_DIFFUSE_AND_SPECULAR_TEXTURES \
+WebModel::ImageAsset diffuseTexture { \
+    .data = loadData(adoptCF(static_cast<CFStringRef>(@"modelDefaultDiffuseData"))), \
+    .width = 64, \
+    .height = 64, \
+    .depth = 1, \
+    .textureType = WebCore::WebGPU::TextureViewDimension::Cube, \
+    .pixelFormat = WebCore::WebGPU::TextureFormat::R16float, \
+    .mipmapLevelCount = 1, \
+    .arrayLength = 6, \
+    .textureUsage = WebCore::WebGPU::TextureUsage::TextureBinding, \
+    .swizzle = { } \
+}; \
+WebModel::ImageAsset specularTexture { \
+    .data = loadData(adoptCF(static_cast<CFStringRef>(@"modelDefaultSpecularData"))), \
+    .width = 256, \
+    .height = 256, \
+    .depth = 1, \
+    .textureType = WebCore::WebGPU::TextureViewDimension::Cube, \
+    .pixelFormat = WebCore::WebGPU::TextureFormat::R16float, \
+    .mipmapLevelCount = 9, \
+    .arrayLength = 6, \
+    .textureUsage = WebCore::WebGPU::TextureUsage::TextureBinding, \
+    .swizzle = { } \
+};
+
 }
