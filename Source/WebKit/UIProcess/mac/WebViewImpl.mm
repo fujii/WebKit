@@ -229,6 +229,20 @@ static NSString * const WKMediaExitFullScreenItem = @"WKMediaExitFullScreenItem"
 
 @implementation WKMouseTrackingObserver {
     WeakPtr<WebKit::WebViewImpl> _impl;
+    BOOL _viewIsTopmostAtLastMouseLocation;
+}
+
+- (BOOL)updateViewIsTopmostAtMouseLocation:(NSEvent *)event
+{
+    CheckedPtr impl = _impl.get();
+    if (!impl)
+        return NO;
+
+    RetainPtr view = impl->view();
+    RetainPtr hitView = [[view window].contentView hitTest:[[view window].contentView.superview convertPoint:event.locationInWindow fromView:nil]];
+
+    _viewIsTopmostAtLastMouseLocation = [hitView isDescendantOf:view.get()];
+    return _viewIsTopmostAtLastMouseLocation;
 }
 
 - (instancetype)initWithViewImpl:(WebKit::WebViewImpl&)impl
@@ -240,19 +254,22 @@ static NSString * const WKMediaExitFullScreenItem = @"WKMediaExitFullScreenItem"
 
 - (void)mouseMoved:(NSEvent *)event
 {
-    if (CheckedPtr impl = _impl.get())
+    CheckedPtr impl = _impl.get();
+    if (impl && [self updateViewIsTopmostAtMouseLocation:event])
         impl->mouseMoved(event);
 }
 
 - (void)mouseEntered:(NSEvent *)event
 {
-    if (CheckedPtr impl = _impl.get())
+    CheckedPtr impl = _impl.get();
+    if (impl && [self updateViewIsTopmostAtMouseLocation:event])
         impl->mouseEntered(event);
 }
 
 - (void)mouseExited:(NSEvent *)event
 {
-    if (CheckedPtr impl = _impl.get())
+    CheckedPtr impl = _impl.get();
+    if (impl && _viewIsTopmostAtLastMouseLocation)
         impl->mouseExited(event);
 }
 
