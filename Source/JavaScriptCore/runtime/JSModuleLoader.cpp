@@ -322,7 +322,7 @@ JSArray* JSModuleLoader::dependencyKeysIfEvaluated(JSGlobalObject* globalObject,
     RETURN_IF_EXCEPTION(scope, nullptr);
 
     for (unsigned index = 0; const AbstractModuleRecord::ModuleRequest& request : requests) {
-        Identifier resolved = resolve(globalObject, request.m_specifier, ident, nullptr, true);
+        Identifier resolved = resolve(globalObject, request.m_specifier, ident, nullptr, /* useImportMap */ true);
         RETURN_IF_EXCEPTION(scope, nullptr);
         array->putDirectIndex(globalObject, index++, identifierToJSValue(vm, resolved));
         RETURN_IF_EXCEPTION(scope, nullptr);
@@ -407,7 +407,7 @@ JSPromise* JSModuleLoader::linkAndEvaluateModule(JSGlobalObject* globalObject, c
         attachErrorInfo(globalObject, scope, record, entry->key(), entry->moduleType(), ModuleFailure::Kind::Instantiation);
         entry->setInstantiationError(globalObject, exception->value());
         if (auto* cyclic = dynamicDowncast<CyclicModuleRecord>(record))
-            cyclic->evaluationError(vm, exception->value());
+            cyclic->setEvaluationError(vm, exception->value());
         return nullptr;
     }
 
@@ -432,10 +432,10 @@ JSPromise* JSModuleLoader::requestImportModule(JSGlobalObject* globalObject, con
     VM& vm = globalObject->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    Identifier resolved = resolve(globalObject, moduleName, referrer, scriptFetcher, true);
+    Identifier resolved = resolve(globalObject, moduleName, referrer, scriptFetcher, /* useImportMap */ true);
     RETURN_IF_EXCEPTION(scope, nullptr);
 
-    JSPromise* promise = loadModule(globalObject, resolved, WTF::move(parameters), WTF::move(scriptFetcher), true, true, false);
+    JSPromise* promise = loadModule(globalObject, resolved, WTF::move(parameters), WTF::move(scriptFetcher), /* evaluate */ true, /* dynamic */ true, /* useImportMap */ false);
     RETURN_IF_EXCEPTION(scope, nullptr);
 
     JSPromise* resultPromise = JSPromise::create(vm, globalObject->promiseStructure());
@@ -715,7 +715,7 @@ JSPromise* JSModuleLoader::loadModule(JSGlobalObject* globalObject, const Module
     JSPromise* promise = hostLoadImportedModule(globalObject, referrer, moduleRequest, payload, scriptFetcher, useImportMap);
     RETURN_IF_EXCEPTION(scope, nullptr);
 
-    auto* context = ModuleLoadingContext::create(vm, moduleRequest, WTF::move(scriptFetcher), evaluate, false, useImportMap);
+    auto* context = ModuleLoadingContext::create(vm, moduleRequest, WTF::move(scriptFetcher), evaluate, /* dynamic */ false, useImportMap);
     JSPromise* resultPromise = JSPromise::create(vm, globalObject->promiseStructure());
     resultPromise->markAsHandled();
 
@@ -787,7 +787,7 @@ void JSModuleLoader::innerModuleLoading(JSGlobalObject* globalObject, ModuleGrap
         state->iterateVisited([](CyclicModuleRecord* loaded) {
             // 5.b.i. If loaded.[[Status]] is NEW, set loaded.[[Status]] to UNLINKED.
             if (loaded->status() == CyclicModuleRecord::Status::New)
-                loaded->status(CyclicModuleRecord::Status::Unlinked);
+                loaded->setStatus(CyclicModuleRecord::Status::Unlinked);
         });
         // 5.c. Perform ! Call(state.[[PromiseCapability]].[[Resolve]], undefined, « undefined »).
         state->promise()->fulfill(vm, globalObject, module);

@@ -1238,6 +1238,9 @@ static void moduleLoadStoreError(JSGlobalObject* globalObject, ThrowScope& scope
 
 static void dynamicImportLoadSettled(JSGlobalObject* globalObject, VM& vm, ThrowScope& scope, std::span<const JSValue, maxMicrotaskArguments> arguments, uint8_t payload)
 {
+    // https://tc39.es/ecma262/#sec-ContinueDynamicImport
+    // Step-4 rejectedClosure or Step-6 linkAndEvaluateClosure
+    //
     // continueDynamicImport: loadPromise settled
     // arguments[0] = capabilityPromise
     // arguments[1] = resolution or error
@@ -1246,25 +1249,39 @@ static void dynamicImportLoadSettled(JSGlobalObject* globalObject, VM& vm, Throw
     auto* module = uncheckedDowncast<AbstractModuleRecord>(arguments[2]);
     auto status = static_cast<JSPromise::Status>(payload);
     if (status == JSPromise::Status::Fulfilled) {
-        // linkAndEvaluate logic
+        // Step-6 linkAndEvaluateClosure
+        // 6.a. Let link be Completion(module.Link()).
         module->link(globalObject, nullptr);
-        if (Exception* exception = scope.exception()) {
+
+        // 6.b. If link is an abrupt completion, then
+        if (Exception* exception = scope.exception()) [[unlikely]] {
+            // 6.b.i. Perform ! Call(promiseCapability.[[Reject]], undefined, « link.[[Value]] »).
             JSModuleLoader::attachErrorInfo(globalObject, exception, module, module->moduleKey(), module->moduleType(), JSModuleLoader::ModuleFailure::Kind::Instantiation);
             capabilityPromise->rejectWithCaughtException(globalObject, scope);
             return;
         }
+
+        // 6.c. Let evaluatePromise be module.Evaluate().
         JSPromise* evaluatePromise = module->evaluate(globalObject);
-        if (scope.exception()) {
+        if (scope.exception()) [[unlikely]] {
             capabilityPromise->rejectWithCaughtException(globalObject, scope);
             return;
         }
+
+        // 6.d-f. Perform PerformPromiseThen(evaluatePromise, onFulfilled, onRejected).
         evaluatePromise->performPromiseThenWithInternalMicrotask(vm, globalObject, InternalMicrotask::DynamicImportEvaluateSettled, capabilityPromise, module);
-    } else
+    } else {
+        // Step-4 rejectedClosure
+        // 4.a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
         capabilityPromise->reject(vm, globalObject, arguments[1]);
+    }
 }
 
 static void dynamicImportEvaluateSettled(JSGlobalObject* globalObject, VM& vm, ThrowScope& scope, std::span<const JSValue, maxMicrotaskArguments> arguments, uint8_t payload)
 {
+    // https://tc39.es/ecma262/#sec-ContinueDynamicImport
+    // Step-4 rejectedClosure or Step-6.c fulfilledClosure
+    //
     // continueDynamicImport: evaluate settled
     // arguments[0] = capabilityPromise
     // arguments[1] = resolution or error
@@ -1273,17 +1290,24 @@ static void dynamicImportEvaluateSettled(JSGlobalObject* globalObject, VM& vm, T
     auto* module = uncheckedDowncast<AbstractModuleRecord>(arguments[2]);
     auto status = static_cast<JSPromise::Status>(payload);
     if (status == JSPromise::Status::Fulfilled) {
+        // 6.d.i. Let namespace be GetModuleNamespace(module).
         JSModuleNamespaceObject* moduleNamespace = module->getModuleNamespace(globalObject);
-        if (scope.exception()) {
+        if (scope.exception()) [[unlikely]] {
             capabilityPromise->rejectWithCaughtException(globalObject, scope);
             return;
         }
-        // ContinueDynamicImport https://tc39.es/ecma262/#sec-ContinueDynamicImport
-        // Step 10 resolves the promiseCapability with the namespace. However,
+
+        // 6.d.ii. Perform ! Call(promiseCapability.[[Resolve]], undefined, « namespace »).
+        // This step resolves the promiseCapability with the namespace. However,
         // capabilityPromise here is the internal statePromise from moduleLoadTopSettled,
         // not the user-visible import() promise. The actual spec-required resolve()
         // happens in importModuleNamespace. Use fulfill here to avoid unnecessary
         // thenable unwrapping on internal pipeline.
+        //
+        // FIXME: This is different from the spec while user-observable behavior is correctly
+        // aligned (as "resolve" will happen in resultPromise side from dynamic import).
+        // But ideally, this carried capabilityPromise should be the last user-observable
+        // promise and we should do "resolve" here. This requires some clean up.
         capabilityPromise->fulfill(vm, globalObject, moduleNamespace);
     } else
         capabilityPromise->reject(vm, globalObject, arguments[1]);
