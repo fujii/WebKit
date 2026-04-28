@@ -126,6 +126,7 @@
 #include "UserScript.h"
 #include "UserTypingGestureIndicator.h"
 #include "VisibleUnits.h"
+#include "WindowProxy.h"
 #include "markup.h"
 #include "runtime_root.h"
 #include <JavaScriptCore/APICast.h>
@@ -1333,6 +1334,11 @@ void LocalFrame::frameWasDisconnectedFromOwner() const
 {
     if (!m_doc)
         return;
+
+    for (auto& jsWindowProxy : windowProxy().jsWindowProxiesAsVector()) {
+        if (auto* jsDOMWindow = dynamicDowncast<JSDOMWindowBase>(jsWindowProxy->window()))
+            jsDOMWindow->setAssociatedContextIsFullyActive(false);
+    }
 
     protect(document())->willBeRemovedFromFrame();
 }

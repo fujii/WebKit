@@ -3646,6 +3646,25 @@ void JSGlobalObject::queueMicrotaskToEventLoop(JSC::JSGlobalObject& globalObject
     globalObject.queueMicrotask(globalObject.vm(), WTF::move(task));
 }
 
+static bool incumbentRealmIs(VM& vm, JSGlobalObject* target)
+{
+    bool result = false;
+    StackVisitor::visit(vm.topCallFrame, vm, [&](StackVisitor& visitor) {
+        if (visitor->isNativeCalleeFrame())
+            return IterationStatus::Continue;
+        if (auto* codeBlock = visitor->codeBlock()) {
+            if (auto* functionExecutable = dynamicDowncast<FunctionExecutable>(codeBlock->ownerExecutable()); functionExecutable && functionExecutable->isBuiltinFunction())
+                return IterationStatus::Continue;
+            if (codeBlock->globalObject() == target) {
+                result = true;
+                return IterationStatus::Done;
+            }
+        }
+        return IterationStatus::Continue;
+    });
+    return result;
+}
+
 void JSGlobalObject::queueMicrotask(VM& vm, QueuedTask&& task)
 {
     ([&] ALWAYS_INLINE_LAMBDA {
@@ -3661,6 +3680,10 @@ void JSGlobalObject::queueMicrotask(VM& vm, QueuedTask&& task)
             return;
         }
     }());
+    if (!m_associatedContextIsFullyActive) [[unlikely]] {
+        if (microtaskQueue().isPerformingMicrotaskCheckpoint() && incumbentRealmIs(vm, this)) [[unlikely]]
+            return;
+    }
     microtaskQueue().enqueue(WTF::move(task));
 }
 

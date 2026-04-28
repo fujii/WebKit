@@ -233,6 +233,7 @@ private:
     VM* const m_vm;
     Debugger* m_debugger { nullptr };
     QueuedTaskResult m_microtaskRunnability { QueuedTaskResult::Executed };
+    bool m_associatedContextIsFullyActive { true };
     Ref<MicrotaskQueue> m_microtaskQueue;
 
 // Our hashtable code-generator tries to access these properties, so we make them public.
@@ -1248,6 +1249,8 @@ public:
 
     QueuedTaskResult microtaskRunnability() const { return m_microtaskRunnability; }
     void setMicrotaskRunnability(QueuedTaskResult runnability) { m_microtaskRunnability = runnability; }
+
+    void setAssociatedContextIsFullyActive(bool value) { m_associatedContextIsFullyActive = value; }
 
     MicrotaskQueue& microtaskQueue() const;
     JS_EXPORT_PRIVATE void setMicrotaskQueue(Ref<MicrotaskQueue>&&);
