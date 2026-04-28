@@ -3487,8 +3487,6 @@ webkit.org/b/261703 fast/forms/datalist/datalist-show-picker.html [ Skip ]
 # <rdar://problem/64273358> REGRESSION: [ iOS ] imported/w3c/web-platform-tests/dom/ranges/Range-surroundContents.html is flaky timing out.
 imported/w3c/web-platform-tests/dom/ranges/Range-surroundContents.html [ Slow ]
 
-# <rdar://problem/64816264> [ iOS wk2 ] streams/pipe-to.html is flaky failing.
-streams/pipe-to.html [ Pass Failure ]
 
 # <rdar://problem/63255266> [ iOS wk2 ] animations/suspend-resume-animation-events.html is a flaky failure
 animations/suspend-resume-animation-events.html [ Pass Failure ]

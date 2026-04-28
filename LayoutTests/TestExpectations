@@ -2947,7 +2947,6 @@ fast/css-intrinsic-dimensions/height-tables.html [ ImageOnlyFailure ]
 fast/table/hittest-tablecell-with-borders-right-edge.html [ Pass Failure ]
 fast/table/hittest-tablecell-right-edge.html [ Pass Failure ]
 
-webkit.org/b/154687 streams/pipe-to.html [ Slow ]
 
 webkit.org/b/52185 fast/css/vertical-align-baseline-rowspan-010.html [ ImageOnlyFailure ]
 
