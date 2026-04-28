@@ -29,9 +29,7 @@
 #if ENABLE(MODEL_ELEMENT)
 
 #include "HTMLModelElement.h"
-#include "RenderBoxModelObjectInlines.h"
 #include "RenderStyle.h"
-#include "RenderStyle+GettersInlines.h"
 #include "StyleDifference.h"
 #include <wtf/TZoneMallocInlines.h>
 

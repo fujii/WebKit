@@ -35,7 +35,6 @@
 
 #include "CairoUtilities.h"
 #include "MIMETypeRegistry.h"
-#include "NativeImage.h"
 #include "RefPtrCairo.h"
 #include <cairo.h>
 #include <wtf/text/Base64.h>

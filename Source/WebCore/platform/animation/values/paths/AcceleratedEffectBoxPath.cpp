@@ -28,7 +28,6 @@
 
 #if ENABLE(THREADED_ANIMATIONS)
 
-#include "AnimationUtilities.h"
 #include "Path.h"
 #include "TransformOperationData.h"
 

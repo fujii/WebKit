@@ -31,7 +31,6 @@
 
 namespace WebCore {
 
-class Path;
 struct BlendingContext;
 struct TransformOperationData;
 template<typename> struct AcceleratedEffectInterpolation;

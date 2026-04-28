@@ -28,6 +28,7 @@
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
 #include "AXIsolatedTree.h"
 
+#include "AccessibilityNodeObjectInlines.h"
 #include "AXAttributeCacheScope.h"
 #include "AXGeometryManager.h"
 #include "AXIsolatedObject.h"
@@ -38,9 +39,8 @@
 #include "AXTreeStore.h"
 #include "AXTreeStoreInlines.h"
 #include "AXUtilities.h"
-#include "AccessibilityNodeObject.h"
-#include "AccessibilityNodeObjectInlines.h"
 #include "AccessibilityObjectInlines.h"
+#include "AccessibilityNodeObject.h"
 #include "AccessibilityScrollView.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
@@ -49,7 +49,6 @@
 #include "FrameSelection.h"
 #include "HTMLNames.h"
 #include "LocalFrameView.h"
-#include "Logging.h"
 #include <wtf/MonotonicTime.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/SetForScope.h>

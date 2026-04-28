@@ -28,10 +28,8 @@
 
 #if ENABLE(WHEEL_EVENT_LATCHING)
 
-#include "DocumentView.h"
 #include "Element.h"
 #include "LocalFrame.h"
-#include "LocalFrameInlines.h"
 #include "LocalFrameView.h"
 #include "Logging.h"
 #include "Page.h"

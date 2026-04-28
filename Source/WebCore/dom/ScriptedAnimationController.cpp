@@ -27,7 +27,6 @@
 #include "config.h"
 #include "ScriptedAnimationController.h"
 
-#include "DOMWrapperWorld.h"
 #include "DocumentPage.h"
 #include "FrameDestructionObserverInlines.h"
 #include "InspectorInstrumentation.h"
