@@ -1252,6 +1252,10 @@ void TreeResolver::resetDescendantStyleRelations(Element& element, DescendantsTo
         break;
     case DescendantsToResolve::All:
         element.resetAllDescendantStyleRelations();
+        if (&element == m_document->documentElement())
+            m_isFullDocumentStyleRebuild = true;
+        if (m_isFullDocumentStyleRebuild)
+            element.resetHasSiblingFlags();
         break;
     };
 }
