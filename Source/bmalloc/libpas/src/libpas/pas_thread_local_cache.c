@@ -657,7 +657,6 @@ static PAS_ALWAYS_INLINE void
 process_deallocation_log_with_config(pas_thread_local_cache* cache,
                                      pas_segregated_deallocation_mode deallocation_mode,
                                      pas_segregated_page_config page_config,
-                                     pas_segregated_page_role role,
                                      size_t* index,
                                      uintptr_t encoded_begin,
                                      pas_lock** held_lock)
@@ -666,18 +665,16 @@ process_deallocation_log_with_config(pas_thread_local_cache* cache,
 
     pas_lock* last_held_lock;
 
-    if (!pas_segregated_deallocation_logging_mode_does_logging(
-            pas_segregated_page_config_logging_mode_for_role(page_config, role))) {
-        pas_panic("Deallocation logging is disabled for %s/%s, but here we are.\n",
-                  pas_segregated_page_config_kind_get_string(page_config.kind),
-                  pas_segregated_page_role_get_string(role));
+    if (!pas_segregated_deallocation_logging_mode_does_logging(page_config.exclusive_logging_mode)) {
+        pas_panic("Deallocation logging is disabled for %s, but here we are.\n",
+                  pas_segregated_page_config_kind_get_string(page_config.kind));
     }
 
     last_held_lock = NULL;
 
     for (;;) {
         uintptr_t begin;
-        begin = encoded_begin & ~PAS_SEGREGATED_PAGE_CONFIG_KIND_AND_ROLE_MASK;
+        begin = encoded_begin & ~PAS_SEGREGATED_PAGE_CONFIG_KIND_MASK;
 
         switch (page_config.kind) {
         case pas_segregated_page_config_kind_null:
@@ -690,7 +687,7 @@ process_deallocation_log_with_config(pas_thread_local_cache* cache,
 
         default:
             last_held_lock = *held_lock;
-            pas_segregated_page_deallocate(begin, held_lock, deallocation_mode, cache, page_config, role);
+            pas_segregated_page_deallocate(begin, held_lock, deallocation_mode, cache, page_config);
             if (verbose && *held_lock != last_held_lock && last_held_lock)
                 pas_log("Switched lock from %p to %p.\n", last_held_lock, *held_lock);
             
@@ -703,8 +700,8 @@ process_deallocation_log_with_config(pas_thread_local_cache* cache,
             return;
 
         encoded_begin = cache->deallocation_log[--*index];
-        if (PAS_UNLIKELY((encoded_begin & PAS_SEGREGATED_PAGE_CONFIG_KIND_AND_ROLE_MASK) >> PAS_SEGREGATED_PAGE_CONFIG_KIND_AND_ROLE_SHIFT
-            != pas_segregated_page_config_kind_and_role_create(page_config.kind, role))) {
+        if (PAS_UNLIKELY((encoded_begin & PAS_SEGREGATED_PAGE_CONFIG_KIND_MASK) >> PAS_SEGREGATED_PAGE_CONFIG_KIND_SHIFT
+            != (uintptr_t)page_config.kind)) {
             ++*index;
             return;
         }
@@ -728,17 +725,16 @@ static PAS_ALWAYS_INLINE void flush_deallocation_log_without_resetting(
 
         encoded_begin = thread_local_cache->deallocation_log[--index];
 
-        switch ((pas_segregated_page_config_kind_and_role)
-                ((encoded_begin & PAS_SEGREGATED_PAGE_CONFIG_KIND_AND_ROLE_MASK) >> PAS_SEGREGATED_PAGE_CONFIG_KIND_AND_ROLE_SHIFT)) {
+        /* Zeroed entries were either never logged or were already cleared. */
+        if (!encoded_begin)
+            continue;
+
+        switch ((pas_segregated_page_config_kind)
+                ((encoded_begin & PAS_SEGREGATED_PAGE_CONFIG_KIND_MASK) >> PAS_SEGREGATED_PAGE_CONFIG_KIND_SHIFT)) {
 #define PAS_DEFINE_SEGREGATED_PAGE_CONFIG_KIND(name, value) \
-        case pas_segregated_page_config_kind_ ## name ## _and_shared_role: \
+        case pas_segregated_page_config_kind_ ## name: \
             process_deallocation_log_with_config( \
-                thread_local_cache, deallocation_mode, value, pas_segregated_page_shared_role, &index, \
-                encoded_begin, &held_lock); \
-            break; \
-        case pas_segregated_page_config_kind_ ## name ## _and_exclusive_role: \
-            process_deallocation_log_with_config( \
-                thread_local_cache, deallocation_mode, value, pas_segregated_page_exclusive_role, &index, \
+                thread_local_cache, deallocation_mode, value, &index, \
                 encoded_begin, &held_lock); \
             break;
 #include "pas_segregated_page_config_kind.def"
@@ -1215,13 +1211,13 @@ bool pas_thread_local_cache_for_all(pas_allocator_scavenge_action allocator_acti
 PAS_NEVER_INLINE void pas_thread_local_cache_append_deallocation_slow(
     pas_thread_local_cache* thread_local_cache,
     uintptr_t begin,
-    pas_segregated_page_config_kind_and_role kind_and_role)
+    pas_segregated_page_config_kind kind)
 {
     unsigned index;
 
     index = thread_local_cache->deallocation_log_index;
     PAS_ASSERT(index < PAS_DEALLOCATION_LOG_SIZE);
-    thread_local_cache->deallocation_log[index++] = pas_thread_local_cache_encode_object(begin, kind_and_role);
+    thread_local_cache->deallocation_log[index++] = pas_thread_local_cache_encode_object(begin, kind);
     thread_local_cache->deallocation_log_index = index;
 
     pas_thread_local_cache_flush_deallocation_log(thread_local_cache, pas_lock_is_not_held);
