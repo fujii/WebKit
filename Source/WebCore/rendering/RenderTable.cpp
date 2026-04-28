@@ -305,7 +305,7 @@ void RenderTable::updateLogicalWidth()
     auto& styleLogicalWidth = style().logicalWidth();
     if (auto overridingLogicalWidth = this->overridingBorderBoxLogicalWidth())
         setLogicalWidth(*overridingLogicalWidth);
-    else if ((styleLogicalWidth.isSpecified() && styleLogicalWidth.isPossiblyPositive()) || styleLogicalWidth.isIntrinsicOrStretch())
+    else if ((styleLogicalWidth.isSpecified() && (styleLogicalWidth.isPossiblyPositive() || styleLogicalWidth.isKnownZero())) || styleLogicalWidth.isIntrinsicOrStretch())
         setLogicalWidth(convertStyleLogicalWidthToComputedWidth(styleLogicalWidth, containerWidthInInlineDirection));
     else {
         // Subtract out any fixed margins from our available width for auto width tables.
