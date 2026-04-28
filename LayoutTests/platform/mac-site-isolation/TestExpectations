@@ -309,7 +309,6 @@ imported/w3c/web-platform-tests/navigation-api/navigation-activation/activation-
 imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/entries-after-bfcache-in-iframe.html [ Failure ]
 imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/entries-after-bfcache.html [ Failure ]
 imported/w3c/web-platform-tests/navigation-api/per-entry-events/dispose-after-bfcache.html [ Failure ]
-imported/w3c/web-platform-tests/secure-contexts/basic-popup-and-iframe-tests.html [ Failure ]
 imported/w3c/web-platform-tests/service-workers/cache-storage/cross-partition.https.tentative.html [ Failure ]
 imported/w3c/web-platform-tests/service-workers/service-worker/navigation-headers.https.html [ Failure ]
 imported/w3c/web-platform-tests/service-workers/service-worker/partitioned-claim.tentative.https.html [ Failure ]

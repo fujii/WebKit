@@ -8428,12 +8428,14 @@ bool Document::isSecureContext() const
         return true;
 
     for (RefPtr frame = m_frame->tree().parent(); frame; frame = frame->tree().parent()) {
-        RefPtr localFrame = dynamicDowncast<LocalFrame>(frame);
-        if (!localFrame)
-            continue;
-        Ref<Document> ancestorDocument = *localFrame->document();
-        if (!isDocumentSecure(ancestorDocument))
-            return false;
+        if (RefPtr localFrame = dynamicDowncast<LocalFrame>(frame)) {
+            Ref<Document> ancestorDocument = *localFrame->document();
+            if (!isDocumentSecure(ancestorDocument))
+                return false;
+        } else if (RefPtr securityOrigin = frame->frameDocumentSecurityOrigin()) {
+            if (!securityOrigin->isPotentiallyTrustworthy())
+                return false;
+        }
     }
 
     return isDocumentSecure(*this);
