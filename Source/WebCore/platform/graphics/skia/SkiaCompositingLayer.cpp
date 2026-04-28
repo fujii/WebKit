@@ -727,7 +727,10 @@ void SkiaCompositingLayer::paintWithIntermediateSurface(SkCanvas& canvas, PaintC
 
 void SkiaCompositingLayer::paintSelfAndChildrenWithFilterAndMask(SkCanvas& canvas, PaintContext& context)
 {
-    const bool shouldClipPath = m_mask && !m_mask->m_clipPath.isEmpty();
+    const bool shouldClipPath = m_mask && m_mask->m_clipPath.has_value();
+    if (shouldClipPath && m_mask->m_clipPath->isEmpty())
+        return;
+
     sk_sp<SkImage> maskImage = m_mask && !shouldClipPath ? m_mask->maskImage() : nullptr;
     SkAutoCanvasRestore autoRestore(&canvas, shouldClipPath || maskImage);
     if (shouldClipPath || maskImage) {
@@ -738,7 +741,7 @@ void SkiaCompositingLayer::paintSelfAndChildrenWithFilterAndMask(SkCanvas& canva
         auto matrix = SkM44(transform).asM33();
 
         if (shouldClipPath)
-            canvas.clipPath(m_mask->m_clipPath.makeTransform(matrix), true);
+            canvas.clipPath(m_mask->m_clipPath->makeTransform(matrix), true);
         else if (auto maskShader = maskImage->makeShader({ SkFilterMode::kLinear, SkMipmapMode::kNone }, &matrix))
             canvas.clipShader(maskShader);
     }
