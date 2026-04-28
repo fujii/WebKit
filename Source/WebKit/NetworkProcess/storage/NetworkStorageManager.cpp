@@ -1150,6 +1150,9 @@ HashSet<WebCore::ClientOrigin> NetworkStorageManager::getAllOrigins()
 
 static void updateOriginData(HashMap<WebCore::SecurityOriginData, OriginStorageManager::DataTypeSizeMap>& originTypes, const WebCore::SecurityOriginData& origin, const OriginStorageManager::DataTypeSizeMap& newTypeSizeMap)
 {
+    if (newTypeSizeMap.isEmpty())
+        return;
+
     auto& typeSizeMap = originTypes.add(origin, OriginStorageManager::DataTypeSizeMap { }).iterator->value;
     for (auto [type, size] : newTypeSizeMap) {
         auto& currentSize = typeSizeMap.add(type, 0).iterator->value;
