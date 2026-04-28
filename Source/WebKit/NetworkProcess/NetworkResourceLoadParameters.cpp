@@ -28,6 +28,7 @@
 
 #include "NetworkProcessConnection.h"
 #include "WebProcess.h"
+#include <WebCore/SecurityOriginData.h>
 #include <wtf/RuntimeApplicationChecks.h>
 
 namespace WebKit {
@@ -56,6 +57,15 @@ RefPtr<SecurityOrigin> NetworkResourceLoadParameters::parentOrigin() const
     if (frameAncestorOrigins.isEmpty())
         return nullptr;
     return frameAncestorOrigins.first().ptr();
+}
+
+SecurityOriginData NetworkResourceLoadParameters::topOriginForServiceWorkers(const URL& requestURL) const
+{
+    if (isMainFrameNavigation) {
+        auto url = requestURL.protocolIsBlob() ? URL { requestURL.path().toString() } : requestURL;
+        return SecurityOriginData::fromURLWithoutStrictOpaqueness(url);
+    }
+    return topOrigin->data();
 }
 
 NetworkLoadParameters NetworkResourceLoadParameters::networkLoadParameters() const

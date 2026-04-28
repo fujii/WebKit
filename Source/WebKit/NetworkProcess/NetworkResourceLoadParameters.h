@@ -54,6 +54,7 @@ struct NetworkResourceLoadParameters {
 
     RefPtr<WebCore::SecurityOrigin> NODELETE parentOrigin() const;
     NetworkLoadParameters networkLoadParameters() const;
+    WebCore::SecurityOriginData topOriginForServiceWorkers(const URL& requestURL) const;
 
     WebPageProxyIdentifier webPageProxyID;
     WebCore::PageIdentifier webPageID;

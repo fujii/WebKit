@@ -74,6 +74,7 @@
 #include <WebCore/OriginAccessPatterns.h>
 #include <WebCore/RegistrableDomain.h>
 #include <WebCore/ReportingScope.h>
+#include <WebCore/SWServer.h>
 #include <WebCore/SameSiteInfo.h>
 #include <WebCore/SecurityOrigin.h>
 #include <WebCore/SecurityPolicy.h>
@@ -1490,6 +1491,15 @@ void NetworkResourceLoader::continueWillSendRequest(ResourceRequest&& newRequest
     }
 
     if (shouldTryToMatchRegistrationOnRedirection(parameters().options, !!m_serviceWorkerFetchTask)) {
+        auto topOrigin = parameters().topOriginForServiceWorkers(newRequest.url());
+        if (CheckedPtr session = protect(connectionToWebProcess())->networkSession()) {
+            if (RefPtr server = session->swServer(); server && !server->isImportCompletedForOrigin(topOrigin)) {
+                server->importRegistrationsForOrigin(topOrigin, [this, protectedThis = Ref { *this }, newRequest = WTF::move(newRequest), isAllowedToAskUserForCredentials, completionHandler = WTF::move(completionHandler)]() mutable {
+                    continueWillSendRequest(WTF::move(newRequest), isAllowedToAskUserForCredentials, WTF::move(completionHandler));
+                });
+                return;
+            }
+        }
         m_serviceWorkerRegistration = { };
         m_serviceWorkerTimingInfo = { };
         setWorkerStart({ });
