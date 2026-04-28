@@ -646,9 +646,22 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             list(APPEND _swift_options "-explicit-module-build")
         endif ()
         # We'll use these options both for mainstream cmake invocations of swiftc (here)
-        # and for our own invocation to output an interoperability .h file (later)
-        list(TRANSFORM _swift_options PREPEND "$<$<COMPILE_LANGUAGE:Swift>:" OUTPUT_VARIABLE _swift_only_options)
-        list(TRANSFORM _swift_only_options APPEND ">")
+        # and for our own invocation to output an interoperability .h file (later).
+        # target_compile_options deduplicates repeated tokens, so collapse each
+        # -Xcc <arg> into a single SHELL: entry to keep the pair together.
+        # https://bugs.webkit.org/show_bug.cgi?id=312105
+        set(_swift_only_options "")
+        set(_pending_xcc FALSE)
+        foreach (_opt IN LISTS _swift_options)
+            if (_pending_xcc)
+                list(APPEND _swift_only_options "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc ${_opt}>")
+                set(_pending_xcc FALSE)
+            elseif (_opt STREQUAL "-Xcc")
+                set(_pending_xcc TRUE)
+            else ()
+                list(APPEND _swift_only_options "$<$<COMPILE_LANGUAGE:Swift>:${_opt}>")
+            endif ()
+        endforeach ()
         target_compile_options(${_target} PRIVATE ${_swift_only_options})
 
         # cmake's Swift interop does not respect CMAKE_SHARED_LINKER_FLAGS, so let's pass
@@ -660,8 +673,9 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             string(SUBSTRING ${_flag} 0 4 _prefix)
             if (${_prefix} STREQUAL "-Wl,")
                 string(SUBSTRING ${_flag} 4 -1 _shorter_flag)
-                # The following unfortunately deduplicates the -Xlinker
-                # target_compile_options(${_target} PUBLIC "$<$<COMPILE_LANGUAGE:Swift>:-Xlinker>")
+                # SHELL: keeps the -Xlinker/argument pair together; without it
+                # CMake deduplicates the repeated -Xlinker tokens.
+                # https://bugs.webkit.org/show_bug.cgi?id=312105
                 target_compile_options(${_target} PUBLIC "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xlinker ${_shorter_flag}>")
             endif ()
         endforeach ()
