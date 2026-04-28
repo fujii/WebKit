@@ -64,6 +64,7 @@
 #include <algorithm>
 #include <pal/crypto/CryptoDigest.h>
 #include <ranges>
+#include <wtf/FileSystem.h>
 #include <wtf/SuspendableWorkQueue.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/Base64.h>
@@ -999,6 +1000,9 @@ void NetworkStorageManager::getFile(WebCore::FileSystemHandleIdentifier identifi
     RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier);
     if (!handle)
         return completionHandler(makeUnexpected(FileSystemStorageError::Unknown));
+
+    if (!FileSystem::fileExists(handle->path()))
+        return completionHandler(makeUnexpected(FileSystemStorageError::FileNotFound));
 
     completionHandler(handle->path());
 }

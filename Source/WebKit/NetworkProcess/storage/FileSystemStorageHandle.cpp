@@ -37,11 +37,6 @@
 
 namespace WebKit {
 
-#if OS(WINDOWS)
-constexpr char pathSeparator = '\\';
-#else
-constexpr char pathSeparator = '/';
-#endif
 constexpr uint64_t defaultInitialCapacity = 1 * MB;
 constexpr uint64_t defaultMaxCapacityForExponentialGrowth = 256 * MB;
 constexpr uint64_t defaultCapacityStep = 128 * MB;
@@ -111,7 +106,7 @@ bool FileSystemStorageHandle::isSameEntry(WebCore::FileSystemHandleIdentifier id
 static bool isValidFileName(const String& directory, const String& name)
 {
     // https://fs.spec.whatwg.org/#valid-file-name
-    if (name.isEmpty() || (name == "."_s) || (name == ".."_s) || name.contains(pathSeparator))
+    if (name.isEmpty() || (name == "."_s) || (name == ".."_s) || name.contains('/') || name.contains(FileSystem::pathSeparator))
         return false;
 
     return FileSystem::pathFileName(FileSystem::pathByAppendingComponent(directory, name)) == name;
@@ -155,6 +150,13 @@ std::optional<FileSystemStorageError> FileSystemStorageHandle::removeEntry(const
     if (!FileSystem::fileExists(path))
         return FileSystemStorageError::FileNotFound;
 
+    RefPtr manager = m_manager;
+    if (!manager)
+        return FileSystemStorageError::Unknown;
+
+    if (manager->hasActiveLock(path))
+        return FileSystemStorageError::NoModificationAllowed;
+
     auto type = FileSystem::fileType(path);
     if (!type)
         return FileSystemStorageError::TypeMismatch;
@@ -167,8 +169,10 @@ std::optional<FileSystemStorageError> FileSystemStorageHandle::removeEntry(const
         break;
     case FileSystem::FileType::Directory:
         if (!deleteRecursively) {
-            if (!FileSystem::deleteEmptyDirectory(path))
-                result = FileSystemStorageError::Unknown;
+            if (!FileSystem::deleteEmptyDirectory(path)) {
+                auto entries = FileSystem::listDirectory(path);
+                result = entries.isEmpty() ? FileSystemStorageError::Unknown : FileSystemStorageError::InvalidModification;
+            }
         } else if (!FileSystem::deleteNonEmptyDirectory(path))
             result = FileSystemStorageError::Unknown;
         break;
@@ -193,10 +197,10 @@ Expected<std::optional<Vector<String>>, FileSystemStorageError> FileSystemStorag
         return { std::nullopt };
 
     auto restPath = path.substring(m_path.length());
-    if (!restPath.isEmpty() && !restPath.startsWith(pathSeparator))
+    if (!restPath.isEmpty() && !restPath.startsWith(FileSystem::pathSeparator))
         return { std::nullopt };
 
-    return { restPath.split(pathSeparator) };
+    return { restPath.split(FileSystem::pathSeparator) };
 }
 
 Expected<FileSystemSyncAccessHandleInfo, FileSystemStorageError> FileSystemStorageHandle::createSyncAccessHandle()
