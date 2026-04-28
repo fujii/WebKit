@@ -3601,7 +3601,6 @@ ipc/validate-message-check-in-networkconnectiontowebproces-crash.html [ Skip ]
 
 ### NEEDS PROPER TRIAGGING/GARDENING
 
-ipc/invalid-addSourceBuffer-to-GPU-process-crash.html [ Failure ]
 ipc/serialized-type-info.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
