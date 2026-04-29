@@ -5488,6 +5488,8 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             loadParameters.isHandledByAboutSchemeHandler = m_aboutSchemeHandler->canHandleURL(loadParameters.request.url());
             if (auto& action = navigation->lastNavigationAction())
                 loadParameters.requester = action->requester;
+            if (navigation->currentRequestIsRedirect())
+                loadParameters.originalRequest = navigation->originalRequest();
 
             processNavigatingTo->send(Messages::WebPage::LoadRequest(WTF::move(loadParameters)), webPageIDInProcess(processNavigatingTo));
         }
@@ -5823,6 +5825,8 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
             loadParameters.requester = action->requester;
             loadParameters.hadUserGesture = action->userGestureTokenIdentifier.has_value();
         }
+        if (navigation.currentRequestIsRedirect())
+            loadParameters.originalRequest = navigation.originalRequest();
 
         if (isPendingInitialHistoryItem)
             frame.setIsPendingInitialHistoryItem(true);

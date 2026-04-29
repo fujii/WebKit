@@ -130,7 +130,7 @@ SubresourceLoader::SubresourceLoader(LocalFrame& frame, CachedResource& resource
     m_resourceType = ContentExtensions::toResourceType(resource.type(), resource.resourceRequest().requester(), frame.isMainFrame());
 #endif
 
-    m_site = CachedResourceLoader::computeFetchMetadataSite(resource.resourceRequest(), resource.type(), options.mode, frame, frame.isMainFrame() && m_documentLoader && m_documentLoader->isRequestFromClientOrUserInput());
+    m_site = CachedResourceLoader::computeFetchMetadataSite(resource.resourceRequest(), resource.type(), options.mode, frame, frame.isMainFrame() && m_documentLoader && m_documentLoader->isRequestFromClientOrUserInput(), m_documentLoader.get());
     ASSERT(!resource.resourceRequest().hasHTTPHeaderField(HTTPHeaderName::SecFetchSite) || resource.resourceRequest().httpHeaderField(HTTPHeaderName::SecFetchSite) == convertEnumerationToString(m_site) || m_site == FetchMetadataSite::None);
 }
 
