@@ -423,6 +423,7 @@ media/video-element-fullscreen-not-in-dom-accelerated-iphone.html [ Skip ]
 imported/w3c/web-platform-tests/service-workers/service-worker/import-scripts-redirect.https.html [ Skip ]
 
 imported/w3c/web-platform-tests/service-workers/service-worker/resource-timing-cross-origin.https.html [ Failure ]
+imported/w3c/web-platform-tests/service-workers/service-worker/navigation-preload/resource-timing.https.html [ Skip ]
 imported/w3c/web-platform-tests/service-workers/service-worker/svg-target-reftest.https.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/service-workers/service-worker/partitioned-cookies.tentative.https.html [ Pass Failure ]

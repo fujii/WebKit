@@ -844,6 +844,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     UpdateFrameScrollingMode(WebCore::FrameIdentifier frame, enum:uint8_t WebCore::ScrollbarMode scrollingMode)
 
     DispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier frameID)
+    AddResourceTimingFromSubframe(WebCore::FrameIdentifier parentFrameID, WebCore::ResourceTiming resourceTiming)
 
     ElementWasFocusedInAnotherProcess(WebCore::FrameIdentifier frameID, struct WebCore::FocusOptions options)
     FrameWasFocusedInAnotherProcess(std::optional<WebCore::FrameIdentifier> frameID)

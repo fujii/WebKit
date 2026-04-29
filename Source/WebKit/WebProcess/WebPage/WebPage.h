@@ -221,6 +221,7 @@ class RenderImage;
 class Report;
 class ResourceRequest;
 class ResourceResponse;
+class ResourceTiming;
 class ScrollingCoordinator;
 class SelectionData;
 class SelectionGeometry;
@@ -2675,6 +2676,7 @@ private:
     void useRedirectionForCurrentNavigation(WebCore::ResourceResponse&&);
 
     void dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier);
+    void addResourceTimingFromSubframe(WebCore::FrameIdentifier parentFrameID, WebCore::ResourceTiming&&);
 
     void elementWasFocusedInAnotherProcess(WebCore::FrameIdentifier, WebCore::FocusOptions);
     void frameWasFocusedInAnotherProcess(std::optional<WebCore::FrameIdentifier>&&);
