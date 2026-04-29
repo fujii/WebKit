@@ -47,11 +47,13 @@
 #include "HTTPStatusCodes.h"
 #include "InspectorNetworkAgent.h"
 #include "LinkLoader.h"
+#include "LoaderStrategy.h"
 #include "LocalFrame.h"
 #include "LocalFrameLoaderClient.h"
 #include "Logging.h"
 #include "MemoryCache.h"
 #include "OriginAccessPatterns.h"
+#include "PlatformStrategies.h"
 #include "RemoteFrame.h"
 #include "ResourceLoadObserver.h"
 #include "ResourceTiming.h"
@@ -667,6 +669,11 @@ static void logResourceLoaded(LocalFrame* frame, CachedResource::Type type)
 Expected<void, String> SubresourceLoader::checkResponseCrossOriginAccessControl(const ResourceResponse& response)
 {
     if (!m_resource->isCrossOrigin() || options().mode != FetchOptions::Mode::Cors)
+        return { };
+
+    if (platformStrategies()->loaderStrategy()->havePerformedSecurityChecks(response)
+        && response.source() != ResourceResponse::Source::Unknown
+        && response.tainting() == ResourceResponse::Tainting::Basic)
         return { };
 
     if (response.source() == ResourceResponse::Source::ServiceWorker) {
