@@ -4051,6 +4051,7 @@
 		23A3568F2E9790F40039C82A /* PinballCompletion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PinballCompletion.cpp; sourceTree = "<group>"; };
 		23A969692E95A903005A36F5 /* EvacuatedStack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EvacuatedStack.h; sourceTree = "<group>"; };
 		23A9696A2E95A903005A36F5 /* EvacuatedStack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EvacuatedStack.cpp; sourceTree = "<group>"; };
+		23CD2E2C2F908FC900119878 /* PinballHandlerContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PinballHandlerContext.cpp; sourceTree = "<group>"; };
 		23D7A3E02F3D0F4C00A27B88 /* JSPIContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSPIContext.h; sourceTree = "<group>"; };
 		23D7A3E12F3D0F4C00A27B88 /* JSPIContextInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSPIContextInlines.h; sourceTree = "<group>"; };
 		24FF4DFDAD3D4D97BE486930 /* JSCTimeZone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCTimeZone.h; sourceTree = "<group>"; };
@@ -9238,6 +9239,7 @@
 				37C738D11EDB5672003F2B0B /* ParseInt.h */,
 				23A3568F2E9790F40039C82A /* PinballCompletion.cpp */,
 				23A3568E2E9790F40039C82A /* PinballCompletion.h */,
+				23CD2E2C2F908FC900119878 /* PinballHandlerContext.cpp */,
 				8791D173F2EE43A7E6469029 /* PinballHandlerContext.h */,
 				CE20BD02237D3AD40046E520 /* PredictionFileCreatingFuzzerAgent.cpp */,
 				CE20BD01237D3AD40046E520 /* PredictionFileCreatingFuzzerAgent.h */,

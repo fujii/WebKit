@@ -1030,6 +1030,7 @@ runtime/Options.cpp
 runtime/OrderedHashTable.cpp
 runtime/PageCount.cpp
 runtime/PinballCompletion.cpp
+runtime/PinballHandlerContext.cpp
 runtime/PredictionFileCreatingFuzzerAgent.cpp
 runtime/PrivateFieldPutKind.cpp
 runtime/ProfilerSupport.cpp

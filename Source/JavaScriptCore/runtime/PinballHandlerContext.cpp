@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, 2026 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,48 +23,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "PinballHandlerContext.h"
 
-#include <wtf/Forward.h>
+#if ENABLE(WEBASSEMBLY)
+
+#include "CallFrame.h"
+#include "JSCellInlines.h"
+#include "JSFunctionWithFields.h"
+#include "JSPIContextInlines.h"
+#include "PinballCompletion.h"
+#include "StackAlignment.h"
+
+#include <wtf/StdLibExtras.h>
 
 namespace JSC {
 
-#define FOR_EACH_ROOT_MARK_REASON(v) \
-    v(None) \
-    v(ConservativeScan) \
-    v(ExecutableToCodeBlockEdges) \
-    v(ExternalRememberedSet) \
-    v(StrongReferences) \
-    v(ProtectedValues) \
-    v(MarkListSet) \
-    v(VMExceptions) \
-    v(StrongHandles) \
-    v(Debugger) \
-    v(JITStubRoutines) \
-    v(WeakMapSpace) \
-    v(WeakSets) \
-    v(Output) \
-    v(JITWorkList) \
-    v(CodeBlocks) \
-    v(DOMGCOutput) \
-    v(PinballCompletionConservativeRoots)
-
-#define DECLARE_ROOT_MARK_REASON(reason) reason,
-
-enum class RootMarkReason : uint8_t {
-    FOR_EACH_ROOT_MARK_REASON(DECLARE_ROOT_MARK_REASON)
-};
-
-#undef DECLARE_ROOT_MARK_REASON
-
-ASCIILiteral rootMarkReasonDescription(RootMarkReason);
+PinballHandlerContext::PinballHandlerContext(JSGlobalObject* globalObject, CallFrame* callFrame)
+    : globalObject(globalObject)
+    , vm(&globalObject->vm())
+    , handler(uncheckedDowncast<JSFunctionWithFields>(callFrame->jsCallee()))
+    , pinball(uncheckedDowncast<PinballCompletion>(handler->getField(JSFunctionWithFields::Field::PromiseHandlerPinballCompletion)))
+    , sliceByteSize(pinball->topSlice()->size() * sizeof(Register))
+    , jspiContext(JSPIContext::Purpose::Completing, *vm, callFrame, pinball->resultPromise())
+    , evacuatedCalleeSaves(pinball->calleeSaves())
+{
+    ASSERT(pinball->hasSlices());
+    ASSERT(!(sliceByteSize % stackAlignmentBytes()));
+#if ASSERT_ENABLED
+    zeroSpan(std::span(arguments));
+#endif
+}
 
 } // namespace JSC
 
-namespace WTF {
-
-class PrintStream;
-
-void printInternal(PrintStream&, JSC::RootMarkReason);
-
-} // namespace WTF
+#endif // ENABLE(WEBASSEMBLY)
