@@ -537,6 +537,7 @@ public:
 
 Ref<WebPage> WebPage::create(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 {
+    auto mainFrameOpenerIdentifier = parameters.mainFrameOpenerIdentifier;
     String openedMainFrameName = parameters.openedMainFrameName;
     auto page = adoptRef(*new WebPage(pageID, WTF::move(parameters)));
 
@@ -546,6 +547,21 @@ Ref<WebPage> WebPage::create(PageIdentifier pageID, WebPageCreationParameters&& 
     Ref mainFrame = page->corePage()->mainFrame();
     if (mainFrame->tree().specifiedName().isNull())
         mainFrame->tree().setSpecifiedName(AtomString(openedMainFrameName));
+
+    if (mainFrameOpenerIdentifier && !mainFrame->opener())
+        page->m_unresolvedMainFrameOpenerIdentifier = mainFrameOpenerIdentifier;
+
+    for (Ref otherCorePage : protect(page->corePage())->group().pages()) {
+        if (otherCorePage.ptr() == page->corePage())
+            continue;
+        RefPtr otherWebPage = WebPage::fromCorePage(otherCorePage);
+        if (!otherWebPage || !otherWebPage->m_unresolvedMainFrameOpenerIdentifier)
+            continue;
+        if (*otherWebPage->m_unresolvedMainFrameOpenerIdentifier != mainFrame->frameID())
+            continue;
+        protect(otherCorePage->mainFrame())->updateOpener(mainFrame.get(), Frame::NotifyUIProcess::No);
+        otherWebPage->m_unresolvedMainFrameOpenerIdentifier = std::nullopt;
+    }
 
 #if HAVE(SANDBOX_STATE_FLAGS)
     setHasLaunchedWebContentProcess();
@@ -1290,10 +1306,8 @@ void WebPage::didFinishLoadInAnotherProcess(WebCore::FrameIdentifier frameID)
 void WebPage::frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier frameID)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
-    if (!frame) {
-        ASSERT_NOT_REACHED();
+    if (!frame)
         return;
-    }
     ASSERT(frame->page() == this);
     frame->markAsRemovedInAnotherProcess();
     frame->removeFromTree();

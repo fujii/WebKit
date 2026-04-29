@@ -1841,7 +1841,9 @@ void WebPageProxy::initializeWebPage(const Site& site, WebCore::SandboxFlags eff
         if (!internals().processInheritedFromOpener)
             return browsingContextGroup->ensureProcessForSite(site, site, process, preferences);
 
-        ASSERT(openerFrame);
+        if (!openerFrame)
+            return browsingContextGroup->ensureProcessForSite(site, site, process, preferences);
+
         Ref openerFrameProcess = openerFrame->frameProcess();
         ASSERT(openerFrameProcess->process() == m_legacyMainFrameProcess.get());
         return openerFrameProcess;

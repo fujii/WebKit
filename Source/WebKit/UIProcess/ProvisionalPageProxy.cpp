@@ -727,6 +727,8 @@ void ProvisionalPageProxy::didReceiveMessage(IPC::Connection& connection, IPC::D
 #endif
         || decoder.messageName() == Messages::WebPageProxy::AddMessageToConsoleForTesting::name()
         || decoder.messageName() == Messages::WebPageProxy::HandleMessage::name()
+        || decoder.messageName() == Messages::WebPageProxy::BroadcastDocumentSyncData::name()
+        || decoder.messageName() == Messages::WebPageProxy::BroadcastAllDocumentSyncData::name()
         )
     {
         if (RefPtr page = m_page.get())

@@ -2785,6 +2785,7 @@ private:
     RefPtr<WebPageTesting> m_webPageTesting;
 
     const Ref<WebFrame> m_mainFrame;
+    std::optional<WebCore::FrameIdentifier> m_unresolvedMainFrameOpenerIdentifier;
 
     const Ref<WebPageGroupProxy> m_pageGroup;
 
