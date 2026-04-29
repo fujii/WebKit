@@ -54,6 +54,9 @@
 #include "StyleScope.h"
 #include "Text.h"
 #include "TypedElementDescendantIteratorInlines.h"
+#if ENABLE(VIDEO)
+#include "UserAgentParts.h"
+#endif
 #include "ViewTransition.h"
 #include "ViewTransitionTypeSet.h"
 #include <wtf/NeverDestroyed.h>
@@ -1151,6 +1154,10 @@ bool SelectorChecker::checkOne(CheckingContext& checkingContext, LocalContext& c
         case CSSSelector::PseudoClass::Root:
             if (element.ptr() == element->document().documentElement())
                 return true;
+#if ENABLE(VIDEO)
+            if (element->isInUserAgentShadowTree() && element->userAgentPart() == UserAgentParts::cue())
+                return true;
+#endif
             break;
         case CSSSelector::PseudoClass::Lang:
             ASSERT(selector.langList() && !selector.langList()->isEmpty());
