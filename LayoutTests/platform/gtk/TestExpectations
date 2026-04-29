@@ -1505,3 +1505,12 @@ webkit.org/b/312892 imported/w3c/web-platform-tests/html/browsers/browsing-the-w
 webkit.org/b/313043 transitions/remove-transition-style.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-margin-005.html [ Pass Failure ]
+
+webkit.org/b/313649 editing/pasteboard/block-wrappers-necessary.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/copy-picture-and-text.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/copy-picture.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/copy-resolves-urls.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/copy-text-with-wrapped-tag.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/paste-4039777-fix.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/paste-noscript.html [ Failure ]
+webkit.org/b/313649 editing/pasteboard/reveal-selection-after-pasting-images.html [ Failure ]
