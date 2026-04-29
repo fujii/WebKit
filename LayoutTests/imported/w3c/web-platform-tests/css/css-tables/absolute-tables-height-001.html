@@ -87,6 +87,13 @@ td {
     </table>
 </div>
 
+<!-- min-height should be honored -->
+<div class="containingBlock">
+    <table class="table" style="width: 100%; min-height: 30px;" data-expected-width=100 data-expected-height=30>
+        <tr><td></td></tr>
+    </table>
+</div>
+
 <script>
     checkLayout(".table");
 </script>

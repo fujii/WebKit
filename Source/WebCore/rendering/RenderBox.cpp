@@ -4423,6 +4423,14 @@ void RenderBox::computeOutOfFlowPositionedLogicalHeight(LogicalExtentComputedVal
     }
 
     // Set the final height value.
+    if (is<RenderTable>(*this)) {
+        // Table content can expand the table beyond the specified height. The out-of-flow constraint
+        // equation can produce a height smaller than content (e.g. height: 100% of a 0px
+        // containing block). In-flow tables don't need this because their logicalHeight
+        // is the accumulated section height and nothing overrides it.
+        usedHeight = std::max(usedHeight, computedValues.extent - blockConstraints.bordersPlusPadding());
+    }
+
     computedValues.extent = usedHeight + blockConstraints.bordersPlusPadding();
 
     // Calculate the position.
@@ -4481,10 +4489,6 @@ LayoutUnit RenderBox::computeOutOfFlowPositionedLogicalHeightUsing(const Style::
 LayoutUnit RenderBox::computeOutOfFlowPositionedLogicalHeightUsing(const Style::MinimumSize& originalLogicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
 {
     auto contentLogicalHeight = computedHeight - blockConstraints.bordersPlusPadding();
-
-    // Height is never unsolved for tables.
-    if (isRenderTable())
-        return contentLogicalHeight;
 
     auto logicalHeight = originalLogicalHeight;
 
