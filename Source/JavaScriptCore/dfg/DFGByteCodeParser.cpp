@@ -11086,14 +11086,20 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         if (!numberOfRemainingModes)
             addToGraph(CheckIsConstant, OpInfo(m_graph.freeze(JSValue())), get(bytecode.m_next));
         else {
-            Node* hasNext = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isEmpty = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isArrayIterator = addToGraph(IsCellWithType, OpInfo(JSArrayIteratorType), get(bytecode.m_iterator));
+            Node* andResult = addToGraph(ArithBitAnd, isEmpty, isArrayIterator);
+
+            m_exitOK = true;
+            addToGraph(ExitOK);
+
             failedBlock = allocateUntargetableBlock();
             BasicBlock* fastArrayBlock = allocateUntargetableBlock();
 
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(fastArrayBlock);
             branchData->notTaken = BranchTarget(failedBlock);
-            addToGraph(Branch, OpInfo(branchData), hasNext);
+            addToGraph(Branch, OpInfo(branchData), andResult);
 
             m_currentBlock = fastArrayBlock;
             clearCaches();
@@ -11199,14 +11205,20 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         if (!numberOfRemainingModes)
             addToGraph(CheckIsConstant, OpInfo(m_graph.freeze(JSValue())), get(bytecode.m_next));
         else {
-            Node* hasNext = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isEmpty = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isMapIterator = addToGraph(IsCellWithType, OpInfo(JSMapIteratorType), get(bytecode.m_iterator));
+            Node* andResult = addToGraph(ArithBitAnd, isEmpty, isMapIterator);
+
+            m_exitOK = true;
+            addToGraph(ExitOK);
+
             failedBlock = allocateUntargetableBlock();
             BasicBlock* fastMapBlock = allocateUntargetableBlock();
 
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(fastMapBlock);
             branchData->notTaken = BranchTarget(failedBlock);
-            addToGraph(Branch, OpInfo(branchData), hasNext);
+            addToGraph(Branch, OpInfo(branchData), andResult);
 
             m_currentBlock = fastMapBlock;
             clearCaches();
@@ -11292,14 +11304,20 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         if (!numberOfRemainingModes)
             addToGraph(CheckIsConstant, OpInfo(m_graph.freeze(JSValue())), get(bytecode.m_next));
         else {
-            Node* hasNext = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isEmpty = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isSetIterator = addToGraph(IsCellWithType, OpInfo(JSSetIteratorType), get(bytecode.m_iterator));
+            Node* andResult = addToGraph(ArithBitAnd, isEmpty, isSetIterator);
+
+            m_exitOK = true;
+            addToGraph(ExitOK);
+
             failedBlock = allocateUntargetableBlock();
             BasicBlock* fastSetBlock = allocateUntargetableBlock();
 
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(fastSetBlock);
             branchData->notTaken = BranchTarget(failedBlock);
-            addToGraph(Branch, OpInfo(branchData), hasNext);
+            addToGraph(Branch, OpInfo(branchData), andResult);
 
             m_currentBlock = fastSetBlock;
             clearCaches();
