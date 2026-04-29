@@ -864,7 +864,7 @@ void SWServer::didFinishInstall(const std::optional<ServiceWorkerJobDataIdentifi
         return;
 
     if (wasSuccessful)
-        storeRegistrationForWorker(worker);
+        storeRegistrationForWorkerIfNecessary(worker);
 
     if (CheckedPtr jobQueue = m_jobQueues.get(worker.registrationKey()))
         jobQueue->didFinishInstall(*jobDataIdentifier, worker, wasSuccessful);
@@ -878,8 +878,15 @@ void SWServer::didFinishActivation(SWServerWorker& worker)
         registration->didFinishActivation(worker.identifier());
 }
 
-void SWServer::storeRegistrationForWorker(SWServerWorker& worker)
+void SWServer::storeRegistrationForWorkerIfNecessary(SWServerWorker& worker)
 {
+    RELEASE_LOG(ServiceWorker, "%p - CHRIS: SWServer::storeRegistrationForWorkerIfNecessary: service worker %" PRIu64, this, worker.identifier().toUInt64());
+
+    if (!worker.shouldPersistToDisk()) {
+        RELEASE_LOG(ServiceWorker, "%p - CHRIS: SWServer::storeRegistrationForWorkerIfNecessary: Not saving service worker %" PRIu64 " to disk since it is backing a browser extension", this, worker.identifier().toUInt64());
+        return;
+    }
+
     if (RefPtr store = m_registrationStore)
         store->updateRegistration(worker.contextData());
 }
