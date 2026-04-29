@@ -25,10 +25,10 @@
 
 #pragma once
 
-#include "LoaderMalloc.h"
-#include "NetworkLoadMetrics.h"
-#include "ResourceLoadTiming.h"
-#include "ServerTiming.h"
+#include <WebCore/LoaderMalloc.h>
+#include <WebCore/NetworkLoadMetrics.h>
+#include <WebCore/ResourceLoadTiming.h>
+#include <WebCore/ServerTiming.h>
 #include <wtf/URL.h>
 
 namespace WebCore {
