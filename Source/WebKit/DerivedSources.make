@@ -967,7 +967,6 @@ SERIALIZATION_DESCRIPTION_FILES = \
 WEBCORE_SERIALIZATION_DESCRIPTION_FILES = \
 	HTTPHeaderNames.serialization.in \
 	ActivityState.serialization.in \
-	DMABufBufferAttributes.serialization.in \
 	DocumentSyncData.serialization.in \
 	DragActions.serialization.in \
 	FrameTreeSyncData.serialization.in \

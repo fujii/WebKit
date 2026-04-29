@@ -25,7 +25,7 @@
 
 #pragma once
 
-#if USE(COORDINATED_GRAPHICS)
+#if USE(COORDINATED_GRAPHICS) && USE(GBM)
 #include "DMABufBufferAttributes.h"
 #include <wtf/ThreadSafeRefCounted.h>
 
@@ -83,4 +83,4 @@ private:
 
 } // namespace WebCore
 
-#endif // USE(COORDINATED_GRAPHICS)
+#endif // USE(COORDINATED_GRAPHICS) && USE(GBM)

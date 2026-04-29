@@ -3098,8 +3098,6 @@ list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/ScrollTypes.serialization.in
 
     platform/audio/PlatformMediaSession.serialization.in
-
-    platform/graphics/DMABufBufferAttributes.serialization.in
     platform/graphics/InbandTextTrackPrivate.serialization.in
     platform/mediastream/MDNSRegisterError.serialization.in
     platform/network/ProtectionSpaceBase.serialization.in
