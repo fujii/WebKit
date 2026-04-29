@@ -4047,6 +4047,9 @@ static bool characterOffsetsInOrder(const CharacterOffset& characterOffset1, con
 {
     // FIXME: Should just be able to call treeOrder without accessibility-specific logic.
     // FIXME: Not clear why CharacterOffset needs to exist at all; we have both Position and BoundaryPoint to choose from.
+    // FIXME: This function can return incorrect results for positions spanning across nested
+    // table boundaries (e.g. a text node inside a cell vs. an ancestor tbody position), and
+    // potentially other scenarios, producing reversed ranges that in turn cause incorrect behavior.
 
     if (characterOffset1.isNull() || characterOffset2.isNull())
         return false;

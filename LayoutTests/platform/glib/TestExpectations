@@ -984,6 +984,7 @@ accessibility/canvas-drawFocusIfNeeded-bounds-with-transform.html [ Skip ]
 accessibility/native-label-geometry-with-aria-labelledby.html [ Skip ]
 
 # These test a Cocoa-only API.
+accessibility/attributed-string-for-line-in-table.html [ Skip ]
 accessibility/left-right-line-range-display-table-in-flex.html [ Skip ]
 accessibility/line-range-display-table-in-flex.html [ Skip ]
 accessibility/mixed-contenteditable-visible-character-range-hang.html [ Skip ]
