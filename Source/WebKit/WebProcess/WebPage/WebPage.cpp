@@ -216,6 +216,7 @@
 #include <WebCore/DocumentPage.h>
 #include <WebCore/DocumentQuirks.h>
 #include <WebCore/DocumentStorageAccess.h>
+#include <WebCore/DocumentSyncData.h>
 #include <WebCore/DocumentView.h>
 #include <WebCore/DragController.h>
 #include <WebCore/DragData.h>
@@ -2224,7 +2225,7 @@ void WebPage::createProvisionalFrame(ProvisionalFrameCreationParameters&& parame
     frame->createProvisionalFrame(WTF::move(parameters));
 }
 
-void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier, std::optional<URL>&& mainFrameDocumentURL)
+void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier, RefPtr<WebCore::DocumentSyncData>&& topDocumentSyncData)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
@@ -2232,9 +2233,9 @@ void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, st
     ASSERT(frame->page() == this);
     frame->loadDidCommitInAnotherProcess(layerHostingContextIdentifier);
 
-    if (mainFrameDocumentURL) {
+    if (topDocumentSyncData) {
         if (RefPtr page = corePage())
-            page->setMainFrameURLAndOrigin(*mainFrameDocumentURL, nullptr);
+            page->updateTopDocumentSyncData(topDocumentSyncData.releaseNonNull());
     }
 }
 

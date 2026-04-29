@@ -232,6 +232,7 @@
 #include <WebCore/DigitalCredentialsProtocols.h>
 #include <WebCore/DigitalCredentialsRequestData.h>
 #include <WebCore/DigitalCredentialsResponseData.h>
+#include <WebCore/DocumentSyncData.h>
 #include <WebCore/DragController.h>
 #include <WebCore/DragData.h>
 #include <WebCore/DragEventTargetData.h>
@@ -8240,10 +8241,17 @@ void WebPageProxy::observeAndCreateRemoteSubframesInOtherProcesses(WebFrameProxy
     });
 }
 
+void WebPageProxy::setTopDocumentSyncData(Ref<WebCore::DocumentSyncData>&& data)
+{
+    m_topDocumentSyncData = WTF::move(data);
+}
+
 void WebPageProxy::broadcastDocumentSyncData(IPC::Connection& connection, const WebCore::DocumentSyncSerializationData& data)
 {
     Ref process = WebProcessProxy::fromConnection(connection);
     // FIXME: Check that the sending process is allowed to write the specified property.
+    if (RefPtr topDocumentSyncData = m_topDocumentSyncData)
+        topDocumentSyncData->update(data);
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         if (webProcess == process)
             return;
@@ -8253,6 +8261,7 @@ void WebPageProxy::broadcastDocumentSyncData(IPC::Connection& connection, const 
 
 void WebPageProxy::broadcastAllDocumentSyncData(IPC::Connection& connection, Ref<WebCore::DocumentSyncData>&& data)
 {
+    m_topDocumentSyncData = data.copyRef();
     Ref process = WebProcessProxy::fromConnection(connection);
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         if (webProcess == process)
