@@ -66,7 +66,6 @@ list(APPEND WebKit_MESSAGES_IN_FILES
 
 if (USE_GBM)
   list(APPEND WebKit_SERIALIZATION_IN_FILES
-      Shared/gbm/DMABufBuffer.serialization.in
       Shared/gbm/DRMDevice.serialization.in
   )
 endif ()

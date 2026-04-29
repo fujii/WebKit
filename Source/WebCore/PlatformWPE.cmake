@@ -49,6 +49,9 @@ list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/glib/SelectionData.h
     platform/glib/SystemSettings.h
 
+    platform/graphics/DMABufBuffer.h
+    platform/graphics/DMABufBufferAttributes.h
+
     platform/graphics/android/BufferFormatAndroid.h
     platform/graphics/android/GraphicsContextGLTextureMapperAndroid.h
     platform/graphics/android/PlatformDisplayAndroid.h
