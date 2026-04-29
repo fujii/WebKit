@@ -3425,8 +3425,10 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
     // The remaining code in this method relies on shouldProcessAttributeChange null-checking element.
     AX_ASSERT(element);
 
-    if (relationAttributes().contains(attrName))
+    if (relationAttributes().contains(attrName)) {
+        m_elementsWithRelationAttributes.add(*element);
         updateRelations(*element, attrName);
+    }
 
     if (attrName == roleAttr)
         handleRoleChanged(*element, oldValue, newValue);
@@ -3439,6 +3441,7 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
         postNotification(element, AXNotification::DisabledStateChanged);
     else if (attrName == forAttr) {
         if (RefPtr label = dynamicDowncast<HTMLLabelElement>(element)) {
+            m_elementsWithRelationAttributes.add(*label);
             bool updatedLabelFor = updateLabelFor(*label);
 
             if (updatedLabelFor) {
@@ -5229,6 +5232,7 @@ void AXObjectCache::performDeferredCacheUpdate(ForceLayout forceLayout)
 
             if (RefPtr label = dynamicDowncast<HTMLLabelElement>(*element)) {
                 // A label was added or removed. Update its LabelFor relationships.
+                m_elementsWithRelationAttributes.add(*label);
                 handleLabelChanged(getOrCreate(*label));
             }
         }
@@ -6405,8 +6409,21 @@ void AXObjectCache::updateRelationsIfNeeded()
     m_recentlyRemovedRelations.clear();
     m_relationTargets.clear();
     m_hasAriaOwnsRelations = false;
-    if (m_document)
-        updateRelationsForTree(m_document->rootNode());
+
+    if (!m_doneInitialRelationsBuild) {
+        if (m_document)
+            updateRelationsForTree(m_document->rootNode());
+        m_doneInitialRelationsBuild = true;
+        return;
+    }
+
+    for (Ref element : m_elementsWithRelationAttributes) {
+        if (!canHaveRelations(element.get()))
+            continue;
+        for (const auto& attribute : relationAttributes())
+            addRelation(element.get(), attribute);
+        addLabelForRelation(element.get());
+    }
 }
 
 void AXObjectCache::updateRelationsForTree(ContainerNode& rootNode)
@@ -6423,12 +6440,20 @@ void AXObjectCache::updateRelationsForTree(ContainerNode& rootNode)
                 updateRelationsForTree(*document);
         }
 
-        for (const auto& attribute : relationAttributes())
-            addRelation(element, attribute);
+        bool hasRelationAttribute = false;
+        for (const auto& attribute : relationAttributes()) {
+            if (addRelation(element, attribute) || !element->attributeWithoutSynchronization(attribute).isNull()) {
+                // Track elements even when addRelation fails to resolve a target, since the target may appear later via an id change.
+                hasRelationAttribute = true;
+            }
+        }
 
         // In addition to ARIA specified relations, there may be other relevant relations.
         // For instance, LabelFor in HTMLLabelElements.
         addLabelForRelation(element);
+
+        if (hasRelationAttribute || is<HTMLLabelElement>(element.get()))
+            m_elementsWithRelationAttributes.add(element);
     }
 }
 
