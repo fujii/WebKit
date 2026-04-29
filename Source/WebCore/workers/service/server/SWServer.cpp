@@ -567,12 +567,14 @@ SWServer::SWServer(SWServerDelegate& delegate, UniqueRef<SWOriginStore>&& origin
             if (result && !protectedThis->m_originListImportComplete) {
                 for (auto& origin : result.value())
                     protectedThis->m_originStore->add(origin.topOrigin);
+                auto originCount = result->size();
                 protectedThis->m_originsYetToBeImported = WTF::move(*result);
 #if !RELEASE_LOG_DISABLED
                 auto elapsed = MonotonicTime::now() - startTime;
-                RELEASE_LOG(ServiceWorker, "SWServer: Imported origin list with %u top origins in %.0f ms", result->size(), elapsed.milliseconds());
+                RELEASE_LOG(ServiceWorker, "SWServer: Imported origin list with %u top origins in %.0f ms", originCount, elapsed.milliseconds());
 #else
                 UNUSED_PARAM(startTime);
+                UNUSED_PARAM(originCount);
 #endif
             }
             protectedThis->m_originListImportComplete = true;
