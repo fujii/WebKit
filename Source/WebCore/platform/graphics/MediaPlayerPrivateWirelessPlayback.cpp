@@ -34,6 +34,7 @@
 #include <pal/avfoundation/MediaTimeAVFoundation.h>
 #include <wtf/BlockPtr.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/darwin/DispatchExtras.h>
 
 #include <pal/cf/CoreMediaSoftLink.h>
 
