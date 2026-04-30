@@ -2661,7 +2661,6 @@ header: <WebCore/SearchPopupMenu.h>
 };
 
 [Nested] enum class WebCore::EventTrackingRegions::EventType : uint8_t {
-    Dblclick,
     Mousedown,
     Mousemove,
     Mouseup,
@@ -5752,9 +5751,6 @@ class WebCore::EventRegion {
 #endif
 #if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
     Vector<WebCore::InteractionRegion> m_interactionRegions;
-#endif
-#if ENABLE(DBLCLICK_EVENT_REGIONS)
-    Markable<WebCore::FrameIdentifier> m_frameID;
 #endif
 };
 
