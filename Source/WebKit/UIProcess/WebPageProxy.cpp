@@ -5377,7 +5377,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
 
     Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, processSwapRequestedByClient);
     if (frame.isMainFrame() && preferences->enhancedSecurityHeuristicsEnabled())
-        internals().enhancedSecurityTracker.trackNavigation(navigation, hasOpenedPage());
+        internals().enhancedSecurityTracker.trackNavigation(navigation, hasOpenedPage(), websitePolicies.get(), preferences.get(), sourceURL, internals().pageLoadState.httpFallbackInProgress());
 
     auto enhancedSecurity = currentEnhancedSecurityState(websitePolicies.get());
 
