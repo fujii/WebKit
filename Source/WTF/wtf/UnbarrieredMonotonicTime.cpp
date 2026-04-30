@@ -55,28 +55,6 @@ void UnbarrieredMonotonicTime::calibrate()
 }
 #endif
 
-WallTime UnbarrieredMonotonicTime::approximateWallTime() const
-{
-    if (isInfinity())
-        return WallTime::fromRawSeconds(m_value);
-    return *this - now() + WallTime::now();
-}
-
-MonotonicTime UnbarrieredMonotonicTime::approximateMonotonicTime() const
-{
-    if (isInfinity())
-        return MonotonicTime::fromRawSeconds(m_value);
-    return *this - now() + MonotonicTime::now();
-
-}
-
-ContinuousTime UnbarrieredMonotonicTime::approximateContinuousTime() const
-{
-    if (isInfinity())
-        return ContinuousTime::fromRawSeconds(m_value);
-    return *this - now() + ContinuousTime::now();
-}
-
 void UnbarrieredMonotonicTime::dump(PrintStream& out) const
 {
     out.print("UnbarrieredMonotonic(", m_value, " sec)");

@@ -53,7 +53,7 @@ static NSDate * __nullable networkLoadMetricsDate(MonotonicTime time)
 {
     if (!time)
         return nil;
-    NSTimeInterval value = time.approximateWallTime().secondsSinceEpoch().seconds();
+    NSTimeInterval value = time.approximate<WallTime>().secondsSinceEpoch().seconds();
     if (value <= 0)
         return nil;
     return [NSDate dateWithTimeIntervalSince1970:value];
