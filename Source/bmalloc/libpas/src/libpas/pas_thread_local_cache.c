@@ -35,6 +35,7 @@
 #include "pas_heap_lock.h"
 #include "pas_large_utility_free_heap.h"
 #include "pas_log.h"
+#include "pas_process.h"
 #include "pas_scavenger.h"
 #include "pas_segregated_deallocation_mode.h"
 #include "pas_segregated_page_inlines.h"
@@ -149,6 +150,13 @@ static void destructor(void* arg)
 
     if (verbose)
         pas_log("[%d] Destructor call for TLS %p\n", getpid(), thread_local_cache);
+
+    /* On Windows, ExitProcess asynchronously terminates other threads, which may still hold
+       a lock. However the caller thread of ExitProcess does normal TLS destruction, which may cause
+       a dead-lock when we need to take a lock which is held by other threads which gets forcefully terminated.
+       When we know this is in the middle of shutting down the process, ignore TLS destruction. */
+    if (pas_process_is_shutting_down())
+        return;
 
 #if !PAS_OS(DARWIN)
     /* If pthread_self_is_exiting_np does not exist, we set PAS_THREAD_LOCAL_CACHE_DESTROYED in the TLS so that
