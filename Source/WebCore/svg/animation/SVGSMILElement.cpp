@@ -355,19 +355,39 @@ SMILTime SVGSMILElement::parseClockValue(StringView data)
     if (parse == indefiniteAtom())
         return SMILTime::indefinite();
 
+    // SMIL Seconds must be 2DIGIT ("." DIGIT+)? per the spec.
+    auto hasValidSecondsFormat = [](const StringView& seconds) {
+        if (seconds.length() < 2 || !isASCIIDigit(seconds[0]) || !isASCIIDigit(seconds[1]))
+            return false;
+        if (seconds.length() > 2 && (seconds[2] != '.' || seconds.length() < 4))
+            return false;
+        return true;
+    };
+
     double result = 0;
     size_t doublePointOne = parse.find(':');
-    size_t doublePointTwo = parse.find(':', doublePointOne + 1);
-    if (doublePointOne == 2 && doublePointTwo == 5 && parse.length() >= 8) {
-        auto hours = parseInteger<uint8_t>(parse.left(2));
-        auto minutes = parseInteger<uint8_t>(parse.substring(3, 2));
-        auto seconds = parseNumber(parse.substring(6));
+    size_t doublePointTwo = doublePointOne != notFound ? parse.find(':', doublePointOne + 1) : notFound;
+    if (doublePointOne != notFound && doublePointTwo != notFound) {
+        // Full-clock-value: Hours ":" Minutes ":" Seconds ("." Fraction)?
+        // Hours is DIGIT+ (one or more digits), Minutes and Seconds are 2DIGIT.
+        if (!doublePointOne || doublePointTwo != doublePointOne + 3)
+            return SMILTime::unresolved();
+        auto hours = parseInteger<unsigned>(parse.left(doublePointOne));
+        auto minutes = parseInteger<uint8_t>(parse.substring(doublePointOne + 1, 2));
+        auto secondsString = parse.substring(doublePointTwo + 1);
+        if (!hasValidSecondsFormat(secondsString))
+            return SMILTime::unresolved();
+        auto seconds = parseNumber(secondsString);
         if (!hours || !minutes || *minutes > 59 || !seconds || *seconds >= 60)
             return SMILTime::unresolved();
         result = *hours * 60 * 60 + *minutes * 60 + *seconds;
     } else if (doublePointOne == 2 && doublePointTwo == notFound && parse.length() >= 5) {
+        // Partial-clock-value: Minutes ":" Seconds ("." Fraction)?
         auto minutes = parseInteger<uint8_t>(parse.left(2));
-        auto seconds = parseNumber(parse.substring(3));
+        auto secondsString = parse.substring(3);
+        if (!hasValidSecondsFormat(secondsString))
+            return SMILTime::unresolved();
+        auto seconds = parseNumber(secondsString);
         if (!minutes || *minutes > 59 || !seconds || *seconds >= 60)
             return SMILTime::unresolved();
         result = *minutes * 60 + *seconds;
