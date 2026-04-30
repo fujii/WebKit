@@ -444,6 +444,8 @@ extension WKBridgeReceiver {
     @nonobjc
     fileprivate var meshToMeshInstances: [WKBridgeTypedResourceId: [_Proto_LowLevelMeshInstance_v1]] = [:]
     @nonobjc
+    fileprivate var meshTransforms: [WKBridgeTypedResourceId: [simd_float4x4]] = [:]
+    @nonobjc
     fileprivate var rotationAngle: Float = 0
 
     @nonobjc
@@ -465,6 +467,9 @@ extension WKBridgeReceiver {
     fileprivate var textureHashesAndResources: [WKBridgeTypedResourceId: (String, _Proto_LowLevelTextureResource_v1)] = [:]
 
     @nonobjc
+    fileprivate var modelTransform: simd_float4x4
+
+    @nonobjc
     fileprivate var dontCaptureAgain: Bool = false
 
     @nonobjc
@@ -479,23 +484,11 @@ extension WKBridgeReceiver {
         enum UpdateType {
             // First time mesh update, should add mesh instances to the scene
             case newMesh
-            // Transform update on existing mesh, should only update the transform on relevant mesh instances
-            case transformUpdate([simd_float4x4])
         }
 
         let identifier: WKBridgeTypedResourceId
         let type: UpdateType
         var updatedInstances: [_Proto_LowLevelMeshInstance_v1]
-
-        init(identifier: WKBridgeTypedResourceId, type: UpdateType, updatedInstances: [_Proto_LowLevelMeshInstance_v1]) {
-            self.identifier = identifier
-            self.type = type
-            self.updatedInstances = updatedInstances
-
-            if case .transformUpdate(let newTransforms) = type {
-                assert(newTransforms.count == updatedInstances.count)
-            }
-        }
     }
 
     init(
@@ -510,6 +503,7 @@ extension WKBridgeReceiver {
         self.textureProcessingContext = _Proto_LowLevelTextureProcessingContext_v1(device: configuration.device)
         self.commandQueue = configuration.commandQueue
         self.deformationSystem = try _Proto_LowLevelDeformationSystem_v1.make(configuration.device, configuration.commandQueue).get()
+        modelTransform = matrix_identity_float4x4
         let meshInstances = try configuration.renderContext.makeMeshInstanceArray(renderTargets: [configuration.renderTarget], count: 16)
         self.meshInstancePool = MeshInstancePool(renderContext: configuration.renderContext, meshInstances: meshInstances)
         let lightingFunction = configuration.renderContext.makePhysicallyBasedLightingFunction()
@@ -567,6 +561,19 @@ extension WKBridgeReceiver {
 
     @objc(renderWithTexture:commandBuffer:)
     func render(with texture: any MTLTexture, commandBuffer: any MTLCommandBuffer) {
+        for (identifier, meshes) in meshToMeshInstances {
+            let originalTransforms = meshTransforms[identifier]
+            // FIXME: https://bugs.webkit.org/show_bug.cgi?id=305857
+            // swift-format-ignore: NeverForceUnwrap
+
+            for (index, meshInstance) in meshes.enumerated() {
+                // FIXME: https://bugs.webkit.org/show_bug.cgi?id=305857
+                // swift-format-ignore: NeverForceUnwrap
+                let computedTransform = modelTransform * originalTransforms![index]
+                meshInstance.setTransform(.single(computedTransform))
+            }
+        }
+
         // animate
         if !meshResourceToDeformationContext.isEmpty {
             let commandBuffer = self.commandQueue.makeCommandBuffer()!
@@ -783,6 +790,7 @@ extension WKBridgeReceiver {
                 if meshData.instanceTransformsCount > 0 {
                     if meshToMeshInstances[identifier] == nil {
                         meshToMeshInstances[identifier] = []
+                        meshTransforms[identifier] = []
 
                         var deferredMeshUpdate = DeferredMeshUpdate(identifier: identifier, type: .newMesh, updatedInstances: [])
 
@@ -831,6 +839,9 @@ extension WKBridgeReceiver {
                                 // FIXME: https://bugs.webkit.org/show_bug.cgi?id=305857
                                 // swift-format-ignore: NeverForceUnwrap
                                 meshToMeshInstances[identifier]!.append(meshInstance)
+                                // FIXME: https://bugs.webkit.org/show_bug.cgi?id=305857
+                                // swift-format-ignore: NeverForceUnwrap
+                                meshTransforms[identifier]!.append(instanceTransform)
                                 deferredMeshUpdate.updatedInstances.append(meshInstance)
                             }
                         }
@@ -840,26 +851,14 @@ extension WKBridgeReceiver {
                         // Update transforms otherwise
                         // FIXME: https://bugs.webkit.org/show_bug.cgi?id=305857
                         // swift-format-ignore: NeverForceUnwrap
-                        var newTransforms: [simd_float4x4] = []
-                        var updatedInstances: [_Proto_LowLevelMeshInstance_v1] = []
-
                         let partCount = meshToMeshInstances[identifier]!.count / meshData.instanceTransforms.count
                         for (instanceIndex, instanceTransform) in meshData.instanceTransforms.enumerated() {
                             for partIndex in 0..<partCount {
                                 // FIXME: https://bugs.webkit.org/show_bug.cgi?id=305857
                                 // swift-format-ignore: NeverForceUnwrap
-                                let meshInstance = meshToMeshInstances[identifier]![instanceIndex * meshData.parts.count + partIndex]
-                                updatedInstances.append(meshInstance)
-                                newTransforms.append(instanceTransform)
+                                meshTransforms[identifier]![instanceIndex * partCount + partIndex] = instanceTransform
                             }
                         }
-
-                        let deferredMeshUpdate = DeferredMeshUpdate(
-                            identifier: identifier,
-                            type: .transformUpdate(newTransforms),
-                            updatedInstances: updatedInstances
-                        )
-                        deferredMeshUpdates.append(deferredMeshUpdate)
                     }
                 }
 
@@ -875,10 +874,6 @@ extension WKBridgeReceiver {
                     for newMeshInstance in deferredUpdate.updatedInstances {
                         try meshInstancePool.add(newMeshInstance)
                     }
-                case .transformUpdate(let newTransforms):
-                    for (instanceIndex, meshInstance) in deferredUpdate.updatedInstances.enumerated() {
-                        meshInstance.setTransform(.single(newTransforms[instanceIndex]))
-                    }
                 }
             }
         } catch {
@@ -888,7 +883,7 @@ extension WKBridgeReceiver {
 
     @objc(setTransform:)
     func setTransform(_ transform: simd_float4x4) {
-        appRenderer.setCameraTransformForModelTransform(transform)
+        modelTransform = transform
     }
 
     func setFOV(_ fovY: Float) {
