@@ -1572,6 +1572,11 @@ WebContentMode WebPageProxy::effectiveContentModeAfterAdjustingPolicies(API::Web
 
     const bool needsSiteSpecificQuirks = preferences->needsSiteSpecificQuirks();
 
+    auto applyIPhoneUserAgent = [&] {
+        policies.setCustomUserAgent(makeStringByReplacingAll(standardUserAgentWithApplicationName(m_applicationNameForUserAgent), "iPad"_s, "iPhone"_s));
+        policies.setCustomNavigatorPlatform("iPhone"_s);
+    };
+
     if (needsSiteSpecificQuirks) {
         if (auto selectors = Quirks::defaultVisibilityAdjustmentSelectors(request.url()))
             policies.setVisibilityAdjustmentSelectors({ WTF::move(*selectors) });
@@ -1580,8 +1585,7 @@ WebContentMode WebPageProxy::effectiveContentModeAfterAdjustingPolicies(API::Web
             policies.setMediaSourcePolicy(WebsiteMediaSourcePolicy::Enable);
 
         if (Quirks::needsIPhoneUserAgent(request.url())) {
-            policies.setCustomUserAgent(makeStringByReplacingAll(standardUserAgentWithApplicationName(m_applicationNameForUserAgent), "iPad"_s, "iPhone"_s));
-            policies.setCustomNavigatorPlatform("iPhone"_s);
+            applyIPhoneUserAgent();
             return WebContentMode::Mobile;
         }
 
@@ -1592,6 +1596,12 @@ WebContentMode WebPageProxy::effectiveContentModeAfterAdjustingPolicies(API::Web
     }
 
     bool useDesktopBrowsingMode = useDesktopClassBrowsing(policies, request);
+
+    // rdar://175017084
+    if (needsSiteSpecificQuirks && Quirks::needsIPhoneUserAgent(request.url(), useDesktopBrowsingMode ? UseDesktopClassBrowsing::Yes : UseDesktopClassBrowsing::No)) {
+        applyIPhoneUserAgent();
+        return WebContentMode::Mobile;
+    }
 
     m_preferFasterClickOverDoubleTap = false;
 
