@@ -67,7 +67,6 @@ http/tests/loading/unfinished-load-back-to-cached-page-callbacks.html [ Timeout 
 http/tests/loading/unfinished-main-resource-back-to-cached-page-callbacks.html [ Timeout ]
 http/tests/local/blob/download-blob-from-iframe.html [ Timeout ]
 http/tests/media/media-stream/enumerate-devices-source-id.html [ Timeout ]
-http/tests/misc/iframe-shadow-realm.html [ Timeout ]
 http/tests/navigation-api/different-origin-entries-removed-after-bfcache.html [ Timeout ]
 http/tests/navigation/https-in-page-cache.html [ Timeout ]
 http/tests/navigation/page-cache-pending-ping-load-cross-origin.html [ Timeout ]
