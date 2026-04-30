@@ -3581,14 +3581,7 @@ ipc/web-authenticator-get-assertion.html [ Skip ]
 # These tests require UseGPUProcessForMediaEnabled
 ipc/restrictedendpoints/allow-access-testOnlyIPC.html [ Skip ]
 
-# Assorted crashes
-[ Debug ] ipc/convert-to-luminance-mask-float16.html [ Crash ]
-[ Debug ] ipc/empty-svgfilterrenderer-expression-crash.html [ Crash ]
-
 ### FAILING TESTS
-
-# Read-Only shared-memory handle not supported, see https://bugs.webkit.org/show_bug.cgi?id=131542
-[ Debug ] ipc/stream-sync-reply-shared-memory.html [ Failure ]
 
 # (From wk2/TestExpectations)
 # These tests are checking that WebProcess is terminated when performing an invalid IPC operation for WK2.
@@ -3601,8 +3594,6 @@ ipc/restrictedendpoints/deny-access-webPush.html [ Skip ]
 ipc/validate-message-check-in-networkconnectiontowebproces-crash.html [ Skip ]
 
 ### NEEDS PROPER TRIAGGING/GARDENING
-
-[ Debug ] ipc/serialized-type-info.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of IPC testing
@@ -5459,6 +5450,41 @@ webkit.org/b/313511 media/media-source/media-source-real-overlapping-dts.html [ 
 webkit.org/b/305531 webgl/webgl2-provoking-vertex-primitive-restart-uint16-nocrash.html [ Skip ]
 
 webkit.org/b/313641 imported/w3c/web-platform-tests/css/filter-effects/crashtests/fecomponenttransfer-tablevalues-crash.html [ Pass Timeout ]
+
+# Cross-origin isolation is not fully implemented (see webkit.org/b/268068), so SharedArrayBuffer
+# is not available in cross-origin isolated contexts.
+http/wpt/webaudio/the-audio-api/the-audioworklet-interface/shared-array-buffer.https.html [ Skip ]
+imported/w3c/web-platform-tests/IndexedDB/serialize-sharedarraybuffer-throws.https.html [ Skip ]
+imported/w3c/web-platform-tests/encoding/sharedarraybuffer.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/broadcastchannel-success-and-failure.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/broadcastchannel-success.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/identity-not-preserved.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/nested-worker-success.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/no-transferring.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/serialization-via-history.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-iframe-messagechannel.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-messagechannel-success.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-simple-success.https.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/audio-data.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/audio-decoder.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/audio-decoder.crossOriginIsolated.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/encoded-audio-chunk.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/encoded-audio-chunk.crossOriginIsolated.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/encoded-video-chunk.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/encoded-video-chunk.crossOriginIsolated.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/video-decoder.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/video-decoder.crossOriginIsolated.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.crossOriginIsolated.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/videoFrame-copyTo.crossOriginIsolated.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webcodecs/videoFrame-copyTo.crossOriginIsolated.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/workers/Worker-creation-happens-in-parallel.https.html [ Skip ]
+imported/w3c/web-platform-tests/workers/postMessage_block.https.html [ Skip ]
+imported/w3c/web-platform-tests/workers/Worker-postMessage-happens-in-parallel.https.html [ Skip ]
+ipc/serialized-type-info.html [ Skip ]
+ipc/stream-sync-reply-shared-memory.html [ Skip ]
+ipc/convert-to-luminance-mask-float16.html [ Skip ]
+ipc/empty-svgfilterrenderer-expression-crash.html [ Skip ]
 
 # End: Common failures between GTK and WPE.
 
