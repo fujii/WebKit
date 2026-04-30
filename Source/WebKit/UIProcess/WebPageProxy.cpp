@@ -3245,7 +3245,7 @@ void WebPageProxy::updateActivityState()
 
 void WebPageProxy::activityStateDidChange(OptionSet<ActivityState> mayHaveChanged, ActivityStateChangeDispatchMode dispatchMode, ActivityStateChangeReplyMode replyMode)
 {
-    LOG_WITH_STREAM(ActivityState, stream << "WebPageProxy " << identifier() << " activityStateDidChange - mayHaveChanged " << mayHaveChanged);
+    WEBPAGEPROXY_RELEASE_LOG(ActivityState, "activityStateDidChange: mayHaveChanged=%d", mayHaveChanged.toRaw());
 
     RefPtr pageClient = this->pageClient();
 
@@ -3339,10 +3339,12 @@ void WebPageProxy::dispatchActivityStateChange()
     internals().activityStateChangeTimer.stop();
 #endif
 
-    if (!hasRunningProcess())
+    if (!hasRunningProcess()) {
+        WEBPAGEPROXY_RELEASE_LOG(ActivityState, "dispatchActivityStateChange: Not dispatching because there is no running process");
         return;
+    }
 
-    LOG_WITH_STREAM(ActivityState, stream << "WebPageProxy " << identifier() << " dispatchActivityStateChange - potentiallyChangedActivityStateFlags " << internals().potentiallyChangedActivityStateFlags);
+    WEBPAGEPROXY_RELEASE_LOG(ActivityState, "dispatchActivityStateChange: potentiallyChangedActivityStateFlags=%d", internals().potentiallyChangedActivityStateFlags.toRaw());
 
     // If the visibility state may have changed, then so may the visually idle & occluded agnostic state.
     if (internals().potentiallyChangedActivityStateFlags & ActivityState::IsVisible)
@@ -3355,7 +3357,7 @@ void WebPageProxy::dispatchActivityStateChange()
     auto changed = internals().activityState ^ previousActivityState;
 
     if (changed)
-        LOG_WITH_STREAM(ActivityState, stream << "WebPageProxy " << identifier() << " dispatchActivityStateChange: state changed from " << previousActivityState << " to " << internals().activityState);
+        WEBPAGEPROXY_RELEASE_LOG(ActivityState, "dispatchActivityStateChange: state changed from %d to %d", previousActivityState.toRaw(), internals().activityState.toRaw());
 
     if ((changed & ActivityState::WindowIsActive) && isViewWindowActive())
         updateCurrentModifierState();
