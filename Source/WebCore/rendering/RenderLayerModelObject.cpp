@@ -455,9 +455,20 @@ void RenderLayerModelObject::updateHasSVGTransformFlags()
 {
     ASSERT(document().settings().layerBasedSVGEngineEnabled());
 
+    bool wasTransformed = isTransformed();
     bool hasSVGTransform = needsHasSVGTransformFlags();
     setHasTransformRelatedProperty(hasSVGTransform || style().hasTransformRelatedProperty());
     setHasSVGTransform(hasSVGTransform);
+
+    // When the isTransformed() state changes, the enclosing layer's SVG children order cache
+    // must be rebuilt. A transformed non-layer renderer is collected as a single atomic entry
+    // without recursing into its subtree, so any layered descendants are not registered in
+    // the DOM-order list. A stale classification either drops those descendants (when toggled
+    // to transformed) or leaves them un-wrapped by the new transform (when toggled away).
+    if (isTransformed() != wasTransformed) {
+        if (CheckedPtr layer = enclosingLayer())
+            layer->dirtyChildrenInDOMOrderForSVG();
+    }
 }
 
 RenderSVGResourceClipper* RenderLayerModelObject::svgClipperResourceFromStyle() const

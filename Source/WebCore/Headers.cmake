@@ -3013,6 +3013,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/RenderLayerBacking.h
     rendering/RenderLayerCompositor.h
     rendering/RenderLayerModelObject.h
+    rendering/RenderLayerSVGAdditions.h
     rendering/RenderLayerScrollableArea.h
     rendering/RenderLayoutState.h
     rendering/RenderLineBoxList.h
