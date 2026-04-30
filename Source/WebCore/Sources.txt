@@ -3249,6 +3249,7 @@ style/values/align/StyleAlignSelf.cpp @header:RenderStyleGetters
 style/values/align/StyleJustifyContent.cpp
 style/values/align/StyleJustifyItems.cpp
 style/values/align/StyleJustifySelf.cpp @header:RenderStyleGetters
+style/values/anchor-position/StylePositionAnchor.cpp
 style/values/anchor-position/StylePositionAreaAxis.cpp
 style/values/anchor-position/StylePositionAreaSelf.cpp
 style/values/anchor-position/StylePositionAreaSpan.cpp
