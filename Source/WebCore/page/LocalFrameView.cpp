@@ -943,11 +943,6 @@ bool LocalFrameView::isScrollSnapInProgress() const
     return false;
 }
 
-void LocalFrameView::updateScrollingCoordinatorScrollSnapProperties() const
-{
-    renderView()->compositor().updateScrollSnapPropertiesWithFrameView(*this);
-}
-
 bool LocalFrameView::flushCompositingStateForThisFrame(const LocalFrame& rootFrameForFlush)
 {
     CheckedPtr renderView = this->renderView();
