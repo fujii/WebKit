@@ -338,10 +338,23 @@ auto RenderLayerModelObject::computeVisibleRectsInSVGContainer(const RepaintRect
     else if (auto* svgBlock = dynamicDowncast<RenderSVGBlock>(this))
         locationOffset = svgBlock->locationOffset();
 
-
     // We are now in our parent container's coordinate space. Apply our transform to obtain a bounding box
     // in the parent's coordinate space that encloses us.
-    if (hasLayer() && layer()->transform())
+    if (!hasLayer()) {
+        // Non-layered SVG elements: apply the SVG transform first, then locationOffset.
+        // The localTransform() includes the transform-origin effect (which accounts for
+        // the element's position in the reference box), matching the layer path order
+        // (transform, then offset). Applying offset first would double-count the position.
+        //
+        // Don't use isTransformed() here -- the flags may already reflect the NEW transform
+        // (e.g., identity after clearing the transform attribute), while localTransform()
+        // still holds the OLD value needed for correct old-position repaint.
+        if (auto* svgModel = dynamicDowncast<RenderSVGModelObject>(this)) {
+            auto svgTransform = svgModel->localTransform();
+            if (!svgTransform.isIdentity())
+                adjustedRects.transform(TransformationMatrix(svgTransform));
+        }
+    } else if (layer()->transform())
         adjustedRects.transform(*layer()->transform());
 
     adjustedRects.move(locationOffset);
