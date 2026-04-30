@@ -59,6 +59,7 @@
 #include "Settings.h"
 #include "ShareableBitmap.h"
 #include "VideoFrameMetadata.h"
+#include <wtf/NativePromise.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/TextStream.h>
 
