@@ -6832,6 +6832,8 @@ header: <WebCore/TextExtractionTypes.h>
 header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::IFrameData {
     String origin;
+    String shortenedOrigin;
+    bool isSameOriginAsParent;
     WebCore::FrameIdentifier identifier;
 };
 
