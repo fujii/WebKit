@@ -87,7 +87,7 @@ private:
 
 #if USE(HARDWARE_UNBARRIERED_MONOTONIC_TIME)
     struct Calibration {
-        uint64_t startCntpct;
+        uint64_t startCounter;
         double startNanoseconds;
         double nanosecondsPerTick;
     };
@@ -114,7 +114,7 @@ inline UnbarrieredMonotonicTime UnbarrieredMonotonicTime::now()
         calibrate();
 
     constexpr double nanosecondsPerSecond = 1000'000'000;
-    double nanoseconds = (readCounter() - s_calibration.startCntpct) * s_calibration.nanosecondsPerTick + s_calibration.startNanoseconds;
+    double nanoseconds = (readCounter() - s_calibration.startCounter) * s_calibration.nanosecondsPerTick + s_calibration.startNanoseconds;
     return UnbarrieredMonotonicTime::fromRawSeconds(nanoseconds / nanosecondsPerSecond);
 }
 #endif // USE(HARDWARE_UNBARRIERED_MONOTONIC_TIME)
