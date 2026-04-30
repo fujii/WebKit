@@ -5712,6 +5712,21 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
     RefPtr navigation = m_navigationState->navigation(provisionalPage->navigationID());
     bool didSuspendPreviousPage = navigation ? suspendCurrentPageIfPossible(*navigation, WTF::move(mainFrameInPreviousProcess), shouldDelayClosingUntilFirstLayerFlush) : false;
 
+    // Deferred from ProvisionalPageProxy::didCommitLoadForFrame(): if the
+    // previous main-frame process still has local frames in this BCG,
+    // transition the WebPageProxy in that process to a RemotePageProxy.
+    // Skipped when the previous page was BFCache-suspended — the page is
+    // frozen in the cache, not transitioning to "remote."
+    if (!didSuspendPreviousPage && provisionalPage->deferredRemoteTransitionSite()) {
+        ASSERT(oldMainFrameID);
+        auto topDocumentSyncData = DocumentSyncData::create();
+        topDocumentSyncData->documentURL = request.url();
+        topDocumentSyncData->documentSecurityOrigin = SecurityOrigin::create(request.url());
+        setTopDocumentSyncData(topDocumentSyncData.copyRef());
+        protect(legacyMainFrameProcess())->send(Messages::WebPage::LoadDidCommitInAnotherProcess(*oldMainFrameID, std::nullopt, WTF::move(topDocumentSyncData)), webPageIDInMainFrameProcess());
+        protect(m_browsingContextGroup)->transitionPageToRemotePage(*this, *provisionalPage->deferredRemoteTransitionSite());
+    }
+
     if (!didSuspendPreviousPage && mainFrameInPreviousProcess && preferences->siteIsolationEnabled())
         mainFrameInPreviousProcess->removeChildFrames();
 
