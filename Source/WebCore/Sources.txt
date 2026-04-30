@@ -1920,6 +1920,8 @@ inspector/agents/WebConsoleAgent.cpp
 inspector/agents/WebDebuggerAgent.cpp
 inspector/agents/WebHeapAgent.cpp
 inspector/agents/frame/FrameConsoleAgent.cpp
+inspector/agents/frame/FrameDOMAgent.cpp
+inspector/agents/frame/FrameDOMAgentStubs.cpp
 inspector/agents/frame/FrameDebuggerAgent.cpp
 inspector/agents/frame/FrameWorkerAgent.cpp
 inspector/agents/page/PageAuditAgent.cpp
