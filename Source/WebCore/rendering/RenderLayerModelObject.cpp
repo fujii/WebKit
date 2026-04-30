@@ -699,20 +699,30 @@ void RenderLayerModelObject::repaintOrRelayoutAfterSVGTransformChange()
     // There is no intrinsic reason for that, besides historical ones. If we decouple
     // the 'font size screen scaling factor' from layout and only use it during painting
     // we can optimize transformations for text, simply by avoid the need for layout.
-    auto previousTransform = layerTransform() ? layerTransform()->toAffineTransform() : identity;
-    updateLayerTransform();
+    AffineTransform previousTransform;
+    AffineTransform currentTransform;
 
-    auto currentTransform = layerTransform() ? layerTransform()->toAffineTransform() : identity;
+    if (hasLayer()) {
+        // Layered path: use the layer's cached transform.
+        previousTransform = layerTransform() ? layerTransform()->toAffineTransform() : identity;
+        updateLayerTransform();
+        currentTransform = layerTransform() ? layerTransform()->toAffineTransform() : identity;
 
-    // We have to force a stacking context if we did not have a transform before. Normally
-    // RenderLayer::styleChanged does this for us but repaintOrRelayoutAfterSVGTransformChange
-    // does not end up calling it.
-    if (previousTransform.isIdentity() && !currentTransform.isIdentity()) {
-        if (hasLayer())
+        // We have to force a stacking context if we did not have a transform before. Normally
+        // RenderLayer::styleChanged does this for us but repaintOrRelayoutAfterSVGTransformChange
+        // does not end up calling it.
+        if (previousTransform.isIdentity() && !currentTransform.isIdentity())
             layer()->forceStackingContextIfNeeded();
+    } else if (auto* svgModel = dynamicDowncast<RenderSVGModelObject>(this)) {
+        // Non-layered path: use the renderer's cached local SVG transform.
+        // The local transform was set during initial layout/style update and still
+        // holds the old value, analogous to the layer's transform for layered elements.
+        previousTransform = svgModel->localTransform();
+        svgModel->updateLocalTransform();
+        currentTransform = svgModel->localTransform();
     }
 
-    auto determineIfLayerTransformChangeModifiesScale = [&]() -> bool {
+    auto determineIfTransformChangeModifiesScale = [&]() -> bool {
         if (previousTransform == currentTransform)
             return false;
 
@@ -727,7 +737,7 @@ void RenderLayerModelObject::repaintOrRelayoutAfterSVGTransformChange()
         return false;
     }();
 
-    if (determineIfLayerTransformChangeModifiesScale) {
+    if (determineIfTransformChangeModifiesScale) {
         if (auto* textAffectedByTransformChange = dynamicDowncast<RenderSVGText>(this)) {
             // Mark text metrics for update, and only trigger a relayout and not an explicit repaint.
             textAffectedByTransformChange->setNeedsTextMetricsUpdate();
