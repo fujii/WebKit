@@ -10597,12 +10597,15 @@ IGNORE_CLANG_WARNINGS_END
         LValue allocator = allocatorForSize(vm().primitiveGigacageAuxiliarySpace(), byteSize, slowCase);
         LValue storage = allocateHeapCell(allocator, slowCase);
 
-        splatWords(
-            storage,
-            m_out.int32Zero,
-            m_out.castToInt32(m_out.lShr(byteSize, m_out.constIntPtr(3))),
-            m_out.int64Zero,
-            m_heaps.TypedArrayProperties);
+        LValue zeroFillEnd = nullptr;
+        if (m_node->child1()->isInt32Constant()) {
+            int32_t length = m_node->child1()->asInt32();
+            if (length >= 0 && static_cast<size_t>(length) <= JSArrayBufferView::fastSizeLimit)
+                zeroFillEnd = m_out.constInt32(WTF::roundUpToMultipleOf<8>(static_cast<size_t>(length) << logElementSize(typedArrayType)) / sizeof(UCPURegister));
+        }
+        if (!zeroFillEnd)
+            zeroFillEnd = m_out.castToInt32(m_out.lShr(byteSize, m_out.constIntPtr(3)));
+        splatWords(storage, m_out.int32Zero, zeroFillEnd, m_out.int64Zero, m_heaps.TypedArrayProperties);
 
         ValueFromBlock haveStorage = m_out.anchor(storage);
 
