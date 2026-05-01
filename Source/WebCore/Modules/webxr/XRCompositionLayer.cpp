@@ -58,6 +58,11 @@ XRLayerBacking& XRCompositionLayer::backing()
     return m_backing;
 }
 
+PlatformXR::LayerHandle XRCompositionLayer::layerHandle() const
+{
+    return m_backing->handle();
+}
+
 void XRCompositionLayer::setColorTextures(Vector<RefPtr<WebGLOpaqueTexture>>&& colorTextures)
 {
     m_colorTextures = WTF::move(colorTextures);

@@ -97,7 +97,7 @@ static ExceptionOr<std::unique_ptr<WebXROpaqueFramebuffer>> createOpaqueFramebuf
     auto framebuffer = WebXROpaqueFramebuffer::create(layerInfo->handle, context, WTF::move(attributes), size);
     if (!framebuffer)
         return Exception { ExceptionCode::OperationError, "Unable to create a framebuffer."_s };
-    
+
     return framebuffer;
 }
 
@@ -142,7 +142,7 @@ ExceptionOr<Ref<WebXRWebGLLayer>> WebXRWebGLLayer::create(WebXRSession& session,
             bool antialias = false;
             std::unique_ptr<WebXROpaqueFramebuffer> framebuffer;
 
-            // 9. If layer's composition enabled boolean is true: 
+            // 9. If layer's composition enabled boolean is true:
             if (isCompositionEnabled) {
                 auto createResult = createOpaqueFramebuffer(session, baseContext, init);
                 if (createResult.hasException())
@@ -317,6 +317,12 @@ void WebXRWebGLLayer::startFrame(PlatformXR::FrameData& data)
     }
 
     m_framebuffer->startFrame(it->value);
+}
+
+PlatformXR::LayerHandle WebXRWebGLLayer::layerHandle() const
+{
+    ASSERT(m_framebuffer);
+    return m_framebuffer->handle();
 }
 
 PlatformXR::DeviceLayer WebXRWebGLLayer::endFrame()
