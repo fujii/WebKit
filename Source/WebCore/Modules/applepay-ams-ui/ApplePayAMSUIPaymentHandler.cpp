@@ -33,6 +33,8 @@
 #include "DocumentPage.h"
 #include "JSApplePayAMSUIRequest.h"
 #include "Page.h"
+#include <JavaScriptCore/JSGlobalObject.h>
+#include <JavaScriptCore/ObjectConstructor.h>
 
 namespace WebCore {
 
