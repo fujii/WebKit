@@ -2149,10 +2149,6 @@ if (window.testRunner) {
     testRunner.flushConsoleLogs = () => post(['FlushConsoleLogs']);
     testRunner.updatePresentation = () => post(['UpdatePresentation']);
     testRunner.setPageScaleFactor = (scaleFactor, x, y) => post(['SetPageScaleFactor', { scaleFactor: scaleFactor, x: x, y: y }]);
-    testRunner.getAndClearReportedWindowProxyAccessDomains = async (callback) => { // NOLINT
-        const domains = await post(['GetAndClearReportedWindowProxyAccessDomains']);
-        callback?.(domains);
-    };
     testRunner.setObscuredContentInsets = (top, right, bottom, left) => post(['SetObscuredContentInsets', [top, right, bottom, left]]);
     testRunner.setResourceMonitorList = (rulesText) => post(['SetResourceMonitorList', rulesText]);
     testRunner.findStringMatchesInPage = (target, options) => post(['FindStringMatches', { String: target, FindOptions: options }]);
@@ -2346,9 +2342,6 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
 
     if (WKStringIsEqualToUTF8CString(command, "FlushConsoleLogs"))
         return completionHandler(nullptr);
-
-    if (WKStringIsEqualToUTF8CString(command, "GetAndClearReportedWindowProxyAccessDomains"))
-        return completionHandler(getAndClearReportedWindowProxyAccessDomains().get());
 
     if (WKStringIsEqualToUTF8CString(command, "TakeViewPortSnapshot"))
         return completionHandler(takeViewPortSnapshot().get());
@@ -5305,13 +5298,6 @@ void TestController::platformEnsureGPUProcessConfiguredForOptions(const TestOpti
 WKRetainPtr<WKStringRef> TestController::takeViewPortSnapshot()
 {
     return adoptWK(WKStringCreateWithUTF8CString("not implemented"));
-}
-#endif
-
-#if !PLATFORM(COCOA)
-WKRetainPtr<WKArrayRef> TestController::getAndClearReportedWindowProxyAccessDomains()
-{
-    return nullptr;
 }
 #endif
 

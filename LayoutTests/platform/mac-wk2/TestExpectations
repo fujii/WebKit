@@ -1565,13 +1565,6 @@ webkit.org/b/264306 fast/scrolling/mac/scrollbars/very-wide-overlay-scrollbar.ht
 
 webkit.org/b/265599 [ Sonoma+ Debug x86_64 ] imported/w3c/web-platform-tests/html/browsers/the-window-object/open-close/open-features-tokenization-noreferrer.html [ Pass Crash ]
 
-# WindowProxy property access delegate callbacks are only implemented on Mac and iOS WK2.
-http/wpt/opener/child-access-parent-via-windowproxy.html [ Pass ]
-http/wpt/opener/cross-site-child-access-parent-iframe-via-windowproxy.html [ Pass ]
-http/wpt/opener/iframe-access-top-via-windowproxy.html [ Pass ]
-http/wpt/opener/parent-access-child-via-windowproxy.html [ Pass ]
-http/wpt/opener/same-site-child-access-parent-iframe-via-windowproxy.html [ Pass ]
-
 webkit.org/b/265954 [ Release x86_64 ] media/video-audio-session-mode.html [ Failure Crash ]
 
 webkit.org/b/266490 [ Sonoma+ ] fast/scrolling/overlay-scrollbars-scroll-corner.html [ Pass ImageOnlyFailure ]

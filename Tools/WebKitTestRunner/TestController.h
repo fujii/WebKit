@@ -427,8 +427,6 @@ public:
     void setIsMediaKeySystemPermissionGranted(bool);
     WKRetainPtr<WKStringRef> takeViewPortSnapshot();
 
-    WKRetainPtr<WKArrayRef> getAndClearReportedWindowProxyAccessDomains();
-
     WKPreferencesRef platformPreferences() { return m_preferences.get(); }
 
     bool grantNotificationPermission(WKStringRef origin);

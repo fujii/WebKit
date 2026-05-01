@@ -7445,13 +7445,6 @@ imported/w3c/web-platform-tests/css/css-ruby/ruby-align-space-around.html [ Imag
 imported/w3c/web-platform-tests/css/css-ruby/ruby-inlinize-recursive-simple.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-no-transform.html [ ImageOnlyFailure ]
 
-# WindowProxy property access delegate callbacks are only implemented on Mac and iOS WK2.
-http/wpt/opener/child-access-parent-via-windowproxy.html [ Skip ]
-http/wpt/opener/cross-site-child-access-parent-iframe-via-windowproxy.html [ Skip ]
-http/wpt/opener/iframe-access-top-via-windowproxy.html [ Skip ]
-http/wpt/opener/parent-access-child-via-windowproxy.html [ Skip ]
-http/wpt/opener/same-site-child-access-parent-iframe-via-windowproxy.html [ Skip ]
-
 webkit.org/b/266477 compositing/layer-creation/scale-rotation-transition-overlap.html [ Failure Timeout ]
 
 # At the time of writing this test consumes all available IOSurfaces. If the next test is image-buffer-backend-variants.html, that will fail.
