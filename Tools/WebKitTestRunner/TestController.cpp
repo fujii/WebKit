@@ -589,6 +589,24 @@ void TestController::closeOtherPage(WKPageRef page, PlatformWebView* view)
         m_auxiliaryWebViews.removeAt(index);
 }
 
+PlatformWebView* TestController::viewForPage(WKPageRef page)
+{
+    if (mainWebView() && mainWebView()->page() == page)
+        return mainWebView();
+    for (auto& auxiliaryWebView : m_auxiliaryWebViews) {
+        if (auxiliaryWebView->page() == page)
+            return auxiliaryWebView.ptr();
+    }
+    return mainWebView();
+}
+
+void TestController::setTargetViewFromMessage(WKScriptMessageRef message)
+{
+    auto* frameInfo = WKScriptMessageGetFrameInfo(message);
+    auto* sourcePage = frameInfo ? WKFrameInfoGetPage(frameInfo) : nullptr;
+    setTargetView(sourcePage ? viewForPage(sourcePage) : mainWebView());
+}
+
 WKPageRef TestController::createOtherPage(WKPageRef, WKPageConfigurationRef configuration, WKNavigationActionRef navigationAction, WKWindowFeaturesRef windowFeatures, const void *clientInfo)
 {
     PlatformWebView* parentView = static_cast<PlatformWebView*>(const_cast<void*>(clientInfo));
@@ -2755,13 +2773,19 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
         const auto y = doubleValue(argument2);
         const auto pointerType = stringValue(argument3);
 
+        // Route event to the view that sent this message (e.g. a popup window).
+        setTargetViewFromMessage(message);
+
         auto array = adoptWK(WKMutableArrayCreate());
         WKArrayAppendItem(array.get(), argument);
         WKArrayAppendItem(array.get(), argument2);
-        WKPagePostMessageToInjectedBundle(mainWebView()->page(), toWK("SetMousePosition").get(), array.get());
+        WKPagePostMessageToInjectedBundle(targetView()->page(), toWK("SetMousePosition").get(), array.get());
 
         m_eventSenderProxy->mouseMoveTo(x, y, pointerType,
-            [completionHandler = WTF::move(completionHandler)] mutable { completionHandler(nullptr); });
+            [this, completionHandler = WTF::move(completionHandler)] mutable {
+                setTargetView(nullptr);
+                completionHandler(nullptr);
+            });
         return;
     }
 
@@ -2769,8 +2793,14 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
         const auto button = static_cast<uint64_t>(doubleValue(argument));
         const auto array = arrayValue(argument2);
         const auto pointerType = stringValue(argument3);
+
+        setTargetViewFromMessage(message);
+
         m_eventSenderProxy->mouseDown(button, parseModifierArray(array), pointerType,
-            [completionHandler = WTF::move(completionHandler)] mutable { completionHandler(nullptr); });
+            [this, completionHandler = WTF::move(completionHandler)] mutable {
+                setTargetView(nullptr);
+                completionHandler(nullptr);
+            });
         return;
     }
 
@@ -2778,8 +2808,14 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
         const auto button = static_cast<uint64_t>(doubleValue(argument));
         const auto array = arrayValue(argument2);
         const auto pointerType = stringValue(argument3);
+
+        setTargetViewFromMessage(message);
+
         m_eventSenderProxy->mouseUp(button, parseModifierArray(array), pointerType,
-            [completionHandler = WTF::move(completionHandler)] mutable { completionHandler(nullptr); });
+            [this, completionHandler = WTF::move(completionHandler)] mutable {
+                setTargetView(nullptr);
+                completionHandler(nullptr);
+            });
         return;
     }
 
@@ -5773,7 +5809,7 @@ void TestController::handleAXPerformAction(WKDictionaryRef messageBody)
 void TestController::doAfterProcessingAllPendingMouseEvents(CompletionHandler<void()>&& handler)
 {
     auto* completionHandler = new CompletionHandler<void()>(WTF::move(handler));
-    WKPageDoAfterProcessingAllPendingMouseEvents(mainWebView()->page(), completionHandler, [](void* userData) {
+    WKPageDoAfterProcessingAllPendingMouseEvents(targetView()->page(), completionHandler, [](void* userData) {
         auto* completionHandler = static_cast<CompletionHandler<void()>*>(userData);
         (*completionHandler)();
         delete completionHandler;
