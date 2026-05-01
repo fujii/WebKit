@@ -42,7 +42,7 @@ namespace JSC { namespace Wasm {
 
 Module::Module(IPIntPlan& plan)
     : m_moduleInformation(plan.takeModuleInformation())
-    , m_ipintCallees(IPIntCallees::createFromVector(plan.takeCallees()))
+    , m_ipintCallees(plan.takeCallees())
     , m_wasmToJSExitStubs(plan.takeWasmToJSExitStubs())
 {
 #if ENABLE(WEBASSEMBLY_DEBUGGER)
