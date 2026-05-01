@@ -360,7 +360,7 @@ Inspector::CommandResult<String> InspectorLayerTreeAgent::requestContent(const I
 
     FloatSize layerSize = graphicsLayer->size();
     if (layerSize.isEmpty())
-        return makeUnexpected("Layer has zero size"_s);
+        return emptyString();
 
     // Limit scale factor for large layers to prevent excessive memory usage.
     constexpr float maxScaleFactor = 2;
