@@ -1352,6 +1352,9 @@ void UnifiedPDFPlugin::updateLayout(AdjustScaleAfterLayout shouldAdjustScale, st
     auto layoutSize = availableContentsRect().size();
     auto autoSizeMode = shouldUpdateAutoSizeScaleOverride.value_or(m_didLayoutWithValidDocument ? m_shouldUpdateAutoSizeScale : ShouldUpdateAutoSizeScale::Yes);
 
+    if (RefPtr corePage = page())
+        m_documentLayout.setShouldLeftAlignTrailingTwoUpPage(corePage->settings().twoUpPDFTrailingPageLeftAlignmentEnabled());
+
     Ref presentationController = *m_presentationController;
     auto computeAnchoringInfo = [&] {
         return presentationController->pdfPositionForCurrentView(PDFPresentationController::AnchorPoint::TopLeft, shouldAdjustScale == AdjustScaleAfterLayout::Yes || autoSizeMode == ShouldUpdateAutoSizeScale::Yes);
