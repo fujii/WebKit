@@ -5903,6 +5903,13 @@
    },
    {
       "emails" : [
+         "mathew_mason@apple.com"
+      ],
+      "github" : "masonm12",
+      "name" : "Mathew Mason"
+   },
+   {
+      "emails" : [
          "mattbaker01@gmail.com"
       ],
       "expertise" : "Web Inspector",
