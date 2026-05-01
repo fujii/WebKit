@@ -1143,7 +1143,7 @@ static void changeContentOffsetBoundedInValidRange(UIScrollView *scrollView, Web
 
         if (WebKit::scalesAreEssentiallyEqual(contentZoomScale(self), _scaleToRestore)) {
             scaledScrollOffset.scale(_scaleToRestore);
-            WebCore::FloatPoint contentOffsetInScrollViewCoordinates = scaledScrollOffset - WebCore::FloatSize(_obscuredInsetsWhenSaved.left(), _obscuredInsetsWhenSaved.top());
+            WebCore::FloatPoint contentOffsetInScrollViewCoordinates = [self _contentOffsetAdjustedForObscuredInset:scaledScrollOffset];
 
             changeContentOffsetBoundedInValidRange(_scrollView.get(), contentOffsetInScrollViewCoordinates);
             _perProcessState.commitDidRestoreScrollPosition = YES;
@@ -1162,7 +1162,7 @@ static void changeContentOffsetBoundedInValidRange(UIScrollView *scrollView, Web
             WebCore::FloatPoint topLeftInDocumentCoordinates = unobscuredCenterToRestore - unobscuredContentSizeAtNewScale / 2;
 
             topLeftInDocumentCoordinates.scale(_scaleToRestore);
-            topLeftInDocumentCoordinates.moveBy(WebCore::FloatPoint(-_obscuredInsets.left, -_obscuredInsets.top));
+            topLeftInDocumentCoordinates = [self _contentOffsetAdjustedForObscuredInset:topLeftInDocumentCoordinates];
 
             changeContentOffsetBoundedInValidRange(_scrollView.get(), topLeftInDocumentCoordinates);
         }
