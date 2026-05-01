@@ -2043,6 +2043,20 @@ CookieStoreManagerEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
+CoreMathMLDeprecateLegacyMathvariant:
+  type: bool
+  status: testable
+  category: dom
+  humanReadableName: "Deprecate legacy mathvariant"
+  humanReadableDescription: "Align the mathvariant attribute with MathML Core, disabling all variants except italic."
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 CoreMathMLEnabled:
   type: bool
   status: unstable

@@ -81,6 +81,7 @@ StyleSheetContents* UserAgentStyle::quirksStyleSheet;
 StyleSheetContents* UserAgentStyle::svgStyleSheet;
 StyleSheetContents* UserAgentStyle::mathMLStyleSheet;
 StyleSheetContents* UserAgentStyle::mathMLCoreExtrasStyleSheet;
+StyleSheetContents* UserAgentStyle::mathMLCoreMathvariantStyleSheet;
 StyleSheetContents* UserAgentStyle::mathMLFontSizeMathStyleSheet;
 StyleSheetContents* UserAgentStyle::mathMLLegacyFontSizeMathStyleSheet;
 StyleSheetContents* UserAgentStyle::mediaQueryStyleSheet;
@@ -234,6 +235,10 @@ void UserAgentStyle::ensureDefaultStyleSheetsForElement(const Element& element)
         if (!mathMLCoreExtrasStyleSheet && element.document().settings().coreMathMLEnabled()) {
             mathMLCoreExtrasStyleSheet = parseUASheet(StringImpl::createWithoutCopying(mathmlCoreExtrasUserAgentStyleSheet));
             addToDefaultStyle(*mathMLCoreExtrasStyleSheet);
+        }
+        if (!mathMLCoreMathvariantStyleSheet && element.document().settings().coreMathMLDeprecateLegacyMathvariant()) {
+            mathMLCoreMathvariantStyleSheet = parseUASheet(StringImpl::createWithoutCopying(mathmlCoreMathvariantUserAgentStyleSheet));
+            addToDefaultStyle(*mathMLCoreMathvariantStyleSheet);
         }
         if (element.document().settings().cssMathDepthEnabled()) {
             if (!mathMLFontSizeMathStyleSheet) {

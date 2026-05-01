@@ -23,19 +23,15 @@
  */
 
 /* https://w3c.github.io/mathml-core/#user-agent-stylesheet */
-/* This file contains the styles that should be gated by the preference CoreMathMLEnabled. */
+/* This file contains the styles that should be gated by the preference CoreMathMLDeprecateLegacyMathvariant. */
 
 #if defined(ENABLE_MATHML) && ENABLE_MATHML
 
 @namespace "http://www.w3.org/1998/Math/MathML";
 
-/* <mrow>-like elements */
-semantics > :not(:first-child) {
-  display: none;
-}
-
-maction > :not(:first-child) {
-  display: none;
+/* Token elements */
+mi {
+  text-transform: math-auto;
 }
 
 #endif
