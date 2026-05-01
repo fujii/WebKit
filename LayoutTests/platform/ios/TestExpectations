@@ -8635,7 +8635,3 @@ imported/w3c/web-platform-tests/html/semantics/popovers/popover-shadowhost-focus
 
 # rdar://168334716 (MTLCompilerService crashes when Metal Shader Validation is enabled on iOS Simulator)
 webgl/webgl2-provoking-vertex-primitive-restart-uint16-nocrash.html [ Skip ]
-
-# webkit.org/b/313677 [iOS] 2 tests in imported/w3c/web-platform-tests/css/css-images/image-orientation are failing with image diff
-imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientation-background-image.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientation-list-style-image.html [ ImageOnlyFailure ]
