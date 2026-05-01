@@ -338,6 +338,7 @@ NS_REQUIRES_PROPERTY_DEFINITIONS
 @interface _WKTextExtractionInteractionResult : NSObject
 
 @property (nonatomic, readonly, nullable) NSError *error;
+@property (nonatomic, readonly, nullable) NSString *summary;
 
 @end
 
