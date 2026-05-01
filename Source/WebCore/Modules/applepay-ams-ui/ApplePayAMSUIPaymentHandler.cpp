@@ -35,6 +35,7 @@
 #include "Page.h"
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/ObjectConstructor.h>
+#include <JavaScriptCore/StrongInlines.h>
 
 namespace WebCore {
 

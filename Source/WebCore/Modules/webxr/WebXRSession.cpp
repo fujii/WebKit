@@ -33,7 +33,6 @@
 #include "DOMPointReadOnly.h"
 #include "DocumentPage.h"
 #include "EventNames.h"
-#include "EventTargetInlines.h"
 #include "JSDOMConvertInterface.h"
 #include "JSDOMPromiseDeferred.h"
 #include "JSWebXRHitTestSource.h"

@@ -43,7 +43,6 @@
 #include "EventHandler.h"
 #include "EventListenerMap.h"
 #include "EventNames.h"
-#include "EventTargetInlines.h"
 #include "ExceptionCode.h"
 #include "ExceptionOr.h"
 #include "FocusController.h"

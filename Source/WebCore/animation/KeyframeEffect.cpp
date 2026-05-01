@@ -48,7 +48,6 @@
 #include "Element.h"
 #include "ElementRareData.h"
 #include "EventLoop.h"
-#include "EventTargetInlines.h"
 #include "FontCascade.h"
 #include "GeometryUtilities.h"
 #include "GraphicsLayerAnimation.h"

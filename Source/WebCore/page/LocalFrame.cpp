@@ -131,6 +131,7 @@
 #include "markup.h"
 #include "runtime_root.h"
 #include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/RegularExpression.h>
 #include <wtf/HexNumber.h>
 #include <wtf/StdLibExtras.h>

@@ -32,7 +32,6 @@
 #include "InspectorLayerTreeAgent.h"
 
 #include "DestinationColorSpace.h"
-#include "EventTargetInlines.h"
 #include "GraphicsContext.h"
 #include "GraphicsLayer.h"
 #include "ImageBuffer.h"
