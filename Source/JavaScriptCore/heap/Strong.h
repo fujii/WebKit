@@ -32,7 +32,6 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <JavaScriptCore/Handle.h>
 #include <JavaScriptCore/HandleSet.h>
 #include <JavaScriptCore/Heap.h>
-#include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/StrongForward.h>
 #include <wtf/HashFunctions.h>
@@ -42,9 +41,7 @@ namespace JSC {
 
 class VM;
 
-REFTRACKER_DECL(StrongRefTracker, {
-    JSC::initialize();
-});
+REFTRACKER_DECL(StrongRefTracker);
 
 // A strongly referenced handle that prevents the object it points to from being garbage collected.
 template <typename T, ShouldStrongDestructorGrabLock shouldStrongDestructorGrabLock> class Strong final : public Handle<T> {

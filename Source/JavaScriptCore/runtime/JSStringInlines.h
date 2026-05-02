@@ -25,8 +25,9 @@
 
 #pragma once
 
+#include <JavaScriptCore/GetVM.h>
 #include <JavaScriptCore/HeapCellInlines.h>
-#include <JavaScriptCore/JSGlobalObjectInlines.h>
+#include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/JSString.h>
 #include <JavaScriptCore/KeyAtomStringCacheInlines.h>
 #include <JavaScriptCore/MarkedBlockInlines.h>

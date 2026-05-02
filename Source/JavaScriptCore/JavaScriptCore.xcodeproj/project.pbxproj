@@ -186,6 +186,9 @@
 		0F2B66F217B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructor.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F2B66C417B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0F2B66F317B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructorInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F2B66C517B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructorInlines.h */; };
 		0F2B66F417B6B5AB00A7AE3F /* JSGenericTypedArrayViewInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F2B66C617B6B5AB00A7AE3F /* JSGenericTypedArrayViewInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FC601BAFB07E4D888C5AA7AD /* JSGenericTypedArrayViewInlinesLight.h in Headers */ = {isa = PBXBuildFile; fileRef = C1FD0F0D73794C72BFF37F4C /* JSGenericTypedArrayViewInlinesLight.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		E2A9D8474FB84C3B91DA47B1 /* JSArrayBufferViewInlinesLight.h in Headers */ = {isa = PBXBuildFile; fileRef = A6B8D2E1CD3A47F8BB29B6AE /* JSArrayBufferViewInlinesLight.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		B4C7A5933E61498DAF3D7C12 /* StructureInlinesLight.h in Headers */ = {isa = PBXBuildFile; fileRef = D8E1F0A2B3C94D7E8F1A2B3C /* StructureInlinesLight.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0F2B66F517B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototype.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F2B66C717B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototype.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0F2B66F617B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototypeInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F2B66C817B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototypeInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0F2B66F717B6B5AB00A7AE3F /* JSInt8Array.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F2B66C917B6B5AB00A7AE3F /* JSInt8Array.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -485,6 +488,7 @@
 		0FB7F39615ED8E4600F167B2 /* ArrayStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FB7F38A15ED8E3800F167B2 /* ArrayStorage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FB7F39715ED8E4600F167B2 /* Butterfly.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FB7F38B15ED8E3800F167B2 /* Butterfly.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FB7F39815ED8E4600F167B2 /* ButterflyInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FB7F38C15ED8E3800F167B2 /* ButterflyInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		796C0603368743C78E7F9859 /* ButterflyInlinesLight.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B9420DB4ACC4A7D83B1C8AE /* ButterflyInlinesLight.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FB7F39915ED8E4600F167B2 /* IndexingHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FB7F38D15ED8E3800F167B2 /* IndexingHeader.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FB7F39A15ED8E4600F167B2 /* IndexingHeaderInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FB7F38E15ED8E3800F167B2 /* IndexingHeaderInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FB7F39B15ED8E4600F167B2 /* IndexingType.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FB7F38F15ED8E3800F167B2 /* IndexingType.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -2945,6 +2949,9 @@
 		0F2B66C417B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGenericTypedArrayViewConstructor.h; sourceTree = "<group>"; };
 		0F2B66C517B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructorInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGenericTypedArrayViewConstructorInlines.h; sourceTree = "<group>"; };
 		0F2B66C617B6B5AB00A7AE3F /* JSGenericTypedArrayViewInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGenericTypedArrayViewInlines.h; sourceTree = "<group>"; };
+		C1FD0F0D73794C72BFF37F4C /* JSGenericTypedArrayViewInlinesLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGenericTypedArrayViewInlinesLight.h; sourceTree = "<group>"; };
+		A6B8D2E1CD3A47F8BB29B6AE /* JSArrayBufferViewInlinesLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSArrayBufferViewInlinesLight.h; sourceTree = "<group>"; };
+		D8E1F0A2B3C94D7E8F1A2B3C /* StructureInlinesLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StructureInlinesLight.h; sourceTree = "<group>"; };
 		0F2B66C717B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGenericTypedArrayViewPrototype.h; sourceTree = "<group>"; };
 		0F2B66C817B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototypeInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGenericTypedArrayViewPrototypeInlines.h; sourceTree = "<group>"; };
 		0F2B66C917B6B5AB00A7AE3F /* JSInt8Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSInt8Array.h; sourceTree = "<group>"; };
@@ -3454,6 +3461,7 @@
 		0FB7F38A15ED8E3800F167B2 /* ArrayStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArrayStorage.h; sourceTree = "<group>"; };
 		0FB7F38B15ED8E3800F167B2 /* Butterfly.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Butterfly.h; sourceTree = "<group>"; };
 		0FB7F38C15ED8E3800F167B2 /* ButterflyInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButterflyInlines.h; sourceTree = "<group>"; };
+		7B9420DB4ACC4A7D83B1C8AE /* ButterflyInlinesLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButterflyInlinesLight.h; sourceTree = "<group>"; };
 		0FB7F38D15ED8E3800F167B2 /* IndexingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IndexingHeader.h; sourceTree = "<group>"; };
 		0FB7F38E15ED8E3800F167B2 /* IndexingHeaderInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IndexingHeaderInlines.h; sourceTree = "<group>"; };
 		0FB7F38F15ED8E3800F167B2 /* IndexingType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IndexingType.h; sourceTree = "<group>"; };
@@ -8554,6 +8562,7 @@
 				9E729409190F0306001A91B5 /* BundlePath.mm */,
 				0FB7F38B15ED8E3800F167B2 /* Butterfly.h */,
 				0FB7F38C15ED8E3800F167B2 /* ButterflyInlines.h */,
+				7B9420DB4ACC4A7D83B1C8AE /* ButterflyInlinesLight.h */,
 				1435952022A521CA00E8086D /* BytecodeCacheError.cpp */,
 				1435951F22A521CA00E8086D /* BytecodeCacheError.h */,
 				FE8DE54E23AC3A8E005C9142 /* CacheableIdentifier.cpp */,
@@ -8882,6 +8891,7 @@
 				0F2B66BA17B6B5AB00A7AE3F /* JSArrayBufferView.cpp */,
 				0F2B66BB17B6B5AB00A7AE3F /* JSArrayBufferView.h */,
 				0F2B66BC17B6B5AB00A7AE3F /* JSArrayBufferViewInlines.h */,
+				A6B8D2E1CD3A47F8BB29B6AE /* JSArrayBufferViewInlinesLight.h */,
 				539FB8B91C99DA7C00940FA1 /* JSArrayInlines.h */,
 				539DD7F323C1BBA900905F13 /* JSArrayIterator.cpp */,
 				539DD7F423C1BBA900905F13 /* JSArrayIterator.h */,
@@ -8970,6 +8980,7 @@
 				0F2B66C417B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructor.h */,
 				0F2B66C517B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructorInlines.h */,
 				0F2B66C617B6B5AB00A7AE3F /* JSGenericTypedArrayViewInlines.h */,
+				C1FD0F0D73794C72BFF37F4C /* JSGenericTypedArrayViewInlinesLight.h */,
 				91C3265D2BFFB2BF009C7E2B /* JSGenericTypedArrayViewPrototype.cpp */,
 				0F2B66C717B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototype.h */,
 				53917E7A1B7906E4000EBD33 /* JSGenericTypedArrayViewPrototypeFunctions.h */,
@@ -9409,6 +9420,7 @@
 				0FD2C92516D01EE900C7803F /* StructureCreateInlines.h */,
 				537FEEC82742BDA300C9EFEE /* StructureID.h */,
 				0FD2C92316D01EE900C7803F /* StructureInlines.h */,
+				D8E1F0A2B3C94D7E8F1A2B3C /* StructureInlinesLight.h */,
 				C2F0F2D016BAEEE900187C19 /* StructureRareData.cpp */,
 				C2FE18A316BAEC4000AF3061 /* StructureRareData.h */,
 				C20BA92C16BB1C1500B3AEA2 /* StructureRareDataInlines.h */,
@@ -11180,6 +11192,7 @@
 				9E72940B190F0514001A91B5 /* BundlePath.h in Headers */,
 				0FB7F39715ED8E4600F167B2 /* Butterfly.h in Headers */,
 				0FB7F39815ED8E4600F167B2 /* ButterflyInlines.h in Headers */,
+				796C0603368743C78E7F9859 /* ButterflyInlinesLight.h in Headers */,
 				C2FCAE1117A9C24E0034C735 /* BytecodeBasicBlock.h in Headers */,
 				1435952122A521CD00E8086D /* BytecodeCacheError.h in Headers */,
 				0F21C27F14BEAA8200ADC64B /* BytecodeConventions.h in Headers */,
@@ -11909,6 +11922,7 @@
 				A38D250E25800D440042BFDD /* JSArrayBufferPrototypeInlines.h in Headers */,
 				0F2B66E917B6B5AB00A7AE3F /* JSArrayBufferView.h in Headers */,
 				0F2B66EA17B6B5AB00A7AE3F /* JSArrayBufferViewInlines.h in Headers */,
+				E2A9D8474FB84C3B91DA47B1 /* JSArrayBufferViewInlinesLight.h in Headers */,
 				539FB8BA1C99DA7C00940FA1 /* JSArrayInlines.h in Headers */,
 				539DD7F523C1BBB500905F13 /* JSArrayIterator.h in Headers */,
 				8CF21B932DD9D68A00355A6C /* JSAsyncDisposableStack.h in Headers */,
@@ -11988,6 +12002,7 @@
 				0F2B66F217B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructor.h in Headers */,
 				0F2B66F317B6B5AB00A7AE3F /* JSGenericTypedArrayViewConstructorInlines.h in Headers */,
 				0F2B66F417B6B5AB00A7AE3F /* JSGenericTypedArrayViewInlines.h in Headers */,
+				FC601BAFB07E4D888C5AA7AD /* JSGenericTypedArrayViewInlinesLight.h in Headers */,
 				0F2B66F517B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototype.h in Headers */,
 				53917E7B1B7906FA000EBD33 /* JSGenericTypedArrayViewPrototypeFunctions.h in Headers */,
 				0F2B66F617B6B5AB00A7AE3F /* JSGenericTypedArrayViewPrototypeInlines.h in Headers */,
@@ -12526,6 +12541,7 @@
 				0FD2C92616D01EE900C7803F /* StructureCreateInlines.h in Headers */,
 				537FEEC92742BDA300C9EFEE /* StructureID.h in Headers */,
 				0FD2C92416D01EE900C7803F /* StructureInlines.h in Headers */,
+				B4C7A5933E61498DAF3D7C12 /* StructureInlinesLight.h in Headers */,
 				C2FE18A416BAEC4000AF3061 /* StructureRareData.h in Headers */,
 				C20BA92D16BB1C1500B3AEA2 /* StructureRareDataInlines.h in Headers */,
 				0F9332A514CA7DDD0085F3C6 /* StructureSet.h in Headers */,
