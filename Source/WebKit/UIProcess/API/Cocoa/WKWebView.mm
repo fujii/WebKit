@@ -2329,11 +2329,15 @@ inline OptionSet<WebKit::FindOptions> toFindOptions(WKFindConfiguration *configu
 static RetainPtr<NSDictionary> dictionaryRepresentationForEditorState(const WebKit::EditorState& state)
 {
     if (!state.hasPostLayoutData())
-        return @{ @"post-layout-data" : @NO };
+        return @{
+            @"post-layout-data" : @NO,
+            @"selection-type": @(static_cast<NSInteger>(state.selectionType)),
+        };
 
     auto& postLayoutData = *state.postLayoutData;
     return @{
         @"post-layout-data" : @YES,
+        @"selection-type": @(static_cast<NSInteger>(state.selectionType)),
         @"bold": postLayoutData.typingAttributes.contains(WebKit::TypingAttribute::Bold) ? @YES : @NO,
         @"italic": postLayoutData.typingAttributes.contains(WebKit::TypingAttribute::Italics) ? @YES : @NO,
         @"underline": postLayoutData.typingAttributes.contains(WebKit::TypingAttribute::Underline) ? @YES : @NO,
