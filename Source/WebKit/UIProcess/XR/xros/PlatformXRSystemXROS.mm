@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2026 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,30 +23,29 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#if ENABLE(WEBXR) && USE(COMPOSITORXR)
 
-// FIXME: Remove the `__has_feature(modules)` condition when possible.
-#if !__has_feature(modules)
+#import "config.h"
+#import "PlatformXRSystem.h"
 
-#include <wtf/Compiler.h>
-#include <wtf/Platform.h>
+#import "PlatformXRCompositor.h"
+#import <wtf/NeverDestroyed.h>
 
-#if HAVE(ARKIT)
+namespace WebKit {
 
-DECLARE_SYSTEM_HEADER
+PlatformXRCoordinator* PlatformXRSystem::xrCoordinator()
+{
+    if (!CompositorCoordinator::isCompositorServicesAvailable())
+        return nullptr;
 
-#import <ARKit/ARKit.h>
+    static LazyNeverDestroyed<CompositorCoordinator> xrCoordinator;
+    static std::once_flag once;
+    std::call_once(once, [] {
+        xrCoordinator.construct();
+    });
+    return &xrCoordinator.get();
+}
 
-#if USE(APPLE_INTERNAL_SDK)
+} // namespace WebKit
 
-#import <ARKit/ARKitCore.h>
-#import <ARKit/ARKitCorePrivate.h>
-
-#elif PLATFORM(VISION)
-
-typedef void (^ar_plane_detection_floor_plane_completion_handler_t)(bool, ar_plane_anchor_t _Nullable, ar_error_t _Nullable);
-
-#endif
-#endif // HAVE(ARKIT)
-
-#endif // !__has_feature(modules)
+#endif // ENABLE(WEBXR) && USE(COMPOSITORXR)

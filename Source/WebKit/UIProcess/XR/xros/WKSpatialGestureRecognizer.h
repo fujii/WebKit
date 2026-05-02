@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2026 Apple Inc. All rights reserved.
+ * Copyright (C) 2023 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,30 +23,34 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#if ENABLE(WEBXR) && USE(COMPOSITORXR)
 
-// FIXME: Remove the `__has_feature(modules)` condition when possible.
-#if !__has_feature(modules)
+#import <UIKit/UIKit.h>
+#import <simd/simd.h>
 
-#include <wtf/Compiler.h>
-#include <wtf/Platform.h>
+// #import <pal/cocoa/CompositorServicesSoftLink.h>
 
-#if HAVE(ARKIT)
+NS_ASSUME_NONNULL_BEGIN
 
-DECLARE_SYSTEM_HEADER
+@protocol WKSpatialGestureRecognizerDelegate;
 
-#import <ARKit/ARKit.h>
+@interface WKSpatialGestureRecognizer : UIGestureRecognizer
 
-#if USE(APPLE_INTERNAL_SDK)
+@property (weak, nonatomic) id <WKSpatialGestureRecognizerDelegate> spatialGestureRecognizerDelegate;
 
-#import <ARKit/ARKitCore.h>
-#import <ARKit/ARKitCorePrivate.h>
+@end
 
-#elif PLATFORM(VISION)
+@protocol WKSpatialGestureRecognizerDelegate <NSObject>
 
-typedef void (^ar_plane_detection_floor_plane_completion_handler_t)(bool, ar_plane_anchor_t _Nullable, ar_error_t _Nullable);
+- (cp_layer_renderer_t)cpLayerForGestureRecognizer:(WKSpatialGestureRecognizer *)gestureRecognizer;
 
-#endif
-#endif // HAVE(ARKIT)
+- (void)gestureRecognizer:(WKSpatialGestureRecognizer *)gestureRecognizer transientActionDidStart:(NSNumber *)actionIdentifier targetRayTransform:(simd_float4x4)targetRayTransform poseTransform:(simd_float4x4)poseTransform;
+- (void)gestureRecognizer:(WKSpatialGestureRecognizer *)gestureRecognizer transientActionDidUpdate:(NSNumber *)actionIdentifier poseTransform:(simd_float4x4)poseTransform;
+- (void)gestureRecognizer:(WKSpatialGestureRecognizer *)gestureRecognizer transientActionDidEnd:(NSNumber *)actionIdentifier;
+- (void)gestureRecognizer:(WKSpatialGestureRecognizer *)gestureRecognizer transientActionDidCancel:(NSNumber *)actionIdentifier;
 
-#endif // !__has_feature(modules)
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif // ENABLE(WEBXR) && USE(COMPOSITORXR)

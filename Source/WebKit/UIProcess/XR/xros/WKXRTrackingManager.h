@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2021-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,23 +23,36 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
+#if ENABLE(WEBXR) && USE(COMPOSITORXR)
 
-#if ((USE(SYSTEM_PREVIEW) && HAVE(ARKIT_QUICK_LOOK_PREVIEW_ITEM)) || ((PLATFORM(IOS) || PLATFORM(VISION)) && USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/ARKitSoftLinkAdditions.mm>)))
+#import "WKSpatialGestureRecognizer.h"
 
-#import <simd/simd.h>
-#import <wtf/SoftLinking.h>
+#import <ARKit/ARKit.h>
+#import <WebCore/PlatformXR.h>
+#import <WebCore/PlatformXRPose.h>
 
-SOFT_LINK_FRAMEWORK_FOR_SOURCE(WebKit, ARKit);
-
-SOFT_LINK_CLASS_FOR_SOURCE(WebKit, ARKit, ARQuickLookPreviewItem);
-SOFT_LINK_CLASS_FOR_SOURCE(WebKit, ARKit, ARSession);
-SOFT_LINK_CLASS_FOR_SOURCE(WebKit, ARKit, ARWorldTrackingConfiguration);
-
-SOFT_LINK_FUNCTION_FOR_SOURCE(WebKit, ARKit, ARMatrixMakeLookAt, simd_float4x4, (simd_float3 origin, simd_float3 direction), (origin, direction));
-
-#if (PLATFORM(IOS) || PLATFORM(VISION)) && USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/ARKitSoftLinkAdditions.mm>)
-#import <WebKitAdditions/ARKitSoftLinkAdditions.mm>
+#if HAVE(SPATIAL_CONTROLLERS)
+#import "WKXRControllerManager.h"
 #endif
 
+NS_ASSUME_NONNULL_BEGIN
+
+@interface WKXRTrackingManager : NSObject <WKSpatialGestureRecognizerDelegate>
+
+@property (nonatomic, readonly, getter=isWorldTrackingSupported) BOOL worldTrackingSupported;
+@property (nonatomic, readonly, getter=isValid) BOOL valid;
+@property (nonatomic, readonly) std::optional<PlatformXRPose> latestFloorPose;
+
+- (instancetype)initWithHandTrackingEnabled:(BOOL)handTrackingEnabled layerRenderer:(cp_layer_renderer_t)layerRenderer
+#if HAVE(SPATIAL_CONTROLLERS)
+    controllerManager:(RetainPtr<WKXRControllerManager>&)controllerManager
 #endif
+    ; // NOLINT
+- (OSObjectPtr<ar_device_anchor_t>)deviceAnchorAtTime:(NSTimeInterval)time;
+- (Vector<PlatformXR::FrameData::InputSource>)collectInputSources;
+
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif // ENABLE(WEBXR) && USE(COMPOSITORXR)

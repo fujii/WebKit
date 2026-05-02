@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2026 Apple Inc. All rights reserved.
+ * Copyright (C) 2024-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,30 +23,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#if ENABLE(WEBXR) && USE(COMPOSITORXR) && HAVE(SPATIAL_CONTROLLERS)
 
-// FIXME: Remove the `__has_feature(modules)` condition when possible.
-#if !__has_feature(modules)
+#import <WebCore/PlatformXR.h>
 
-#include <wtf/Compiler.h>
-#include <wtf/Platform.h>
+NS_ASSUME_NONNULL_BEGIN
 
-#if HAVE(ARKIT)
+@interface WKXRControllerManager : NSObject
 
-DECLARE_SYSTEM_HEADER
+- (Vector<PlatformXR::FrameData::InputSourceButton>)getButtonsState:(BOOL)isLeftController;
+- (Vector<float>)getAxesState:(BOOL)isLeftController;
 
-#import <ARKit/ARKit.h>
+@end
 
-#if USE(APPLE_INTERNAL_SDK)
+NS_ASSUME_NONNULL_END
 
-#import <ARKit/ARKitCore.h>
-#import <ARKit/ARKitCorePrivate.h>
-
-#elif PLATFORM(VISION)
-
-typedef void (^ar_plane_detection_floor_plane_completion_handler_t)(bool, ar_plane_anchor_t _Nullable, ar_error_t _Nullable);
-
-#endif
-#endif // HAVE(ARKIT)
-
-#endif // !__has_feature(modules)
+#endif // ENABLE(WEBXR) && USE(COMPOSITORXR) && HAVE(SPATIAL_CONTROLLERS)

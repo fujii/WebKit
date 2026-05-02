@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2023-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,25 +25,40 @@
 
 #pragma once
 
-#if PLATFORM(COCOA) && ((USE(SYSTEM_PREVIEW) && HAVE(ARKIT_QUICK_LOOK_PREVIEW_ITEM)) || (ENABLE(WEBXR) && USE(ARKITXR_IOS)) || (USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/ARKitSoftLinkAdditions.h>)))
+// FIXME: Remove the `__has_feature(modules)` condition when possible.
+#if !__has_feature(modules)
 
-#import <ARKit/ARKit.h>
-#import <pal/spi/cocoa/ARKitSPI.h>
-#import <wtf/SoftLinking.h>
+DECLARE_SYSTEM_HEADER
 
-SOFT_LINK_FRAMEWORK_FOR_HEADER(WebKit, ARKit)
+#if HAVE(COMPOSITOR_SERVICES)
 
-SOFT_LINK_CLASS_FOR_HEADER(WebKit, ARQuickLookPreviewItem);
-ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-SOFT_LINK_CLASS_FOR_HEADER(WebKit, ARSession);
-ALLOW_DEPRECATED_DECLARATIONS_END
-SOFT_LINK_CLASS_FOR_HEADER(WebKit, ARWorldTrackingConfiguration)
+#import <CompositorServices/CompositorServices.h>
 
-SOFT_LINK_FUNCTION_FOR_HEADER(WebKit, ARKit, ARMatrixMakeLookAt, simd_float4x4, (simd_float3 origin, simd_float3 direction), (origin, direction))
-#define ARMatrixMakeLookAt WebKit::softLink_ARKit_ARMatrixMakeLookAt
+#if USE(APPLE_INTERNAL_SDK)
 
-#if USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/ARKitSoftLinkAdditions.h>)
-#import <WebKitAdditions/ARKitSoftLinkAdditions.h>
-#endif
+#import <CompositorServices/CompositorServices_Private.h>
 
-#endif
+#else // !USE(APPLE_INTERNAL_SDK)
+
+#import <Spatial/SPRay3D.h>
+
+CP_OBJECT_DECL(cp_swapchain);
+CP_OBJECT_DECL(cp_swapchain_link);
+
+@interface CP_OBJECT_NAME(cp_swapchain) ()
+@property (readwrite, strong) NSArray<cp_swapchain_link_t> *swapchainLinks;
+@end
+
+@interface CP_OBJECT_NAME(cp_swapchain_link) ()
+@property (nonatomic, readwrite, strong, nullable) NSArray<id<MTLTexture>> *depthTextures;
+@end
+
+@interface UITouch (Compositor)
+- (SPPose3D)poseInLayer:(cp_layer_renderer_t)layer CF_SWIFT_NAME(pose(in:));
+- (SPRay3D)selectionRayInLayer:(cp_layer_renderer_t)layer CF_SWIFT_NAME(selectionRay(in:));
+@end
+
+#endif // USE(APPLE_INTERNAL_SDK)
+#endif // HAVE(COMPOSITOR_SERVICES)
+
+#endif // !__has_feature(modules)
