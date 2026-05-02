@@ -5049,10 +5049,10 @@ auto OMGIRGenerator::addInlinedReturn(const auto& returnValues) -> PartialResult
 {
     dataLogLnIf(WasmOMGIRGeneratorInternal::verboseInlining, "Returning inline to BB ", *m_returnContinuation);
 
-    auto* signature = &m_parser->signature();
-    CallInformation wasmCallInfo = wasmCallingConvention().callInformationFor(m_parser->signature(), CallRole::Callee);
+    const auto& signature = m_parser->signatureRTT();
+    CallInformation wasmCallInfo = wasmCallingConvention().callInformationFor(signature, CallRole::Callee);
     RELEASE_ASSERT(returnValues.size() >= wasmCallInfo.results.size());
-    RELEASE_ASSERT(signature->returnCount() == wasmCallInfo.results.size());
+    RELEASE_ASSERT(signature.returnCount() == wasmCallInfo.results.size());
     RELEASE_ASSERT(m_inlinedResultPhis.size() == wasmCallInfo.results.size());
 
     unsigned offset = returnValues.size() - wasmCallInfo.results.size();
@@ -5071,7 +5071,7 @@ auto OMGIRGenerator::addReturn(const ControlData&, const Stack& returnValues) ->
 
     // Use the function signature from the parser
     ASSERT(m_parser);
-    const RTT& functionSignature = m_parser->signature();
+    const RTT& functionSignature = m_parser->signatureRTT();
 
     CallInformation wasmCallInfo = wasmCallingConvention().callInformationFor(functionSignature, CallRole::Callee);
     PatchpointValue* patch = m_proc.add<PatchpointValue>(B3::Void, origin());

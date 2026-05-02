@@ -745,7 +745,7 @@ private:
 Expected<void, String> parseExtendedConstExpr(std::span<const uint8_t> source, size_t offsetInSource, size_t& offset, ModuleInformation& info, Type expectedType)
 {
     ConstExprGenerator generator(ConstExprGenerator::Mode::Validate, offsetInSource, info);
-    FunctionParser<ConstExprGenerator> parser(generator, source, TypeInformation::rttForFunction({ expectedType }, { }), info);
+    FunctionParser<ConstExprGenerator> parser(generator, source, BlockSignature { expectedType }, info);
     WASM_FAIL_IF_HELPER_FAILS(parser.parseConstantExpression());
     offset = parser.offset();
 
@@ -760,7 +760,7 @@ Expected<uint64_t, String> evaluateExtendedConstExpr(const ModuleInformation::Co
     auto constantExpression = constantExpressionAndSourceOffset.first;
     size_t offsetInSource = constantExpressionAndSourceOffset.second;
     ConstExprGenerator generator(ConstExprGenerator::Mode::Evaluate, offsetInSource, info, instance);
-    FunctionParser<ConstExprGenerator> parser(generator, constantExpression, TypeInformation::rttForFunction({ expectedType }, { }), info);
+    FunctionParser<ConstExprGenerator> parser(generator, constantExpression, BlockSignature { expectedType }, info);
     WASM_FAIL_IF_HELPER_FAILS(parser.parseConstantExpression());
 
     ConstExprGenerator::ExpressionType result = generator.result();

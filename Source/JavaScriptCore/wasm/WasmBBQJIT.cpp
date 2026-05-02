@@ -3866,7 +3866,7 @@ void BBQJIT::prepareForExceptions()
 {
     // Use the function signature from the parser
     ASSERT(m_parser);
-    const RTT& functionSignature = m_parser->signature();
+    const RTT& functionSignature = m_parser->signatureRTT();
 
     CallInformation wasmCallInfo = wasmCallingConvention().callInformationFor(functionSignature, CallRole::Callee);
 
