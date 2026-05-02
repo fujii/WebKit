@@ -5144,6 +5144,8 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
     WebProcess::singleton().updateSharedPreferencesForWebProcess(WebKit::sharedPreferencesForWebProcess(store, WebProcess::singleton().isLockdownModeEnabled()));
 
     protect(corePage())->settingsDidChange();
+
+    store.logNonDefaultValues();
 }
 
 #if ENABLE(DATA_DETECTION)
