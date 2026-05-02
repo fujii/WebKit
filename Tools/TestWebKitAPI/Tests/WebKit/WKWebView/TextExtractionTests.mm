@@ -1651,4 +1651,52 @@ TEST(TextExtractionTests, HoverDoesNotClick)
     EXPECT_WK_STREQ("none", [webView stringByEvaluatingJavaScript:@"document.getElementById('click-result').textContent"]);
 }
 
+TEST(TextExtractionTests, InteractedElementBounds)
+{
+    RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+    [[configuration preferences] _setTextExtractionEnabled:YES];
+
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
+    [webView synchronouslyLoadTestPageNamed:@"debug-text-extraction"];
+
+    RetainPtr debugText = [webView synchronouslyGetDebugText:^{
+        RetainPtr configuration = adoptNS([_WKTextExtractionConfiguration new]);
+        [configuration setFilterOptions:_WKTextExtractionFilterNone];
+        return configuration.autorelease();
+    }()];
+    RetainPtr testButtonID = extractNodeIdentifier(debugText.get(), @"Test");
+    RetainPtr emailID = extractNodeIdentifier(debugText.get(), @"email");
+
+    {
+        RetainPtr interaction = adoptNS([[_WKTextExtractionInteraction alloc] initWithAction:_WKTextExtractionActionClick]);
+        [interaction setNodeIdentifier:testButtonID.get()];
+        RetainPtr result = [webView synchronouslyPerformInteraction:interaction.get()];
+        EXPECT_NULL([result error]);
+        CGRect bounds = [result interactedElementBounds];
+        EXPECT_FALSE(CGRectIsNull(bounds));
+        EXPECT_GT(CGRectGetWidth(bounds), 0);
+        EXPECT_GT(CGRectGetHeight(bounds), 0);
+        EXPECT_LT(CGRectGetMaxX(bounds), 800);
+        EXPECT_LT(CGRectGetMaxY(bounds), 600);
+    }
+    {
+        RetainPtr interaction = adoptNS([[_WKTextExtractionInteraction alloc] initWithAction:_WKTextExtractionActionTextInput]);
+        [interaction setNodeIdentifier:emailID.get()];
+        [interaction setText:@"hello@webkit.org"];
+        RetainPtr result = [webView synchronouslyPerformInteraction:interaction.get()];
+        EXPECT_NULL([result error]);
+        CGRect bounds = [result interactedElementBounds];
+        EXPECT_FALSE(CGRectIsNull(bounds));
+        EXPECT_GT(CGRectGetWidth(bounds), 0);
+        EXPECT_GT(CGRectGetHeight(bounds), 0);
+    }
+    {
+        RetainPtr interaction = adoptNS([[_WKTextExtractionInteraction alloc] initWithAction:_WKTextExtractionActionClick]);
+        [interaction setText:@"this text does not exist anywhere on the page"];
+        RetainPtr result = [webView synchronouslyPerformInteraction:interaction.get()];
+        EXPECT_NOT_NULL([result error]);
+        EXPECT_TRUE(CGRectIsNull([result interactedElementBounds]));
+    }
+}
+
 } // namespace TestWebKitAPI

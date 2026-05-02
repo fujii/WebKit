@@ -7287,21 +7287,21 @@ static NSString *nameForAction(_WKTextExtractionAction action)
     RELEASE_LOG(TextExtraction, "<%@: %p> Performing %@", [self class], self, nameForAction(actionType));
 #if USE(APPLE_INTERNAL_SDK) || (!PLATFORM(WATCHOS) && !PLATFORM(APPLETV))
     if (!self._isValid)
-        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:@"Web view is invalid" summary:nil]).get());
+        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:@"Web view is invalid" summary:nil interactedElementBounds:CGRectNull]).get());
 
     RefPtr page = _page;
     if (!protect(page->preferences())->textExtractionEnabled())
-        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:@"Text extraction is unavailable" summary:nil]).get());
+        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:@"Text extraction is unavailable" summary:nil interactedElementBounds:CGRectNull]).get());
 
     auto conversionResult = [self _convertToWebCoreInteraction:wkInteraction];
     if (!conversionResult) {
         RELEASE_LOG_ERROR(TextExtraction, "<%@: %p> Interaction conversion failed", [self class], self);
-        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:conversionResult.error().get() summary:nil]).get());
+        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:conversionResult.error().get() summary:nil interactedElementBounds:CGRectNull]).get());
     }
     auto& [targetFrame, interaction] = *conversionResult;
     if (!targetFrame) {
         RELEASE_LOG_ERROR(TextExtraction, "<%@: %p> Invalid frame for interaction", [self class], self);
-        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:@"Browsing context is invalid" summary:nil]).get());
+        return completionHandler(adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:@"Browsing context is invalid" summary:nil interactedElementBounds:CGRectNull]).get());
     }
 
 #if PLATFORM(MAC)
@@ -7316,7 +7316,7 @@ static NSString *nameForAction(_WKTextExtractionAction action)
         page->callAfterNextPresentationUpdate([title, foundItem, completionHandler = makeBlockPtr(WTF::move(completionHandler))] {
             RetainPtr errorDescription = foundItem ? nil : [NSString stringWithFormat:@"No popup menu item with title '%@'", title.get()];
             RetainPtr summary = foundItem ? [NSString stringWithFormat:@"Successfully updated option in select element"] : nil;
-            RetainPtr result = adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:errorDescription.get() summary:summary.get()]);
+            RetainPtr result = adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:errorDescription.get() summary:summary.get() interactedElementBounds:CGRectNull]);
             completionHandler(result.get());
         });
         return;
@@ -7330,15 +7330,26 @@ static NSString *nameForAction(_WKTextExtractionAction action)
         assertionScope = WTF::move(assertionScope),
         actionType,
         completionHandler = makeBlockPtr(WTF::move(completionHandler))
-    ](bool success, String&& description) mutable {
+    ](bool success, String&& description, WebCore::FloatRect interactedElementBounds) mutable {
         RetainPtr<NSString> errorDescription;
         RetainPtr<NSString> summary;
         if (success)
             summary = description.createNSString();
         else
             errorDescription = description.createNSString();
-        RetainPtr result = adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:errorDescription.get() summary:summary.get()]);
+
         RetainPtr strongSelf = weakSelf.get();
+
+        CGRect bounds = CGRectNull;
+        if (!interactedElementBounds.isEmpty()) {
+#if PLATFORM(IOS_FAMILY)
+            if (RetainPtr contentView = strongSelf ? strongSelf->_contentView : nil)
+                bounds = [strongSelf convertRect:interactedElementBounds fromView:contentView.get()];
+            else
+#endif
+                bounds = interactedElementBounds;
+        }
+        RetainPtr result = adoptNS([[_WKTextExtractionInteractionResult alloc] initWithErrorDescription:errorDescription.get() summary:summary.get() interactedElementBounds:bounds]);
         if (!strongSelf)
             return completionHandler(result.get());
 
