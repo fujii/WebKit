@@ -1189,6 +1189,8 @@ sub determineConfigurationProductDir
         } else {
             if (isGtk() or isWPE() or isJSCOnly() or shouldUseFlatpak() or shouldBuildForCrossTarget() or inCrossTargetEnvironment()) {
                 $configurationProductDir = "$baseProductDir/$portName/$configuration";
+            } elsif (isAppleCocoaWebKit() && isCMakeBuild()) {
+                $configurationProductDir = "$baseProductDir/cmake-mac/$configuration";
             } else {
                 $configurationProductDir = "$baseProductDir/$configuration";
             }
@@ -3123,6 +3125,21 @@ sub determineIsCMakeBuild()
 {
     return if defined($isCMakeBuild);
     $isCMakeBuild = checkForArgumentAndRemoveFromARGV("--cmake");
+    return if $isCMakeBuild;
+
+    # Auto-detect a CMake macOS build when no Xcode build is present at the
+    # expected path. The CMake macOS presets place artifacts under
+    # WebKitBuild/cmake-mac/<Configuration>; an Xcode build, if present,
+    # always wins to preserve existing workflows.
+    if (isAppleCocoaWebKit()) {
+        determineBaseProductDir();
+        determineConfiguration();
+        my $cmakeMacBuild = File::Spec->catdir($baseProductDir, "cmake-mac", $configuration);
+        my $xcodeBuild = File::Spec->catdir($baseProductDir, $configuration);
+        if (-f File::Spec->catfile($cmakeMacBuild, "CMakeCache.txt") && !-d $xcodeBuild) {
+            $isCMakeBuild = 1;
+        }
+    }
 }
 
 sub isCMakeBuild()
