@@ -345,6 +345,11 @@ void TestRunner::syncLocalStorage()
     postSynchronousMessage("SyncLocalStorage", true);
 }
 
+unsigned TestRunner::storageAreaMapCount()
+{
+    return postSynchronousPageMessageReturningUInt64("GetStorageAreaMapCount", WKRetainPtr<WKTypeRef> { });
+}
+
 bool TestRunner::isCommandEnabled(JSStringRef name)
 {
     return postSynchronousPageMessageReturningBoolean("IsCommandEnabled", toWK(name));

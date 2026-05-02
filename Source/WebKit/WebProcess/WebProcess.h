@@ -628,6 +628,7 @@ private:
     void stopMemorySampler();
     
     void garbageCollectJavaScriptObjects();
+    void getStorageAreaMapCountForTesting(CompletionHandler<void(uint64_t)>&&);
     void setJavaScriptGarbageCollectorTimerEnabled(bool flag);
 
     void backgroundResponsivenessPing();

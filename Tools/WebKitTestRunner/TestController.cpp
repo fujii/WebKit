@@ -3496,6 +3496,17 @@ void TestController::didReceiveSynchronousMessageFromInjectedBundle(WKStringRef 
     }
 #endif
 
+    if (WKStringIsEqualToUTF8CString(messageName, "GetStorageAreaMapCount")) {
+        CompletionHandler<void(WKTypeRef)> replyHandler = [listener = retainWK(listener)](WKTypeRef reply) {
+            WKMessageListenerSendReply(listener.get(), reply);
+        };
+        WKPageGetStorageAreaMapCountForTesting(TestController::singleton().mainWebView()->page(), replyHandler.leak(), [](uint64_t count, void* context) {
+            auto replyHandler = WTF::adopt(static_cast<CompletionHandler<void(WKTypeRef)>::Impl*>(context));
+            replyHandler(adoptWK(WKUInt64Create(count)).get());
+        });
+        return;
+    }
+
     completionHandler(protectedCurrentInvocation()->didReceiveSynchronousMessageFromInjectedBundle(messageName, messageBody).get());
 }
 

@@ -131,6 +131,7 @@ interface TestRunner {
     undefined setDatabaseQuota(unsigned long long quota);
     DOMString pathToLocalResource(DOMString url);
     undefined syncLocalStorage();
+    readonly attribute unsigned long storageAreaMapCount;
 
     attribute double databaseDefaultQuota;
     attribute double databaseMaxQuota;

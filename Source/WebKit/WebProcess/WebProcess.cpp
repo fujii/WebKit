@@ -90,6 +90,7 @@
 #include "WebSharedWorkerContextManagerConnection.h"
 #include "WebSharedWorkerContextManagerConnectionMessages.h"
 #include "WebSharedWorkerProvider.h"
+#include "WebStorageNamespaceProvider.h"
 #include "WebTransportSession.h"
 #include "WebUserContentController.h"
 #include "WebsiteData.h"
@@ -145,6 +146,7 @@
 #include <WebCore/Settings.h>
 #include <WebCore/SharedWorkerContextManager.h>
 #include <WebCore/SharedWorkerThreadProxy.h>
+#include <WebCore/StorageNamespaceProvider.h>
 #include <WebCore/UserGestureIndicator.h>
 #include <WebCore/WebKitJSHandle.h>
 #include <WebCore/WorkerGlobalScope.h>
@@ -1227,6 +1229,12 @@ void WebProcess::isEnhancedSecurityEnabled(CompletionHandler<void(bool)>&& compl
 void WebProcess::garbageCollectJavaScriptObjects()
 {
     GarbageCollectionController::singleton().garbageCollectNow();
+}
+
+void WebProcess::getStorageAreaMapCountForTesting(CompletionHandler<void(uint64_t)>&& completionHandler)
+{
+    GarbageCollectionController::singleton().garbageCollectNow();
+    completionHandler(WebStorageNamespaceProvider::getOrCreate()->localStorageAreaMapCountForTesting());
 }
 
 void WebProcess::backgroundResponsivenessPing()

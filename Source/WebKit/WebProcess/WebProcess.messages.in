@@ -82,6 +82,7 @@ messages -> WebProcess : AuxiliaryProcess WantsAsyncDispatchMessage {
     BindAccessibilityFrameWithData(WebCore::FrameIdentifier frameID, std::span<const uint8_t> data);
 
     GarbageCollectJavaScriptObjects()
+    GetStorageAreaMapCountForTesting() -> (uint64_t storageAreaMapCount)
     SetJavaScriptGarbageCollectorTimerEnabled(bool enable)
 
     SetInjectedBundleParameter(String parameter, std::span<const uint8_t> value);

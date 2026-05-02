@@ -196,6 +196,7 @@ public:
     void setDatabaseQuota(uint64_t);
     JSRetainPtr<JSStringRef> pathToLocalResource(JSStringRef);
     void syncLocalStorage();
+    unsigned storageAreaMapCount();
 
     void clearStorage();
 
