@@ -2090,6 +2090,7 @@ public:
     bool NODELETE hasMediaStreaming() const;
     void isPlayingMediaDidChange(WebCore::MediaProducerMediaStateFlags);
     void updateReportedMediaCaptureState();
+    void setIsPromptingForGetDisplayMedia(WebCore::MediaProducerMediaStateFlags);
 
     enum class CanDelayNotification : bool { No, Yes };
     void updatePlayingMediaDidChange(CanDelayNotification = CanDelayNotification::No);

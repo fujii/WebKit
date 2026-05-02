@@ -15381,8 +15381,25 @@ void WebPageProxy::didEndViewGesture()
         pageClient->didEndViewGesture();
 }
 
+void WebPageProxy::setIsPromptingForGetDisplayMedia(WebCore::MediaProducerMediaStateFlags state)
+{
+    auto isPrompting = state.containsAny(WebCore::MediaProducer::IsPromptingForDisplayCaptureMask);
+    internals().mainFrameMediaState.remove(MediaProducer::IsPromptingForDisplayCaptureMask);
+    if (isPrompting)
+        internals().mainFrameMediaState.add(state & WebCore::MediaProducer::IsPromptingForDisplayCaptureMask);
+
+    updatePlayingMediaDidChange(isPrompting ? CanDelayNotification::No : CanDelayNotification::Yes);
+}
+
 void WebPageProxy::isPlayingMediaDidChange(MediaProducerMediaStateFlags newState)
 {
+    // Preserve IsPromptingForWindow/ScreenCapture until display capture actually begins, preventing
+    // premature capability deactivation between prompt approval and the first isPlayingMediaDidChange
+    // with DisplayCaptureMask set. The prompting state is cleared directly in the denial/cancel path,
+    // and in invalidate() when the page is torn down while a prompt is pending.
+    if (internals().mainFrameMediaState.containsAny(MediaProducer::IsPromptingForDisplayCaptureMask) && !newState.containsAny(MediaProducer::DisplayCaptureMask))
+        newState.add(internals().mainFrameMediaState & MediaProducer::IsPromptingForDisplayCaptureMask);
+
 #if PLATFORM(IOS_FAMILY)
     if (!m_legacyMainFrameProcess->throttler().shouldBeRunnable())
         return;
