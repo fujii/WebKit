@@ -5824,6 +5824,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         loadParameters.ownerPermissionsPolicy = navigation.ownerPermissionsPolicy();
         loadParameters.navigationUpgradeToHTTPSBehavior = navigationUpgradeToHTTPSBehavior;
         loadParameters.isHandledByAboutSchemeHandler = m_aboutSchemeHandler->canHandleURL(loadParameters.request.url());
+        loadParameters.isHistoryItemNavigation = navigation.lastNavigationAction()->navigationType == NavigationType::BackForward;
         if (auto& action = navigation.lastNavigationAction()) {
             loadParameters.requester = action->requester;
             loadParameters.hadUserGesture = action->userGestureTokenIdentifier.has_value();

@@ -2306,6 +2306,9 @@ void WebPage::loadRequest(LoadParameters&& loadParameters)
     localFrame->loader().setNavigationUpgradeToHTTPSBehavior(loadParameters.navigationUpgradeToHTTPSBehavior);
     localFrame->loader().setRequiredCookiesVersion(loadParameters.requiredCookiesVersion);
 
+    if (loadParameters.isHistoryItemNavigation)
+        localFrame->loader().setShouldReportResourceTimingToParentFrame(false);
+
     std::optional<UserGestureIndicator> userGestureIndicator;
     if (loadParameters.hadUserGesture && loadParameters.shouldTreatAsContinuingLoad != ShouldTreatAsContinuingLoad::No)
         userGestureIndicator.emplace(IsProcessingUserGesture::Yes);

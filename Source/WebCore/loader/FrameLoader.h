@@ -190,6 +190,7 @@ public:
     WEBCORE_EXPORT RefPtr<DocumentLoader> loaderForWebsitePolicies(CanIncludeCurrentDocumentLoader = CanIncludeCurrentDocumentLoader::Yes) const;
 
     bool shouldReportResourceTimingToParentFrame() const { return m_shouldReportResourceTimingToParentFrame; };
+    void setShouldReportResourceTimingToParentFrame(bool value) { m_shouldReportResourceTimingToParentFrame = value; }
     
 #if PLATFORM(IOS_FAMILY)
     RetainPtr<CFDictionaryRef> connectionProperties(ResourceLoader*);
