@@ -947,12 +947,6 @@ imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-e
 # Cross-Origin-Embedder-Policy: credentialless is not supported.
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/credentialless
 
-# These tests are timing out locally but passing on wpt.live. The issue is that we run the WPT tests over localhost and they
-# are thus marked as secure contexts even when served over HTTP. These tests assume the context is non-secure because they
-# are served over HTTP.
-imported/w3c/web-platform-tests/html/cross-origin-opener-policy/no-https.html [ Skip ]
-imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/no-secure-context.html [ Skip ]
-
 # This test makes the assumption that get_host_info().REMOTE_ORIGIN is same-site, which is not true for
 # our layout tests. We maintain our own version of this test in http/wpt.
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/require-corp.https.html [ Skip ]
@@ -1008,7 +1002,7 @@ imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/hist
 imported/w3c/web-platform-tests/html/browsers/the-window-object/open-close/no_window_open_when_term_nesting_level_nonzero.window.html [ Failure Pass ]
 webkit.org/b/304867 imported/w3c/web-platform-tests/html/browsers/the-window-object/open-close/open_initial_size.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/dom/render-blocking/remove-element-unblocks-rendering.optional.html [ Failure Pass ]
-imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/blob-data.https.html [ Failure Pass ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/blob-data.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/microtasks/checkpoint-after-window-onerror-module.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/syntax/charset/without-inheritance.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/syntax/speculative-charset/speculative-script.tentative.html [ Failure Pass ]
@@ -6283,8 +6277,6 @@ imported/w3c/web-platform-tests/html/cross-origin-opener-policy/reporting/access
 imported/w3c/web-platform-tests/html/dom/render-blocking/remove-attr-unblocks-rendering.optional.html [ Skip ]
 imported/w3c/web-platform-tests/html/dom/self-origin.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-failure.https.html [ Skip ]
-imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/structured-cloning-error-extra.html [ Skip ]
-imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/nested-sharedworker-success.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-serviceworker-failure.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-sharedworker-failure.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe_sandbox_navigation_download_allow_downloads.sub.tentative.html [ Skip ]
