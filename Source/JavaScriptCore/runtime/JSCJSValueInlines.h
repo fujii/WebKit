@@ -35,7 +35,6 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <JavaScriptCore/JSCJSValue.h>
 #include <JavaScriptCore/JSCJSValueBigInt.h>
 #include <JavaScriptCore/JSCJSValuePropertyInlines.h>
-#include <JavaScriptCore/JSCellInlines.h>
 #include <JavaScriptCore/JSStringInlines.h>
 #include <JavaScriptCore/ThrowScope.h>
 #include <wtf/MediaTime.h>

@@ -32,7 +32,6 @@
 #include "SerializedScriptValue.h"
 #include "WebCoreJSClientData.h"
 #include <JavaScriptCore/Error.h>
-#include <JavaScriptCore/JSCInlines.h>
 
 namespace WebCore {
 
@@ -42,11 +41,6 @@ JSDOMObject::JSDOMObject(JSC::Structure* structure, JSC::JSGlobalObject& globalO
     : Base(globalObject.vm(), structure)
 {
     ASSERT(scriptExecutionContext() || globalObject.classInfo() == JSDOMWindow::info());
-}
-
-void JSDOMObject::finishCreation(JSC::VM& vm)
-{
-    Base::finishCreation(vm);
 }
 
 JSC::JSValue cloneAcrossWorlds(JSC::JSGlobalObject& lexicalGlobalObject, const JSDOMObject& owner, JSC::JSValue value)

@@ -909,7 +909,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     bindings/js/JSCSSRuleCustom.h
     bindings/js/JSCSSStyleDeclarationCustom.h
     bindings/js/JSDOMBinding.h
-    bindings/js/JSDOMBindingFacade.h
     bindings/js/JSDOMBindingSecurity.h
     bindings/js/JSDOMCastThisValue.h
     bindings/js/JSDOMConvert.h

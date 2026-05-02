@@ -25,15 +25,12 @@
 
 #pragma once
 
+#include <JavaScriptCore/DOMJITCallDOMGetterSnippet.h>
 #include <JavaScriptCore/PropertySlot.h>
 #include <JavaScriptCore/PutPropertySlot.h>
-#include <wtf/Ref.h>
+#include <JavaScriptCore/SpeculatedType.h>
 
-namespace JSC {
-
-using SpeculatedType = uint64_t;
-
-namespace DOMJIT {
+namespace JSC { namespace DOMJIT {
 
 class CallDOMGetterSnippet;
 
@@ -61,5 +58,4 @@ private:
     SpeculatedType m_resultType;
 };
 
-} // namespace DOMJIT
-} // namespace JSC
+} }

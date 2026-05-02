@@ -25,7 +25,6 @@
 #include "JSTestVoidCallbackFunction.h"
 
 #include "ContextDestructionObserverInlines.h"
-#include "JSDOMBindingFacade.h"
 #include "JSDOMConvertBase.h"
 #include "JSDOMConvertBoolean.h"
 #include "JSDOMConvertBufferSource.h"
@@ -39,6 +38,7 @@
 #include "JSTestNode.h"
 #include "ScriptExecutionContext.h"
 #include "SerializedScriptValue.h"
+#include <JavaScriptCore/JSCellInlines.h>
 #include <JavaScriptCore/MarkedVector.h>
 
 

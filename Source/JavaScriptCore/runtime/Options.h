@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <wtf/ForbidHeapAllocation.h>
 #include <wtf/Noncopyable.h>
+#include <wtf/PrintStream.h>
 #include <wtf/ScopedLambda.h>
 #include <wtf/StdLibExtras.h>
 

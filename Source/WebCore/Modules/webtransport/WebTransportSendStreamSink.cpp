@@ -40,7 +40,6 @@
 #include "WritableStream.h"
 #include <wtf/CompletionHandler.h>
 #include <wtf/RunLoop.h>
-#include <wtf/Scope.h>
 
 namespace WebCore {
 

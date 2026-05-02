@@ -37,7 +37,6 @@
 #include "JSBlob.h"
 #include "JSDOMAttribute.h"
 #include "JSDOMBinding.h"
-#include "JSDOMBindingFacade.h"
 #include "JSDOMBindingSecurity.h"
 #include "JSDOMConstructor.h"
 #include "JSDOMConvertAny.h"
@@ -96,12 +95,16 @@
 #include <JavaScriptCore/BuiltinNames.h>
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <JavaScriptCore/HeapAnalyzer.h>
+#include <JavaScriptCore/IteratorOperations.h>
 #include <JavaScriptCore/JSArray.h>
+#include <JavaScriptCore/JSCInlines.h>
+#include <JavaScriptCore/JSCellInlines.h>
 #include <JavaScriptCore/JSDestructibleObjectHeapCellType.h>
 #include <JavaScriptCore/JSString.h>
 #include <JavaScriptCore/ObjectConstructor.h>
 #include <JavaScriptCore/PropertyNameArray.h>
 #include <JavaScriptCore/SlotVisitorMacros.h>
+#include <JavaScriptCore/StructureInlines.h>
 #include <JavaScriptCore/SubspaceInlines.h>
 #include <type_traits>
 #include <wtf/GetPtr.h>
@@ -881,7 +884,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         annotatedTypeInSequenceMemberValue = jsUndefined();
     else {
-        annotatedTypeInSequenceMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "annotatedTypeInSequenceMember"_s));
+        annotatedTypeInSequenceMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "annotatedTypeInSequenceMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto annotatedTypeInSequenceMemberConversionResult = convert<IDLOptional<IDLSequence<IDLClampAdaptor<IDLLong>>>>(lexicalGlobalObject, annotatedTypeInSequenceMemberValue);
@@ -891,7 +894,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         annotatedTypeInUnionMemberValue = jsUndefined();
     else {
-        annotatedTypeInUnionMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "annotatedTypeInUnionMember"_s));
+        annotatedTypeInUnionMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "annotatedTypeInUnionMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto annotatedTypeInUnionMemberConversionResult = convert<IDLOptional<IDLUnion<IDLDOMString, IDLClampAdaptor<IDLLong>>>>(lexicalGlobalObject, annotatedTypeInUnionMemberValue);
@@ -901,7 +904,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         anyTypedefValueValue = jsUndefined();
     else {
-        anyTypedefValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "anyTypedefValue"_s));
+        anyTypedefValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "anyTypedefValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto anyTypedefValueConversionResult = convert<IDLAny>(lexicalGlobalObject, anyTypedefValueValue);
@@ -911,7 +914,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         anyValueValue = jsUndefined();
     else {
-        anyValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "anyValue"_s));
+        anyValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "anyValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto anyValueConversionResult = convert<IDLAny>(lexicalGlobalObject, anyValueValue);
@@ -921,7 +924,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         anyValueWithNullDefaultValue = jsUndefined();
     else {
-        anyValueWithNullDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "anyValueWithNullDefault"_s));
+        anyValueWithNullDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "anyValueWithNullDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto anyValueWithNullDefaultConversionResult = convertOptionalWithDefault<IDLAny>(lexicalGlobalObject, anyValueWithNullDefaultValue, [&] -> ConversionResult<IDLAny> { return typename Converter<IDLAny>::ReturnType { jsNull() }; });
@@ -931,7 +934,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         booleanWithDefaultValue = jsUndefined();
     else {
-        booleanWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "booleanWithDefault"_s));
+        booleanWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "booleanWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto booleanWithDefaultConversionResult = convert<IDLBoolean>(lexicalGlobalObject, booleanWithDefaultValue);
@@ -941,7 +944,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         booleanWithoutDefaultValue = jsUndefined();
     else {
-        booleanWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
+        booleanWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto booleanWithoutDefaultConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, booleanWithoutDefaultValue);
@@ -951,7 +954,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         bufferSourceValueValue = jsUndefined();
     else {
-        bufferSourceValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "bufferSourceValue"_s));
+        bufferSourceValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "bufferSourceValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto bufferSourceValueConversionResult = convert<IDLOptional<IDLUnion<IDLArrayBufferView, IDLArrayBuffer>>>(lexicalGlobalObject, bufferSourceValueValue);
@@ -961,7 +964,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         dictionaryMemberValue = jsUndefined();
     else {
-        dictionaryMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "dictionaryMember"_s));
+        dictionaryMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "dictionaryMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto dictionaryMemberConversionResult = convert<IDLOptional<IDLDictionary<TestObj::DictionaryThatShouldTolerateNull>>>(lexicalGlobalObject, dictionaryMemberValue);
@@ -971,7 +974,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         dictionaryMemberWithDefaultValue = jsUndefined();
     else {
-        dictionaryMemberWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "dictionaryMemberWithDefault"_s));
+        dictionaryMemberWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "dictionaryMemberWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto dictionaryMemberWithDefaultConversionResult = convert<IDLDictionary<TestObj::ParentDictionary>>(lexicalGlobalObject, dictionaryMemberWithDefaultValue);
@@ -981,7 +984,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         dictionaryWithImplementationDefaultValueValue = jsUndefined();
     else {
-        dictionaryWithImplementationDefaultValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "dictionaryWithImplementationDefaultValue"_s));
+        dictionaryWithImplementationDefaultValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "dictionaryWithImplementationDefaultValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto dictionaryWithImplementationDefaultValueConversionResult = convert<IDLDictionary<TestObj::ParentDictionary>>(lexicalGlobalObject, dictionaryWithImplementationDefaultValueValue);
@@ -991,7 +994,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         dictionaryWithImplementationRequiredValue = jsUndefined();
     else {
-        dictionaryWithImplementationRequiredValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "dictionaryWithImplementationRequired"_s));
+        dictionaryWithImplementationRequiredValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "dictionaryWithImplementationRequired"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (dictionaryWithImplementationRequiredValue.isUndefined()) {
@@ -1005,7 +1008,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         enumerationValueWithDefaultValue = jsUndefined();
     else {
-        enumerationValueWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "enumerationValueWithDefault"_s));
+        enumerationValueWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "enumerationValueWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto enumerationValueWithDefaultConversionResult = convertOptionalWithDefault<IDLEnumeration<TestObj::EnumType>>(lexicalGlobalObject, enumerationValueWithDefaultValue, [&] -> ConversionResult<IDLEnumeration<TestObj::EnumType>> { return Converter<IDLEnumeration<TestObj::EnumType>>::ReturnType { TestObj::EnumType::EnumValue1 }; });
@@ -1015,7 +1018,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         enumerationValueWithEmptyStringDefaultValue = jsUndefined();
     else {
-        enumerationValueWithEmptyStringDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "enumerationValueWithEmptyStringDefault"_s));
+        enumerationValueWithEmptyStringDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "enumerationValueWithEmptyStringDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto enumerationValueWithEmptyStringDefaultConversionResult = convertOptionalWithDefault<IDLEnumeration<TestObj::EnumType>>(lexicalGlobalObject, enumerationValueWithEmptyStringDefaultValue, [&] -> ConversionResult<IDLEnumeration<TestObj::EnumType>> { return Converter<IDLEnumeration<TestObj::EnumType>>::ReturnType { TestObj::EnumType::EmptyString }; });
@@ -1025,7 +1028,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         enumerationValueWithoutDefaultValue = jsUndefined();
     else {
-        enumerationValueWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "enumerationValueWithoutDefault"_s));
+        enumerationValueWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "enumerationValueWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto enumerationValueWithoutDefaultConversionResult = convert<IDLOptional<IDLEnumeration<TestObj::EnumType>>>(lexicalGlobalObject, enumerationValueWithoutDefaultValue);
@@ -1035,7 +1038,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         fooAliasValue = jsUndefined();
     else {
-        fooAliasValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "fooAlias"_s));
+        fooAliasValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "fooAlias"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto fooConversionResult = convert<IDLAny>(lexicalGlobalObject, fooAliasValue);
@@ -1045,7 +1048,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         fooWithDefaultAliasValue = jsUndefined();
     else {
-        fooWithDefaultAliasValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "fooWithDefaultAlias"_s));
+        fooWithDefaultAliasValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "fooWithDefaultAlias"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto fooWithDefaultConversionResult = convertOptionalWithDefault<IDLAny>(lexicalGlobalObject, fooWithDefaultAliasValue, [&] -> ConversionResult<IDLAny> { return Converter<IDLAny>::ReturnType { 0 }; });
@@ -1055,7 +1058,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         frozenArrayWithInlineCapacityValue = jsUndefined();
     else {
-        frozenArrayWithInlineCapacityValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "frozenArrayWithInlineCapacity"_s));
+        frozenArrayWithInlineCapacityValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "frozenArrayWithInlineCapacity"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (frozenArrayWithInlineCapacityValue.isUndefined()) {
@@ -1069,7 +1072,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         integerValue = jsUndefined();
     else {
-        integerValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "integer"_s));
+        integerValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "integer"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto integerConversionResult = convert<IDLOptional<IDLLong>>(lexicalGlobalObject, integerValue);
@@ -1079,7 +1082,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         integerWithDefaultValue = jsUndefined();
     else {
-        integerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "integerWithDefault"_s));
+        integerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "integerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto integerWithDefaultConversionResult = convert<IDLLong>(lexicalGlobalObject, integerWithDefaultValue);
@@ -1089,7 +1092,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         integerWithImplementationDefaultValueValue = jsUndefined();
     else {
-        integerWithImplementationDefaultValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "integerWithImplementationDefaultValue"_s));
+        integerWithImplementationDefaultValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "integerWithImplementationDefaultValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto integerWithImplementationDefaultValueConversionResult = convert<IDLLong>(lexicalGlobalObject, integerWithImplementationDefaultValueValue);
@@ -1099,7 +1102,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         integerWithImplementationRequiredValue = jsUndefined();
     else {
-        integerWithImplementationRequiredValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "integerWithImplementationRequired"_s));
+        integerWithImplementationRequiredValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "integerWithImplementationRequired"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (integerWithImplementationRequiredValue.isUndefined()) {
@@ -1113,7 +1116,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         largeIntegerValue = jsUndefined();
     else {
-        largeIntegerValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "largeInteger"_s));
+        largeIntegerValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "largeInteger"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto largeIntegerConversionResult = convert<IDLOptional<IDLLongLong>>(lexicalGlobalObject, largeIntegerValue);
@@ -1123,7 +1126,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         largeIntegerWithDefaultValue = jsUndefined();
     else {
-        largeIntegerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "largeIntegerWithDefault"_s));
+        largeIntegerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "largeIntegerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto largeIntegerWithDefaultConversionResult = convert<IDLLongLong>(lexicalGlobalObject, largeIntegerWithDefaultValue);
@@ -1133,7 +1136,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableEnumValue = jsUndefined();
     else {
-        nullableEnumValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableEnum"_s));
+        nullableEnumValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableEnum"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableEnumConversionResult = convertOptionalWithDefault<IDLNullable<IDLEnumeration<TestObj::EnumType>>>(lexicalGlobalObject, nullableEnumValue, [&] -> ConversionResult<IDLNullable<IDLEnumeration<TestObj::EnumType>>> { return typename Converter<IDLNullable<IDLEnumeration<TestObj::EnumType>>>::ReturnType { std::nullopt }; });
@@ -1143,7 +1146,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableIntegerWithDefaultValue = jsUndefined();
     else {
-        nullableIntegerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableIntegerWithDefault"_s));
+        nullableIntegerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableIntegerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableIntegerWithDefaultConversionResult = convertOptionalWithDefault<IDLNullable<IDLLong>>(lexicalGlobalObject, nullableIntegerWithDefaultValue, [&] -> ConversionResult<IDLNullable<IDLLong>> { return typename Converter<IDLNullable<IDLLong>>::ReturnType { std::nullopt }; });
@@ -1153,7 +1156,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableIntegerWithImplementationDefaultValueValue = jsUndefined();
     else {
-        nullableIntegerWithImplementationDefaultValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableIntegerWithImplementationDefaultValue"_s));
+        nullableIntegerWithImplementationDefaultValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableIntegerWithImplementationDefaultValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableIntegerWithImplementationDefaultValueConversionResult = convertOptionalWithDefault<IDLNullable<IDLLong>>(lexicalGlobalObject, nullableIntegerWithImplementationDefaultValueValue, [&] -> ConversionResult<IDLNullable<IDLLong>> { return typename Converter<IDLNullable<IDLLong>>::ReturnType { std::nullopt }; });
@@ -1163,7 +1166,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableIntegerWithImplementationRequiredValue = jsUndefined();
     else {
-        nullableIntegerWithImplementationRequiredValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableIntegerWithImplementationRequired"_s));
+        nullableIntegerWithImplementationRequiredValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableIntegerWithImplementationRequired"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (nullableIntegerWithImplementationRequiredValue.isUndefined()) {
@@ -1177,7 +1180,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableNodeValue = jsUndefined();
     else {
-        nullableNodeValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableNode"_s));
+        nullableNodeValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableNode"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableNodeConversionResult = convert<IDLNullable<IDLInterface<Node>>>(lexicalGlobalObject, nullableNodeValue);
@@ -1187,7 +1190,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableNodeWithImplementationDefaultValueValue = jsUndefined();
     else {
-        nullableNodeWithImplementationDefaultValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableNodeWithImplementationDefaultValue"_s));
+        nullableNodeWithImplementationDefaultValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableNodeWithImplementationDefaultValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableNodeWithImplementationDefaultValueConversionResult = convert<IDLNullable<IDLInterface<Node>>>(lexicalGlobalObject, nullableNodeWithImplementationDefaultValueValue);
@@ -1197,7 +1200,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableNodeWithImplementationRequiredValue = jsUndefined();
     else {
-        nullableNodeWithImplementationRequiredValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableNodeWithImplementationRequired"_s));
+        nullableNodeWithImplementationRequiredValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableNodeWithImplementationRequired"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (nullableNodeWithImplementationRequiredValue.isUndefined()) {
@@ -1211,7 +1214,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableStringWithDefaultValue = jsUndefined();
     else {
-        nullableStringWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableStringWithDefault"_s));
+        nullableStringWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableStringWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableStringWithDefaultConversionResult = convertOptionalWithDefault<IDLNullable<IDLDOMString>>(lexicalGlobalObject, nullableStringWithDefaultValue, [&] -> ConversionResult<IDLNullable<IDLDOMString>> { return typename Converter<IDLNullable<IDLDOMString>>::ReturnType { String() }; });
@@ -1221,7 +1224,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         nullableUnionMemberValue = jsUndefined();
     else {
-        nullableUnionMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nullableUnionMember"_s));
+        nullableUnionMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nullableUnionMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto nullableUnionMemberConversionResult = convertOptionalWithDefault<IDLNullable<IDLUnion<IDLLong, IDLInterface<Node>>>>(lexicalGlobalObject, nullableUnionMemberValue, [&] -> ConversionResult<IDLNullable<IDLUnion<IDLLong, IDLInterface<Node>>>> { return typename Converter<IDLNullable<IDLUnion<IDLLong, IDLInterface<Node>>>>::ReturnType { std::nullopt }; });
@@ -1231,7 +1234,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         requiredBufferSourceValueValue = jsUndefined();
     else {
-        requiredBufferSourceValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "requiredBufferSourceValue"_s));
+        requiredBufferSourceValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "requiredBufferSourceValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (requiredBufferSourceValueValue.isUndefined()) {
@@ -1245,7 +1248,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         restrictedDoubleValue = jsUndefined();
     else {
-        restrictedDoubleValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "restrictedDouble"_s));
+        restrictedDoubleValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "restrictedDouble"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto restrictedDoubleConversionResult = convert<IDLOptional<IDLDouble>>(lexicalGlobalObject, restrictedDoubleValue);
@@ -1255,7 +1258,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         restrictedDoubleWithDefaultValue = jsUndefined();
     else {
-        restrictedDoubleWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "restrictedDoubleWithDefault"_s));
+        restrictedDoubleWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "restrictedDoubleWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto restrictedDoubleWithDefaultConversionResult = convertOptionalWithDefault<IDLDouble>(lexicalGlobalObject, restrictedDoubleWithDefaultValue, [&] -> ConversionResult<IDLDouble> { return Converter<IDLDouble>::ReturnType { 0 }; });
@@ -1265,7 +1268,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         restrictedFloatValue = jsUndefined();
     else {
-        restrictedFloatValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "restrictedFloat"_s));
+        restrictedFloatValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "restrictedFloat"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto restrictedFloatConversionResult = convert<IDLOptional<IDLFloat>>(lexicalGlobalObject, restrictedFloatValue);
@@ -1275,7 +1278,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         restrictedFloatWithDefaultValue = jsUndefined();
     else {
-        restrictedFloatWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "restrictedFloatWithDefault"_s));
+        restrictedFloatWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "restrictedFloatWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto restrictedFloatWithDefaultConversionResult = convertOptionalWithDefault<IDLFloat>(lexicalGlobalObject, restrictedFloatWithDefaultValue, [&] -> ConversionResult<IDLFloat> { return Converter<IDLFloat>::ReturnType { 0 }; });
@@ -1285,7 +1288,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         sequenceOfStringsValue = jsUndefined();
     else {
-        sequenceOfStringsValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "sequenceOfStrings"_s));
+        sequenceOfStringsValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "sequenceOfStrings"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto sequenceOfStringsConversionResult = convert<IDLOptional<IDLSequence<IDLDOMString>>>(lexicalGlobalObject, sequenceOfStringsValue);
@@ -1295,7 +1298,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         sequenceWithImplementationDefaultValueValue = jsUndefined();
     else {
-        sequenceWithImplementationDefaultValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "sequenceWithImplementationDefaultValue"_s));
+        sequenceWithImplementationDefaultValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "sequenceWithImplementationDefaultValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto sequenceWithImplementationDefaultValueConversionResult = convertOptionalWithDefault<IDLSequence<IDLDOMString>>(lexicalGlobalObject, sequenceWithImplementationDefaultValueValue, [&] -> ConversionResult<IDLSequence<IDLDOMString>> { return Converter<IDLSequence<IDLDOMString>>::ReturnType { }; });
@@ -1305,7 +1308,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         sequenceWithImplementationRequiredValue = jsUndefined();
     else {
-        sequenceWithImplementationRequiredValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "sequenceWithImplementationRequired"_s));
+        sequenceWithImplementationRequiredValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "sequenceWithImplementationRequired"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (sequenceWithImplementationRequiredValue.isUndefined()) {
@@ -1319,7 +1322,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         sequenceWithInlineCapacityValue = jsUndefined();
     else {
-        sequenceWithInlineCapacityValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "sequenceWithInlineCapacity"_s));
+        sequenceWithInlineCapacityValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "sequenceWithInlineCapacity"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto sequenceWithInlineCapacityConversionResult = convert<IDLOptional<IDLSequence<IDLLong, 8>>>(lexicalGlobalObject, sequenceWithInlineCapacityValue);
@@ -1329,7 +1332,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         smallIntegerClampedValue = jsUndefined();
     else {
-        smallIntegerClampedValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "smallIntegerClamped"_s));
+        smallIntegerClampedValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "smallIntegerClamped"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto smallIntegerClampedConversionResult = convert<IDLOptional<IDLClampAdaptor<IDLByte>>>(lexicalGlobalObject, smallIntegerClampedValue);
@@ -1339,7 +1342,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         smallIntegerWithDefaultValue = jsUndefined();
     else {
-        smallIntegerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "smallIntegerWithDefault"_s));
+        smallIntegerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "smallIntegerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto smallIntegerWithDefaultConversionResult = convert<IDLOptional<IDLByte>>(lexicalGlobalObject, smallIntegerWithDefaultValue);
@@ -1349,7 +1352,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         smallUnsignedIntegerEnforcedRangeValue = jsUndefined();
     else {
-        smallUnsignedIntegerEnforcedRangeValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "smallUnsignedIntegerEnforcedRange"_s));
+        smallUnsignedIntegerEnforcedRangeValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "smallUnsignedIntegerEnforcedRange"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto smallUnsignedIntegerEnforcedRangeConversionResult = convert<IDLOptional<IDLEnforceRangeAdaptor<IDLOctet>>>(lexicalGlobalObject, smallUnsignedIntegerEnforcedRangeValue);
@@ -1359,7 +1362,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         smallUnsignedIntegerWithDefaultValue = jsUndefined();
     else {
-        smallUnsignedIntegerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "smallUnsignedIntegerWithDefault"_s));
+        smallUnsignedIntegerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "smallUnsignedIntegerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto smallUnsignedIntegerWithDefaultConversionResult = convert<IDLOctet>(lexicalGlobalObject, smallUnsignedIntegerWithDefaultValue);
@@ -1369,7 +1372,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         stringTreatNullAsEmptyStringValue = jsUndefined();
     else {
-        stringTreatNullAsEmptyStringValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "stringTreatNullAsEmptyString"_s));
+        stringTreatNullAsEmptyStringValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "stringTreatNullAsEmptyString"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto stringTreatNullAsEmptyStringConversionResult = convert<IDLOptional<IDLLegacyNullToEmptyStringAdaptor<IDLDOMString>>>(lexicalGlobalObject, stringTreatNullAsEmptyStringValue);
@@ -1379,7 +1382,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         stringWithDefaultValue = jsUndefined();
     else {
-        stringWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "stringWithDefault"_s));
+        stringWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "stringWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto stringWithDefaultConversionResult = convertOptionalWithDefault<IDLDOMString>(lexicalGlobalObject, stringWithDefaultValue, [&] -> ConversionResult<IDLDOMString> { return Converter<IDLDOMString>::ReturnType { "defaultString"_s }; });
@@ -1389,7 +1392,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         stringWithoutDefaultValue = jsUndefined();
     else {
-        stringWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
+        stringWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto stringWithoutDefaultConversionResult = convert<IDLOptional<IDLDOMString>>(lexicalGlobalObject, stringWithoutDefaultValue);
@@ -1399,7 +1402,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         undefinedUnionMemberValue = jsUndefined();
     else {
-        undefinedUnionMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "undefinedUnionMember"_s));
+        undefinedUnionMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "undefinedUnionMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto undefinedUnionMemberConversionResult = convert<IDLOptional<IDLUnion<IDLUndefined, IDLInterface<Node>>>>(lexicalGlobalObject, undefinedUnionMemberValue);
@@ -1409,7 +1412,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unionMemberValue = jsUndefined();
     else {
-        unionMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unionMember"_s));
+        unionMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unionMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unionMemberConversionResult = convert<IDLOptional<IDLUnion<IDLLong, IDLInterface<Node>>>>(lexicalGlobalObject, unionMemberValue);
@@ -1419,7 +1422,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unrestrictedDoubleValue = jsUndefined();
     else {
-        unrestrictedDoubleValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedDouble"_s));
+        unrestrictedDoubleValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedDouble"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unrestrictedDoubleConversionResult = convert<IDLOptional<IDLUnrestrictedDouble>>(lexicalGlobalObject, unrestrictedDoubleValue);
@@ -1429,7 +1432,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unrestrictedDoubleWithDefaultValue = jsUndefined();
     else {
-        unrestrictedDoubleWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedDoubleWithDefault"_s));
+        unrestrictedDoubleWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedDoubleWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unrestrictedDoubleWithDefaultConversionResult = convertOptionalWithDefault<IDLUnrestrictedDouble>(lexicalGlobalObject, unrestrictedDoubleWithDefaultValue, [&] -> ConversionResult<IDLUnrestrictedDouble> { return Converter<IDLUnrestrictedDouble>::ReturnType { 0 }; });
@@ -1439,7 +1442,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unrestrictedFloatValue = jsUndefined();
     else {
-        unrestrictedFloatValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedFloat"_s));
+        unrestrictedFloatValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedFloat"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unrestrictedFloatConversionResult = convert<IDLOptional<IDLUnrestrictedFloat>>(lexicalGlobalObject, unrestrictedFloatValue);
@@ -1449,7 +1452,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unrestrictedFloatWithDefaultValue = jsUndefined();
     else {
-        unrestrictedFloatWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedFloatWithDefault"_s));
+        unrestrictedFloatWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unrestrictedFloatWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unrestrictedFloatWithDefaultConversionResult = convertOptionalWithDefault<IDLUnrestrictedFloat>(lexicalGlobalObject, unrestrictedFloatWithDefaultValue, [&] -> ConversionResult<IDLUnrestrictedFloat> { return Converter<IDLUnrestrictedFloat>::ReturnType { 0 }; });
@@ -1459,7 +1462,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unsignedIntegerValue = jsUndefined();
     else {
-        unsignedIntegerValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unsignedInteger"_s));
+        unsignedIntegerValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unsignedInteger"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unsignedIntegerConversionResult = convert<IDLOptional<IDLUnsignedLong>>(lexicalGlobalObject, unsignedIntegerValue);
@@ -1469,7 +1472,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unsignedIntegerWithDefaultValue = jsUndefined();
     else {
-        unsignedIntegerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unsignedIntegerWithDefault"_s));
+        unsignedIntegerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unsignedIntegerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unsignedIntegerWithDefaultConversionResult = convert<IDLUnsignedLong>(lexicalGlobalObject, unsignedIntegerWithDefaultValue);
@@ -1479,7 +1482,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unsignedLargeIntegerValue = jsUndefined();
     else {
-        unsignedLargeIntegerValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unsignedLargeInteger"_s));
+        unsignedLargeIntegerValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unsignedLargeInteger"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unsignedLargeIntegerConversionResult = convert<IDLOptional<IDLUnsignedLongLong>>(lexicalGlobalObject, unsignedLargeIntegerValue);
@@ -1489,7 +1492,7 @@ template<> ConversionResult<IDLDictionary<TestObj::Dictionary>> convertDictionar
     if (isNullOrUndefined)
         unsignedLargeIntegerWithDefaultValue = jsUndefined();
     else {
-        unsignedLargeIntegerWithDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "unsignedLargeIntegerWithDefault"_s));
+        unsignedLargeIntegerWithDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "unsignedLargeIntegerWithDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto unsignedLargeIntegerWithDefaultConversionResult = convert<IDLUnsignedLongLong>(lexicalGlobalObject, unsignedLargeIntegerWithDefaultValue);
@@ -1563,7 +1566,7 @@ JSC::JSObject* convertDictionaryToJS(JSC::JSGlobalObject& lexicalGlobalObject, J
     SUPPRESS_UNCOUNTED_LOCAL auto& vm = JSC::getVM(&lexicalGlobalObject);
     auto throwScope = DECLARE_THROW_SCOPE(vm);
 
-    auto result = WebCore::constructEmptyObject(&lexicalGlobalObject, globalObject.objectPrototype());
+    auto result = constructEmptyObject(&lexicalGlobalObject, globalObject.objectPrototype());
 
     if (!IDLSequence<IDLClampAdaptor<IDLLong>>::isNullValue(dictionary.annotatedTypeInSequenceMember)) {
         auto annotatedTypeInSequenceMemberValue = toJS<IDLSequence<IDLClampAdaptor<IDLLong>>>(lexicalGlobalObject, globalObject, throwScope, IDLSequence<IDLClampAdaptor<IDLLong>>::extractValueFromNullable(dictionary.annotatedTypeInSequenceMember));
@@ -1818,7 +1821,7 @@ template<> ConversionResult<IDLDictionary<TestObj::DictionaryThatShouldNotTolera
     if (isNullOrUndefined)
         booleanWithoutDefaultValue = jsUndefined();
     else {
-        booleanWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
+        booleanWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto booleanWithoutDefaultConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, booleanWithoutDefaultValue);
@@ -1828,7 +1831,7 @@ template<> ConversionResult<IDLDictionary<TestObj::DictionaryThatShouldNotTolera
     if (isNullOrUndefined)
         nonNullableNodeValue = jsUndefined();
     else {
-        nonNullableNodeValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "nonNullableNode"_s));
+        nonNullableNodeValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "nonNullableNode"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (nonNullableNodeValue.isUndefined()) {
@@ -1842,7 +1845,7 @@ template<> ConversionResult<IDLDictionary<TestObj::DictionaryThatShouldNotTolera
     if (isNullOrUndefined)
         requiredDictionaryMemberValue = jsUndefined();
     else {
-        requiredDictionaryMemberValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "requiredDictionaryMember"_s));
+        requiredDictionaryMemberValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "requiredDictionaryMember"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (requiredDictionaryMemberValue.isUndefined()) {
@@ -1856,7 +1859,7 @@ template<> ConversionResult<IDLDictionary<TestObj::DictionaryThatShouldNotTolera
     if (isNullOrUndefined)
         requiredEnumerationValueValue = jsUndefined();
     else {
-        requiredEnumerationValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "requiredEnumerationValue"_s));
+        requiredEnumerationValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "requiredEnumerationValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     if (requiredEnumerationValueValue.isUndefined()) {
@@ -1899,7 +1902,7 @@ template<> ConversionResult<IDLDictionary<TestObj::DictionaryThatShouldTolerateN
     if (isNullOrUndefined)
         booleanWithoutDefaultValue = jsUndefined();
     else {
-        booleanWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
+        booleanWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto booleanWithoutDefaultConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, booleanWithoutDefaultValue);
@@ -1909,7 +1912,7 @@ template<> ConversionResult<IDLDictionary<TestObj::DictionaryThatShouldTolerateN
     if (isNullOrUndefined)
         enumerationValueValue = jsUndefined();
     else {
-        enumerationValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "enumerationValue"_s));
+        enumerationValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "enumerationValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto enumerationValueConversionResult = convert<IDLOptional<IDLEnumeration<TestObj::EnumType>>>(lexicalGlobalObject, enumerationValueValue);
@@ -1946,7 +1949,7 @@ template<> ConversionResult<IDLDictionary<AlternateDictionaryName>> convertDicti
     if (isNullOrUndefined)
         booleanWithoutDefaultValue = jsUndefined();
     else {
-        booleanWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
+        booleanWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "booleanWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto booleanWithoutDefaultConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, booleanWithoutDefaultValue);
@@ -1956,7 +1959,7 @@ template<> ConversionResult<IDLDictionary<AlternateDictionaryName>> convertDicti
     if (isNullOrUndefined)
         enumerationValueValue = jsUndefined();
     else {
-        enumerationValueValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "enumerationValue"_s));
+        enumerationValueValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "enumerationValue"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto enumerationValueConversionResult = convert<IDLOptional<IDLEnumeration<TestObj::EnumType>>>(lexicalGlobalObject, enumerationValueValue);
@@ -1993,7 +1996,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ParentDictionary>> convertDic
     if (isNullOrUndefined)
         parentMember1Value = jsUndefined();
     else {
-        parentMember1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "parentMember1"_s));
+        parentMember1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "parentMember1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto parentMember1ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, parentMember1Value);
@@ -2003,7 +2006,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ParentDictionary>> convertDic
     if (isNullOrUndefined)
         parentMember2Value = jsUndefined();
     else {
-        parentMember2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "parentMember2"_s));
+        parentMember2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "parentMember2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto parentMember2ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, parentMember2Value);
@@ -2040,7 +2043,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ChildDictionary>> convertDict
     if (isNullOrUndefined)
         parentMember1Value = jsUndefined();
     else {
-        parentMember1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "parentMember1"_s));
+        parentMember1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "parentMember1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto parentMember1ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, parentMember1Value);
@@ -2050,7 +2053,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ChildDictionary>> convertDict
     if (isNullOrUndefined)
         parentMember2Value = jsUndefined();
     else {
-        parentMember2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "parentMember2"_s));
+        parentMember2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "parentMember2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto parentMember2ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, parentMember2Value);
@@ -2060,7 +2063,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ChildDictionary>> convertDict
     if (isNullOrUndefined)
         childMember1Value = jsUndefined();
     else {
-        childMember1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "childMember1"_s));
+        childMember1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "childMember1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto childMember1ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, childMember1Value);
@@ -2070,7 +2073,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ChildDictionary>> convertDict
     if (isNullOrUndefined)
         childMember2Value = jsUndefined();
     else {
-        childMember2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "childMember2"_s));
+        childMember2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "childMember2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto childMember2ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, childMember2Value);
@@ -2111,7 +2114,7 @@ template<> ConversionResult<IDLDictionary<TestObj::GrandchildDictionary>> conver
     if (isNullOrUndefined)
         parentMember1Value = jsUndefined();
     else {
-        parentMember1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "parentMember1"_s));
+        parentMember1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "parentMember1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto parentMember1ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, parentMember1Value);
@@ -2121,7 +2124,7 @@ template<> ConversionResult<IDLDictionary<TestObj::GrandchildDictionary>> conver
     if (isNullOrUndefined)
         parentMember2Value = jsUndefined();
     else {
-        parentMember2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "parentMember2"_s));
+        parentMember2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "parentMember2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto parentMember2ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, parentMember2Value);
@@ -2131,7 +2134,7 @@ template<> ConversionResult<IDLDictionary<TestObj::GrandchildDictionary>> conver
     if (isNullOrUndefined)
         childMember1Value = jsUndefined();
     else {
-        childMember1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "childMember1"_s));
+        childMember1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "childMember1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto childMember1ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, childMember1Value);
@@ -2141,7 +2144,7 @@ template<> ConversionResult<IDLDictionary<TestObj::GrandchildDictionary>> conver
     if (isNullOrUndefined)
         childMember2Value = jsUndefined();
     else {
-        childMember2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "childMember2"_s));
+        childMember2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "childMember2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto childMember2ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, childMember2Value);
@@ -2151,7 +2154,7 @@ template<> ConversionResult<IDLDictionary<TestObj::GrandchildDictionary>> conver
     if (isNullOrUndefined)
         grandchildMember1Value = jsUndefined();
     else {
-        grandchildMember1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "grandchildMember1"_s));
+        grandchildMember1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "grandchildMember1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto grandchildMember1ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, grandchildMember1Value);
@@ -2161,7 +2164,7 @@ template<> ConversionResult<IDLDictionary<TestObj::GrandchildDictionary>> conver
     if (isNullOrUndefined)
         grandchildMember2Value = jsUndefined();
     else {
-        grandchildMember2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "grandchildMember2"_s));
+        grandchildMember2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "grandchildMember2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto grandchildMember2ConversionResult = convert<IDLOptional<IDLBoolean>>(lexicalGlobalObject, grandchildMember2Value);
@@ -2207,7 +2210,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ConditionalDictionaryA>> conv
     if (isNullOrUndefined)
         stringWithoutDefaultValue = jsUndefined();
     else {
-        stringWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
+        stringWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto stringWithoutDefaultConversionResult = convert<IDLOptional<IDLDOMString>>(lexicalGlobalObject, stringWithoutDefaultValue);
@@ -2246,7 +2249,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ConditionalDictionaryB>> conv
     if (isNullOrUndefined)
         stringWithoutDefaultValue = jsUndefined();
     else {
-        stringWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
+        stringWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto stringWithoutDefaultConversionResult = convert<IDLOptional<IDLDOMString>>(lexicalGlobalObject, stringWithoutDefaultValue);
@@ -2285,7 +2288,7 @@ template<> ConversionResult<IDLDictionary<TestObj::ConditionalDictionaryC>> conv
     if (isNullOrUndefined)
         stringWithoutDefaultValue = jsUndefined();
     else {
-        stringWithoutDefaultValue = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
+        stringWithoutDefaultValue = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "stringWithoutDefault"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto stringWithoutDefaultConversionResult = convert<IDLOptional<IDLDOMString>>(lexicalGlobalObject, stringWithoutDefaultValue);
@@ -2323,7 +2326,7 @@ template<> ConversionResult<IDLDictionary<TestObj::PromisePair>> convertDictiona
     if (isNullOrUndefined)
         promise1Value = jsUndefined();
     else {
-        promise1Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "promise1"_s));
+        promise1Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "promise1"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto promise1ConversionResult = convert<IDLOptional<IDLPromise<IDLUndefined>>>(lexicalGlobalObject, promise1Value);
@@ -2333,7 +2336,7 @@ template<> ConversionResult<IDLDictionary<TestObj::PromisePair>> convertDictiona
     if (isNullOrUndefined)
         promise2Value = jsUndefined();
     else {
-        promise2Value = WebCore::get(object, &lexicalGlobalObject, Identifier::fromString(vm, "promise2"_s));
+        promise2Value = object->get(&lexicalGlobalObject, Identifier::fromString(vm, "promise2"_s));
         RETURN_IF_EXCEPTION(throwScope, ConversionResultException { });
     }
     auto promise2ConversionResult = convert<IDLOptional<IDLPromise<IDLUndefined>>>(lexicalGlobalObject, promise2Value);
@@ -3386,7 +3389,7 @@ const ClassInfo JSTestObjPrototype::s_info = { "TestObject"_s, &Base::s_info, nu
 
 JSC::Structure* JSTestObjPrototype::createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype)
 {
-    return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info(), JSC::NonArray);
+    return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
 }
 
 void JSTestObjPrototype::finishCreation(VM& vm)
@@ -3488,13 +3491,13 @@ void JSTestObjPrototype::finishCreation(VM& vm)
         flattenDictionaryObject(vm);
     putDirect(vm, builtinNames(vm).privateMethodPrivateName(), JSFunction::create(vm, realm(), 0, String(), jsTestObjPrototypeFunction_privateMethod, ImplementationVisibility::Public), JSC::PropertyAttribute::ReadOnly | JSC::PropertyAttribute::DontEnum);
     putDirect(vm, builtinNames(vm).publicAndPrivateMethodPrivateName(), JSFunction::create(vm, realm(), 0, String(), jsTestObjPrototypeFunction_publicAndPrivateMethod, ImplementationVisibility::Public), JSC::PropertyAttribute::ReadOnly | JSC::PropertyAttribute::DontEnum);
-    putDirect(vm, vm.propertyNames->iteratorSymbol, WebCore::getDirect(realm()->arrayPrototype(), vm, vm.propertyNames->builtinNames().valuesPrivateName()), static_cast<unsigned>(JSC::PropertyAttribute::DontEnum));
+    putDirect(vm, vm.propertyNames->iteratorSymbol, realm()->arrayPrototype()->getDirect(vm, vm.propertyNames->builtinNames().valuesPrivateName()), static_cast<unsigned>(JSC::PropertyAttribute::DontEnum));
     addValueIterableMethods(*realm(), *this);
-    JSObject& unscopables = *WebCore::constructEmptyObject(realm(), realm()->nullPrototypeObjectStructure());
+    JSObject& unscopables = *constructEmptyObject(vm, realm()->nullPrototypeObjectStructure());
     unscopables.putDirect(vm, Identifier::fromString(vm, "undefinedMethod"_s), jsBoolean(true));
     unscopables.putDirect(vm, Identifier::fromString(vm, "shortAttr"_s), jsBoolean(true));
-    WebCore::putDirectWithoutTransition(this, vm, vm.propertyNames->unscopablesSymbol, &unscopables, JSC::PropertyAttribute::DontEnum | JSC::PropertyAttribute::ReadOnly);
-    WebCore::putDirectWithoutTransition(this, vm, vm.propertyNames->toStringTagSymbol, jsNontrivialString(vm, info()->className), JSC::PropertyAttribute::DontEnum | JSC::PropertyAttribute::ReadOnly);
+    putDirectWithoutTransition(vm, vm.propertyNames->unscopablesSymbol, &unscopables, JSC::PropertyAttribute::DontEnum | JSC::PropertyAttribute::ReadOnly);
+    JSC_TO_STRING_TAG_WITHOUT_TRANSITION();
 }
 
 const ClassInfo JSTestObj::s_info = { "TestObject"_s, &Base::s_info, &JSTestObjTable, nullptr, CREATE_METHOD_TABLE(JSTestObj) };
@@ -3556,7 +3559,7 @@ bool JSTestObj::legacyPlatformObjectGetOwnProperty(JSObject* object, JSGlobalObj
             return true;
         }
     }
-    return WebCore::getOwnPropertySlot(object, lexicalGlobalObject, propertyName, slot);
+    return JSObject::getOwnPropertySlot(object, lexicalGlobalObject, propertyName, slot);
 }
 
 bool JSTestObj::getOwnPropertySlot(JSObject* object, JSGlobalObject* lexicalGlobalObject, PropertyName propertyName, PropertySlot& slot)
@@ -7109,7 +7112,7 @@ static inline bool setJSTestObj_replaceableAttributeSetter(JSGlobalObject& lexic
     SUPPRESS_UNCOUNTED_LOCAL auto& vm = JSC::getVM(&lexicalGlobalObject);
     UNUSED_PARAM(vm);
     bool shouldThrow = true;
-    WebCore::createDataProperty(&thisObject, &lexicalGlobalObject, propertyName, value, shouldThrow);
+    thisObject.createDataProperty(&lexicalGlobalObject, propertyName, value, shouldThrow);
     return true;
 }
 
@@ -7394,7 +7397,7 @@ static inline bool setJSTestObj_putForwardsAttributeSetter(JSGlobalObject& lexic
     UNUSED_PARAM(vm);
     auto throwScope = DECLARE_THROW_SCOPE(vm);
     auto id = Identifier::fromString(vm, "putForwardsAttribute"_s);
-    auto valueToForwardTo = WebCore::get(&thisObject, &lexicalGlobalObject, id);
+    auto valueToForwardTo = thisObject.get(&lexicalGlobalObject, id);
     RETURN_IF_EXCEPTION(throwScope, false);
     if (!valueToForwardTo.isObject()) [[unlikely]] {
         throwTypeError(&lexicalGlobalObject, throwScope);
@@ -7431,7 +7434,7 @@ static inline bool setJSTestObj_putForwardsNullableAttributeSetter(JSGlobalObjec
     UNUSED_PARAM(vm);
     auto throwScope = DECLARE_THROW_SCOPE(vm);
     auto id = Identifier::fromString(vm, "putForwardsNullableAttribute"_s);
-    auto valueToForwardTo = WebCore::get(&thisObject, &lexicalGlobalObject, id);
+    auto valueToForwardTo = thisObject.get(&lexicalGlobalObject, id);
     RETURN_IF_EXCEPTION(throwScope, false);
     if (!valueToForwardTo.isObject()) [[unlikely]] {
         throwTypeError(&lexicalGlobalObject, throwScope);
@@ -10098,7 +10101,7 @@ static inline JSC::EncodedJSValue jsTestObjPrototypeFunction_overloadedMethodOve
         if (distinguishingArg.isObject() && asObject(distinguishingArg)->inherits<JSBlob>())
             RELEASE_AND_RETURN(throwScope, (jsTestObjPrototypeFunction_overloadedMethod13Body(lexicalGlobalObject, callFrame, castedThis)));
         {
-            bool success = WebCore::hasIteratorMethod(lexicalGlobalObject, distinguishingArg);
+            bool success = hasIteratorMethod(lexicalGlobalObject, distinguishingArg);
             RETURN_IF_EXCEPTION(throwScope, { });
             if (success)
                 RELEASE_AND_RETURN(throwScope, (jsTestObjPrototypeFunction_overloadedMethod7Body(lexicalGlobalObject, callFrame, castedThis)));

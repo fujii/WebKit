@@ -1041,7 +1041,6 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/BufferMemoryHandle.h
     runtime/Butterfly.h
     runtime/ButterflyInlines.h
-    runtime/ButterflyInlinesLight.h
     runtime/BytecodeCacheError.h
     runtime/CachePayload.h
     runtime/CacheableIdentifier.h
@@ -1159,7 +1158,6 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/JSArrayBufferPrototype.h
     runtime/JSArrayBufferView.h
     runtime/JSArrayBufferViewInlines.h
-    runtime/JSArrayBufferViewInlinesLight.h
     runtime/JSArrayInlines.h
     runtime/JSArrayIterator.h
     runtime/JSArrayBuffer.h
@@ -1207,7 +1205,6 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/JSGenericTypedArrayView.h
     runtime/JSGenericTypedArrayViewConstructor.h
     runtime/JSGenericTypedArrayViewInlines.h
-    runtime/JSGenericTypedArrayViewInlinesLight.h
     runtime/JSGenericTypedArrayViewPrototype.h
     runtime/JSGenericTypedArrayViewPrototypeInlines.h
     runtime/JSGlobalLexicalEnvironment.h
@@ -1385,7 +1382,6 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/StructureCreateInlines.h
     runtime/StructureID.h
     runtime/StructureInlines.h
-    runtime/StructureInlinesLight.h
     runtime/StructureRareData.h
     runtime/StructureRareDataInlines.h
     runtime/StructureTransitionTable.h

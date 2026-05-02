@@ -21,7 +21,6 @@
 #pragma once
 
 #include "TestGlobalObject.h"
-#include <WebCore/JSDOMBindingFacade.h>
 #include <WebCore/JSDOMWrapper.h>
 #include <wtf/NeverDestroyed.h>
 

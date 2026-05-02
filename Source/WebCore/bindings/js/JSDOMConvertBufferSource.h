@@ -25,9 +25,7 @@
 
 #pragma once
 
-#include <JavaScriptCore/JSGenericTypedArrayViewInlinesLight.h>
 #include <JavaScriptCore/JSTypedArrays.h>
-#include <JavaScriptCore/TypedArrays.h>
 #include <WebCore/BufferSource.h>
 #include <WebCore/IDLTypes.h>
 #include <WebCore/JSDOMConvertBase.h>

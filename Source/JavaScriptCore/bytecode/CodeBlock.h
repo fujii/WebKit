@@ -29,7 +29,6 @@
 
 #pragma once
 
-#include <JavaScriptCore/CallFrameInlines.h>
 #include <JavaScriptCore/CodeBlockHash.h>
 #include <JavaScriptCore/DirectEvalCodeCache.h>
 #include <JavaScriptCore/ICStatusMap.h>
@@ -1078,22 +1077,6 @@ void ScriptExecutable::prepareForExecution(VM& vm, JSFunction* function, JSScope
 
 
 void setPrinter(Printer::PrintRecord&, CodeBlock*);
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-inline Register& CallFrame::r(VirtualRegister reg)
-{
-    if (reg.isConstant())
-        SUPPRESS_MEMORY_UNSAFE_CAST return *reinterpret_cast<Register*>(&this->codeBlock()->constantRegister(reg));
-    return this[reg.offset()];
-}
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
-
-inline JSCell* CallFrame::codeOwnerCell() const
-{
-    if (callee().isNativeCallee())
-        return codeOwnerCellSlow();
-    return codeBlock();
-}
 
 } // namespace JSC
 

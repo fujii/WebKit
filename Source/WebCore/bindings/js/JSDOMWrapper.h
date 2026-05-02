@@ -78,7 +78,6 @@ public:
 
 protected:
     WEBCORE_EXPORT JSDOMObject(JSC::Structure*, JSC::JSGlobalObject&);
-    WEBCORE_EXPORT void finishCreation(JSC::VM&);
 };
 
 template<typename ImplementationClass, typename PtrTraits = RawPtrTraits<ImplementationClass>>

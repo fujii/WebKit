@@ -28,7 +28,6 @@
 
 #include <JavaScriptCore/ObjectConstructor.h>
 #include <WebCore/IDLTypes.h>
-#include <WebCore/JSDOMBindingFacade.h>
 #include <WebCore/JSDOMConvertStrings.h>
 #include <WebCore/JSDOMGlobalObject.h>
 
@@ -127,7 +126,7 @@ private:
                 if (!slot.isTaintedByOpaqueObject()) [[likely]]
                     subValue = slot.getValue(&lexicalGlobalObject, key);
                 else
-                    subValue = WebCore::get(object, &lexicalGlobalObject, key);
+                    subValue = object->get(&lexicalGlobalObject, key);
                 RETURN_IF_EXCEPTION(scope, Result::exception());
 
                 // 3. Let typedValue be value converted to an IDL value of type V.
@@ -169,7 +168,7 @@ template<typename K, typename V> struct JSConverter<IDLRecord<K, V>> {
         auto& vm = JSC::getVM(&lexicalGlobalObject);
     
         // 1. Let result be ! ObjectCreate(%ObjectPrototype%).
-        auto result = WebCore::constructEmptyObject(&lexicalGlobalObject, globalObject.objectPrototype());
+        auto result = constructEmptyObject(&lexicalGlobalObject, globalObject.objectPrototype());
         
         // 2. Repeat, for each mapping (key, value) in D:
         for (const auto& keyValuePair : map) {
@@ -181,7 +180,7 @@ template<typename K, typename V> struct JSConverter<IDLRecord<K, V>> {
             auto esValue = toJS<V>(lexicalGlobalObject, globalObject, keyValuePair.value);
 
             // 3. Let created be ! CreateDataProperty(result, esKey, esValue).
-            bool created = WebCore::createDataProperty(result, &lexicalGlobalObject, JSC::Identifier::fromString(vm, keyValuePair.key), esValue, true);
+            bool created = result->createDataProperty(&lexicalGlobalObject, JSC::Identifier::fromString(vm, keyValuePair.key), esValue, true);
 
             // 4. Assert: created is true.
             ASSERT_UNUSED(created, created);

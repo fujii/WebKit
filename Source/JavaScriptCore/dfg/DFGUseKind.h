@@ -29,7 +29,6 @@
 
 #include "DFGNodeFlags.h"
 #include "IndexingType.h"
-#include "SpeculatedType.h"
 #include <wtf/PrintStream.h>
 
 namespace JSC { namespace DFG {

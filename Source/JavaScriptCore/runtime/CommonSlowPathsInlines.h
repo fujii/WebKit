@@ -29,7 +29,6 @@
 #include "ClonedArguments.h"
 #include "CommonSlowPaths.h"
 #include "DirectArguments.h"
-#include "JSGlobalLexicalEnvironment.h"
 #include "JSSetInlines.h"
 #include "ScopedArguments.h"
 

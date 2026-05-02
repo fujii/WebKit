@@ -42,6 +42,7 @@
 #include <JavaScriptCore/MarkedBlock.h>
 #include <JavaScriptCore/MarkedSpace.h>
 #include <JavaScriptCore/MutatorState.h>
+#include <JavaScriptCore/Options.h>
 #include <JavaScriptCore/PreciseSubspace.h>
 #include <JavaScriptCore/StructureID.h>
 #include <JavaScriptCore/Synchronousness.h>
@@ -900,12 +901,12 @@ private:
     Lock m_parallelSlotVisitorLock;
     bool m_isSafeToCollect { false };
     bool m_isShuttingDown { false };
-    bool m_mutatorShouldBeFenced { false };
+    bool m_mutatorShouldBeFenced { Options::forceFencedBarrier() };
     bool m_isMarkingForGCVerifier { false };
     bool m_keepVerifierSlotVisitor { false };
     Lock m_wasmCalleesPendingDestructionLock;
 
-    unsigned m_barrierThreshold { blackThreshold };
+    unsigned m_barrierThreshold { Options::forceFencedBarrier() ? tautologicalThreshold : blackThreshold };
 
 #if PLATFORM(MAC)
     Seconds m_lastFullGCLength { 2_ms };

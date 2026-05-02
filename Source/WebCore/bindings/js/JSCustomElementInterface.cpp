@@ -47,7 +47,6 @@
 #include "JSExecStateInstrumentation.h"
 #include "JSHTMLElement.h"
 #include "ScriptExecutionContext.h"
-#include <JavaScriptCore/JSCInlines.h>
 #include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/WeakInlines.h>
 

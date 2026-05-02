@@ -28,7 +28,6 @@
 
 #include "IndexingTypeInlines.h"
 #include "JSCJSValueInlines.h"
-#include "SpeculatedType.h"
 
 namespace JSC {
 

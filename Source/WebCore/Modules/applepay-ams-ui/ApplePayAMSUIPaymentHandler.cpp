@@ -32,7 +32,6 @@
 #include "ContextDestructionObserverInlines.h"
 #include "DocumentPage.h"
 #include "JSApplePayAMSUIRequest.h"
-#include "JSDOMBindingFacade.h"
 #include "Page.h"
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/ObjectConstructor.h>
@@ -94,7 +93,7 @@ void ApplePayAMSUIPaymentHandler::finishSession(std::optional<bool>&& result)
         JSC::VM& vm = lexicalGlobalObject.vm();
         auto throwScope = DECLARE_THROW_SCOPE(vm);
 
-        auto* object = WebCore::constructEmptyObject(&lexicalGlobalObject);
+        auto* object = constructEmptyObject(&lexicalGlobalObject);
         object->putDirect(vm, JSC::Identifier::fromString(vm, "success"_s), JSC::jsBoolean(success));
 
         RETURN_IF_EXCEPTION(throwScope, { });

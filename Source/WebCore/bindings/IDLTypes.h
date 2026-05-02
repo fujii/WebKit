@@ -37,6 +37,11 @@
 #include <wtf/URL.h>
 #include <wtf/WallTime.h>
 
+#if ENABLE(WEBGL)
+#include <WebCore/WebGLAny.h>
+#include <WebCore/WebGLExtensionAny.h>
+#endif
+
 namespace JSC {
 class ArrayBuffer;
 class ArrayBufferView;
@@ -403,8 +408,8 @@ struct IDLIDBValue : IDLInterface<IDBValue> { };
 struct IDLScheduledAction : IDLType<std::unique_ptr<ScheduledAction>> { };
 
 #if ENABLE(WEBGL)
-struct IDLWebGLAny;
-struct IDLWebGLExtensionAny;
+struct IDLWebGLAny : IDLType<WebGLAny> { };
+struct IDLWebGLExtensionAny : IDLType<WebGLExtensionAny> { };
 #endif
 
 // Helper predicates

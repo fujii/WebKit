@@ -40,7 +40,6 @@
 #include "WebCoreJSClientData.h"
 #include "WorkerGlobalScope.h"
 #include <JavaScriptCore/ExceptionHelpers.h>
-#include <JavaScriptCore/JSCInlines.h>
 #include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/SlotVisitorInlines.h>
 #include <JavaScriptCore/VMEntryScopeInlines.h>

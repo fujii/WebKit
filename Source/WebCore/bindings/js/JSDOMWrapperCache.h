@@ -23,16 +23,14 @@
 
 #pragma once
 
-#include <JavaScriptCore/GetVM.h>
 #include <JavaScriptCore/HeapCellInlines.h>
 #include <JavaScriptCore/InternalFunction.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
-#include <JavaScriptCore/JSGlobalObject.h>
-#include <JavaScriptCore/Structure.h>
+#include <JavaScriptCore/JSGlobalObjectInlines.h>
+#include <JavaScriptCore/StructureInlines.h>
 #include <JavaScriptCore/Weak.h>
 #include <JavaScriptCore/WeakInlines.h>
 #include <WebCore/DOMWrapperWorld.h>
-#include <WebCore/JSDOMBindingFacade.h>
 #include <WebCore/JSDOMGlobalObject.h>
 #include <WebCore/JSDOMWrapper.h>
 #include <WebCore/ScriptWrappableInlines.h>
@@ -99,7 +97,7 @@ template<typename WrapperClass> inline JSC::Structure* deprecatedGetDOMStructure
 
 template<typename WrapperClass> inline JSC::JSObject* getDOMPrototype(JSC::VM& vm, JSDOMGlobalObject& globalObject)
 {
-    return WebCore::storedPrototypeObject(getDOMStructure<WrapperClass>(vm, globalObject));
+    return asObject(getDOMStructure<WrapperClass>(vm, globalObject)->storedPrototype());
 }
 
 inline JSC::WeakHandleOwner* wrapperOwner(DOMWrapperWorld& world, JSC::ArrayBuffer*)

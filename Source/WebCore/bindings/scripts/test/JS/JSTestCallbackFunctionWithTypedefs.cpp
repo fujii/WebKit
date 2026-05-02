@@ -22,7 +22,6 @@
 #include "JSTestCallbackFunctionWithTypedefs.h"
 
 #include "ContextDestructionObserverInlines.h"
-#include "JSDOMBindingFacade.h"
 #include "JSDOMConvertBase.h"
 #include "JSDOMConvertNullable.h"
 #include "JSDOMConvertNumbers.h"
@@ -31,6 +30,7 @@
 #include "JSDOMGlobalObject.h"
 #include "ScriptExecutionContext.h"
 #include <JavaScriptCore/JSArray.h>
+#include <JavaScriptCore/JSCellInlines.h>
 #include <JavaScriptCore/MarkedVector.h>
 
 

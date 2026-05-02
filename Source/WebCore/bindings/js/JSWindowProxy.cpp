@@ -71,7 +71,7 @@ void JSWindowProxy::finishCreation(VM& vm, DOMWindow& window)
 JSWindowProxy& JSWindowProxy::create(VM& vm, DOMWindow& window, DOMWrapperWorld& world)
 {
     auto& structure = *Structure::create(vm, 0, jsNull(), TypeInfo(GlobalProxyType, StructureFlags), info());
-    auto& proxy = *new (NotNull, JSC::allocateCell<JSWindowProxy>(vm)) JSWindowProxy(vm, structure, world);
+    auto& proxy = *new (NotNull, allocateCell<JSWindowProxy>(vm)) JSWindowProxy(vm, structure, world);
     proxy.finishCreation(vm, window);
     return proxy;
 }

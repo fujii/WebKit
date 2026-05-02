@@ -45,7 +45,6 @@
 #include "JSWindowProxy.h"
 #include "JSWorkerGlobalScope.h"
 #include "JSWorkletGlobalScope.h"
-#include <JavaScriptCore/CodeBlock.h>
 #include <JavaScriptCore/FastMallocAlignedMemoryAllocator.h>
 #include <JavaScriptCore/HeapInlines.h>
 #include <JavaScriptCore/IsoHeapCellType.h>

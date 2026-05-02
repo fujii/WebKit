@@ -21,7 +21,6 @@
 #pragma once
 
 #include "JSWorkletGlobalScope.h"
-#include <WebCore/JSDOMBindingFacade.h>
 #include <WebCore/JSDOMWrapper.h>
 
 namespace WebCore {
