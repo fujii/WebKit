@@ -925,9 +925,11 @@ Ref<HistoryItem> HistoryController::createItemTree(HistoryItemClient& client, Lo
         // we should copy the documentSequenceNumber over to the newly create
         // item.  Non-target items are just clones, and they should therefore
         // preserve the same itemSequenceNumber.
-        if (auto* previousItem = m_previousItem.get()) {
-            if (m_frame.ptr() != &targetFrame)
+        if (RefPtr previousItem = m_previousItem) {
+            if (m_frame.ptr() != &targetFrame) {
                 item->setItemSequenceNumber(previousItem->itemSequenceNumber());
+                item->setStateObject(RefPtr { previousItem->stateObject() });
+            }
             item->setDocumentSequenceNumber(previousItem->documentSequenceNumber());
         }
 
