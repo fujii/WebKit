@@ -10095,6 +10095,20 @@ WorkerAsynchronousURLErrorHandlingEnabled:
     WebCore:
       default: true
 
+WorkerInSharedWorkerEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  humanReadableName: "Worker in SharedWorker"
+  humanReadableDescription: "Allow creating dedicated workers from shared workers"
+  defaultValue:
+    WebCore:
+      default: false
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+
 WriteRichTextDataWhenCopyingOrDragging:
   type: bool
   status: internal
