@@ -242,6 +242,8 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
     DidRemoveBackForwardItem(WebCore::BackForwardFrameItemIdentifier backForwardFrameItemID)
 
+    InvalidateBackForwardListCache()
+
     UpdateWebsitePolicies(struct WebKit::WebsitePoliciesData websitePolicies)
 
     ClearSelection()

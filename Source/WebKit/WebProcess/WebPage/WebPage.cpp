@@ -6642,6 +6642,14 @@ void WebPage::didRemoveBackForwardItem(BackForwardFrameItemIdentifier frameItemI
     WebBackForwardListProxy::removeItem(frameItemID);
 }
 
+void WebPage::invalidateBackForwardListCache()
+{
+    if (RefPtr page = m_page) {
+        if (auto* client = dynamicDowncast<WebBackForwardListProxy>(page->backForward().client()))
+            client->invalidateCachedListCounts();
+    }
+}
+
 #if PLATFORM(MAC)
 void WebPage::setCaretAnimatorType(WebCore::CaretAnimatorType caretType)
 {

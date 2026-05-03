@@ -254,8 +254,6 @@ imported/w3c/web-platform-tests/fetch/api/redirect/redirect-keepalive.https.any.
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-frame.sub.html [ Failure ]
 imported/w3c/web-platform-tests/FileAPI/url/url-in-tags-revoke.window.html [ Failure ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/pageswap/pageswap-replace-with-cross-origin-redirect.sub.html [ Failure ]
-imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/navigate-cross-origin-iframe-to-same-url-with-fragment.html [ Failure ]
-imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/navigate-cross-origin-iframe-to-same-url.html [ Failure ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/navigate-to-unparseable-url.html [ Failure ]
 imported/w3c/web-platform-tests/html/browsers/origin/cross-origin-objects/cross-origin-objects.html [ Failure ]
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/cross-origin-isolated-permission.https.html [ Failure ]
