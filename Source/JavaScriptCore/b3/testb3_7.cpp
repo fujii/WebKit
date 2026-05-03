@@ -3980,6 +3980,518 @@ void testVectorShlImmediate()
     testVectorShlImmediateForLane<uint64_t>(SIMDLane::i64x2, 63, 0x0000000000000001ull);
 }
 
+// VectorMulLow on lane L (L in {i16x8, i32x4, i64x2}) maps to NEON UMULL/SMULL
+// on the low 64 bits of each input:
+//   - i16x8 output: `umull.8h v.8b, v.8b` — 8 u8/i8 multiplicands per operand
+//   - i32x4 output: `umull.4s v.4h, v.4h` — 4 u16/i16 multiplicands per operand
+//   - i64x2 output: `umull.2d v.2s, v.2s` — 2 u32/i32 multiplicands per operand
+// Only the low 64 bits of each input are read; the high 64 bits are ignored.
+// The tests below use the matching v128_t member arrays (u8x16, u16x8, u32x4)
+// to index into those low-half lanes.
+
+// Accumulate `acc += mul(x, y)` on the chosen lane + sign mode, reading only
+// the low half of x and y (which is what UMLAL consumes on ARM64 and what
+// VectorMulLow computes). Used as the oracle for all three test patterns.
+static void accumulateExtmulLow(v128_t& acc, const v128_t& x, const v128_t& y, SIMDLane outputLane, SIMDSignMode signMode)
+{
+    switch (outputLane) {
+    case SIMDLane::i16x8:
+        for (unsigned i = 0; i < 8; ++i) {
+            uint16_t prod;
+            if (signMode == SIMDSignMode::Unsigned)
+                prod = static_cast<uint16_t>(static_cast<uint16_t>(x.u8x16[i]) * static_cast<uint16_t>(y.u8x16[i]));
+            else {
+                int16_t sprod = static_cast<int16_t>(static_cast<int8_t>(x.u8x16[i])) * static_cast<int16_t>(static_cast<int8_t>(y.u8x16[i]));
+                prod = static_cast<uint16_t>(sprod);
+            }
+            acc.u16x8[i] = static_cast<uint16_t>(acc.u16x8[i] + prod);
+        }
+        break;
+    case SIMDLane::i32x4:
+        for (unsigned i = 0; i < 4; ++i) {
+            uint32_t prod;
+            if (signMode == SIMDSignMode::Unsigned)
+                prod = static_cast<uint32_t>(x.u16x8[i]) * static_cast<uint32_t>(y.u16x8[i]);
+            else {
+                int32_t sprod = static_cast<int32_t>(static_cast<int16_t>(x.u16x8[i])) * static_cast<int32_t>(static_cast<int16_t>(y.u16x8[i]));
+                prod = static_cast<uint32_t>(sprod);
+            }
+            acc.u32x4[i] = acc.u32x4[i] + prod;
+        }
+        break;
+    case SIMDLane::i64x2:
+        for (unsigned i = 0; i < 2; ++i) {
+            uint64_t prod;
+            if (signMode == SIMDSignMode::Unsigned)
+                prod = static_cast<uint64_t>(x.u32x4[i]) * static_cast<uint64_t>(y.u32x4[i]);
+            else {
+                int64_t sprod = static_cast<int64_t>(static_cast<int32_t>(x.u32x4[i])) * static_cast<int64_t>(static_cast<int32_t>(y.u32x4[i]));
+                prod = static_cast<uint64_t>(sprod);
+            }
+            acc.u64x2[i] = acc.u64x2[i] + prod;
+        }
+        break;
+    default:
+        RELEASE_ASSERT_NOT_REACHED();
+    }
+}
+
+// Accumulate `acc += mul(x, y)` on the chosen lane + sign mode, reading only
+// the high half of x and y (which is what UMLAL2/SMLAL2 consume on ARM64 and
+// what VectorMulHigh computes). Mirror of accumulateExtmulLow but indexing
+// the upper 64 bits.
+static void accumulateExtmulHigh(v128_t& acc, const v128_t& x, const v128_t& y, SIMDLane outputLane, SIMDSignMode signMode)
+{
+    switch (outputLane) {
+    case SIMDLane::i16x8:
+        for (unsigned i = 0; i < 8; ++i) {
+            uint16_t prod;
+            if (signMode == SIMDSignMode::Unsigned)
+                prod = static_cast<uint16_t>(static_cast<uint16_t>(x.u8x16[8 + i]) * static_cast<uint16_t>(y.u8x16[8 + i]));
+            else {
+                int16_t sprod = static_cast<int16_t>(static_cast<int8_t>(x.u8x16[8 + i])) * static_cast<int16_t>(static_cast<int8_t>(y.u8x16[8 + i]));
+                prod = static_cast<uint16_t>(sprod);
+            }
+            acc.u16x8[i] = static_cast<uint16_t>(acc.u16x8[i] + prod);
+        }
+        break;
+    case SIMDLane::i32x4:
+        for (unsigned i = 0; i < 4; ++i) {
+            uint32_t prod;
+            if (signMode == SIMDSignMode::Unsigned)
+                prod = static_cast<uint32_t>(x.u16x8[4 + i]) * static_cast<uint32_t>(y.u16x8[4 + i]);
+            else {
+                int32_t sprod = static_cast<int32_t>(static_cast<int16_t>(x.u16x8[4 + i])) * static_cast<int32_t>(static_cast<int16_t>(y.u16x8[4 + i]));
+                prod = static_cast<uint32_t>(sprod);
+            }
+            acc.u32x4[i] = acc.u32x4[i] + prod;
+        }
+        break;
+    case SIMDLane::i64x2:
+        for (unsigned i = 0; i < 2; ++i) {
+            uint64_t prod;
+            if (signMode == SIMDSignMode::Unsigned)
+                prod = static_cast<uint64_t>(x.u32x4[2 + i]) * static_cast<uint64_t>(y.u32x4[2 + i]);
+            else {
+                int64_t sprod = static_cast<int64_t>(static_cast<int32_t>(x.u32x4[2 + i])) * static_cast<int64_t>(static_cast<int32_t>(y.u32x4[2 + i]));
+                prod = static_cast<uint64_t>(sprod);
+            }
+            acc.u64x2[i] = acc.u64x2[i] + prod;
+        }
+        break;
+    default:
+        RELEASE_ASSERT_NOT_REACHED();
+    }
+}
+
+// Pattern A: VectorAdd(acc, VectorMulLow(x, y, lane)) -> single UMLAL.
+void testVectorMulAddLowSimple()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signMode) {
+        alignas(16) v128_t vectors[4]; // acc, x, y, result
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* mul = root->appendNew<SIMDValue>(proc, Origin(), VectorMulLow, B3::V128, lane, signMode, x, y);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, mul);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        for (auto& accOp : v128Operands()) {
+            for (auto& xOp : v128Operands()) {
+                for (auto& yOp : v128Operands()) {
+                    vectors[0] = accOp.value;
+                    vectors[1] = xOp.value;
+                    vectors[2] = yOp.value;
+                    vectors[3] = v128_t { };
+                    invoke<void>(*code, vectors);
+                    v128_t expected = accOp.value;
+                    accumulateExtmulLow(expected, xOp.value, yOp.value, lane, signMode);
+                    CHECK(bitEquals(vectors[3], expected));
+                }
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        test(lane, SIMDSignMode::Unsigned);
+        test(lane, SIMDSignMode::Signed);
+    }
+}
+
+// Pattern B: VectorAdd(acc, VectorShl(VectorMulLow(x, y, lane), 1))
+// After strength reduction this becomes VectorAdd(acc, VectorAdd(M, M)).
+// -> two UMLALs with the same operands (argon2 fBlaMka shape).
+void testVectorMulAddLowDoubled()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signMode) {
+        alignas(16) v128_t vectors[4];
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* mul = root->appendNew<SIMDValue>(proc, Origin(), VectorMulLow, B3::V128, lane, signMode, x, y);
+        Value* one = root->appendNew<Const32Value>(proc, Origin(), 1);
+        Value* doubled = root->appendNew<SIMDValue>(proc, Origin(), VectorShl, B3::V128, lane, SIMDSignMode::None, mul, one);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, doubled);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        for (auto& accOp : v128Operands()) {
+            for (auto& xOp : v128Operands()) {
+                for (auto& yOp : v128Operands()) {
+                    vectors[0] = accOp.value;
+                    vectors[1] = xOp.value;
+                    vectors[2] = yOp.value;
+                    vectors[3] = v128_t { };
+                    invoke<void>(*code, vectors);
+                    v128_t expected = accOp.value;
+                    accumulateExtmulLow(expected, xOp.value, yOp.value, lane, signMode);
+                    accumulateExtmulLow(expected, xOp.value, yOp.value, lane, signMode);
+                    CHECK(bitEquals(vectors[3], expected));
+                }
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        test(lane, SIMDSignMode::Unsigned);
+        test(lane, SIMDSignMode::Signed);
+    }
+}
+
+// Pattern C: VectorAdd(acc, VectorAdd(M1, M2)) where M1, M2 are distinct muls
+// -> two UMLALs with different operands. Mixes signed/unsigned across the pair
+// to exercise per-mul sign mode.
+void testVectorMulAddLowTwoMuls()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signMode1, SIMDSignMode signMode2) {
+        alignas(16) v128_t vectors[6]; // acc, x1, y1, x2, y2, result
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x1 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y1 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* x2 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        Value* y2 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(4 * sizeof(v128_t)));
+        Value* mul1 = root->appendNew<SIMDValue>(proc, Origin(), VectorMulLow, B3::V128, lane, signMode1, x1, y1);
+        Value* mul2 = root->appendNew<SIMDValue>(proc, Origin(), VectorMulLow, B3::V128, lane, signMode2, x2, y2);
+        Value* sumOfMuls = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, mul1, mul2);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, sumOfMuls);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(5 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        auto operands = v128Operands();
+        for (unsigned aIdx = 0; aIdx < operands.size(); aIdx += 3) {
+            for (unsigned bIdx = 0; bIdx < operands.size(); bIdx += 2) {
+                vectors[0] = operands[aIdx].value;
+                vectors[1] = operands[bIdx].value;
+                vectors[2] = operands[(bIdx + 1) % operands.size()].value;
+                vectors[3] = operands[(bIdx + 3) % operands.size()].value;
+                vectors[4] = operands[(bIdx + 5) % operands.size()].value;
+                vectors[5] = v128_t { };
+                invoke<void>(*code, vectors);
+                v128_t expected = vectors[0];
+                accumulateExtmulLow(expected, vectors[1], vectors[2], lane, signMode1);
+                accumulateExtmulLow(expected, vectors[3], vectors[4], lane, signMode2);
+                CHECK(bitEquals(vectors[5], expected));
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        test(lane, SIMDSignMode::Unsigned, SIMDSignMode::Unsigned);
+        test(lane, SIMDSignMode::Signed, SIMDSignMode::Signed);
+        test(lane, SIMDSignMode::Unsigned, SIMDSignMode::Signed);
+        test(lane, SIMDSignMode::Signed, SIMDSignMode::Unsigned);
+    }
+}
+
+// End-to-end: reproduces the argon2 fBlaMka result for two i64 lanes.
+//   result = x + y + 2 * (lo32(x) * lo32(y))
+// Uses VectorSwizzle to pack the low-32 of each i64 lane, mirroring what
+// clang emits for i64x2.extmul_low_i32x4_u(i8x16.shuffle(x), i8x16.shuffle(y)).
+void testVectorMulAddLowBlaMka()
+{
+    if constexpr (!isARM64())
+        return;
+
+    alignas(16) v128_t vectors[3]; // x, y, result
+    Procedure proc;
+    BasicBlock* root = proc.addBlock();
+    auto arguments = cCallArgumentValues<void*>(proc, root);
+    Value* address = arguments[0];
+    Value* x = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+    Value* y = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+
+    // Swizzle that packs bytes [0..3, 8..11] of each operand into the low 8 bytes
+    // (same pattern clang uses to feed i64x2.extmul_low_i32x4_u).
+    v128_t swizzleMask;
+    for (unsigned i = 0; i < 4; ++i)
+        swizzleMask.u8x16[i] = i;
+    for (unsigned i = 0; i < 4; ++i)
+        swizzleMask.u8x16[4 + i] = 8 + i;
+    for (unsigned i = 0; i < 4; ++i)
+        swizzleMask.u8x16[8 + i] = i;
+    for (unsigned i = 0; i < 4; ++i)
+        swizzleMask.u8x16[12 + i] = 8 + i;
+    Value* mask = root->appendNew<Const128Value>(proc, Origin(), swizzleMask);
+    Value* xLow = root->appendNew<SIMDValue>(proc, Origin(), VectorSwizzle, B3::V128, SIMDLane::i8x16, SIMDSignMode::None, x, x, mask);
+    Value* yLow = root->appendNew<SIMDValue>(proc, Origin(), VectorSwizzle, B3::V128, SIMDLane::i8x16, SIMDSignMode::None, y, y, mask);
+    Value* mul = root->appendNew<SIMDValue>(proc, Origin(), VectorMulLow, B3::V128, SIMDLane::i64x2, SIMDSignMode::Unsigned, xLow, yLow);
+    Value* one = root->appendNew<Const32Value>(proc, Origin(), 1);
+    Value* doubled = root->appendNew<SIMDValue>(proc, Origin(), VectorShl, B3::V128, SIMDLane::i64x2, SIMDSignMode::None, mul, one);
+    Value* xPlusY = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, SIMDLane::i64x2, SIMDSignMode::None, x, y);
+    Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, SIMDLane::i64x2, SIMDSignMode::None, xPlusY, doubled);
+    root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(2 * sizeof(v128_t)));
+    root->appendNewControlValue(proc, Return, Origin());
+
+    auto code = compileProc(proc);
+    auto blamka = [](uint64_t xv, uint64_t yv) {
+        const uint64_t m = 0xFFFFFFFFull;
+        uint64_t xy = (xv & m) * (yv & m);
+        return xv + yv + 2 * xy;
+    };
+
+    // Cover interesting combinations including values with non-zero high halves
+    // (which must not affect the product since only low32 is used).
+    uint64_t xValues[] = { 0, 1, 0xFFFFFFFFull, 0x0000000100000002ull, 0xDEADBEEFCAFEBABEull, 0x8000000080000000ull };
+    uint64_t yValues[] = { 0, 1, 3, 0xFFFFFFFFull, 0x1234567890ABCDEFull, 0x7FFFFFFFFFFFFFFFull };
+    for (uint64_t xv : xValues) {
+        for (uint64_t yv : yValues) {
+            vectors[0].u64x2[0] = xv;
+            vectors[0].u64x2[1] = ~xv;
+            vectors[1].u64x2[0] = yv;
+            vectors[1].u64x2[1] = ~yv;
+            vectors[2] = v128_t { };
+            invoke<void>(*code, vectors);
+            CHECK(vectors[2].u64x2[0] == blamka(xv, yv));
+            CHECK(vectors[2].u64x2[1] == blamka(~xv, ~yv));
+        }
+    }
+}
+
+// Pattern A for the High half: VectorAdd(acc, VectorMulHigh(x, y, lane))
+// -> single UMLAL2/SMLAL2. Only the upper 64 bits of each input are read.
+void testVectorMulAddHighSimple()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signMode) {
+        alignas(16) v128_t vectors[4]; // acc, x, y, result
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* mul = root->appendNew<SIMDValue>(proc, Origin(), VectorMulHigh, B3::V128, lane, signMode, x, y);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, mul);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        for (auto& accOp : v128Operands()) {
+            for (auto& xOp : v128Operands()) {
+                for (auto& yOp : v128Operands()) {
+                    vectors[0] = accOp.value;
+                    vectors[1] = xOp.value;
+                    vectors[2] = yOp.value;
+                    vectors[3] = v128_t { };
+                    invoke<void>(*code, vectors);
+                    v128_t expected = accOp.value;
+                    accumulateExtmulHigh(expected, xOp.value, yOp.value, lane, signMode);
+                    CHECK(bitEquals(vectors[3], expected));
+                }
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        test(lane, SIMDSignMode::Unsigned);
+        test(lane, SIMDSignMode::Signed);
+    }
+}
+
+// Pattern B for the High half: VectorAdd(acc, VectorShl(VectorMulHigh(x, y), 1))
+// After strength reduction this becomes VectorAdd(acc, VectorAdd(M, M))
+// with the same node on both sides. -> two UMLAL2/SMLAL2s.
+void testVectorMulAddHighDoubled()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signMode) {
+        alignas(16) v128_t vectors[4];
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* mul = root->appendNew<SIMDValue>(proc, Origin(), VectorMulHigh, B3::V128, lane, signMode, x, y);
+        Value* one = root->appendNew<Const32Value>(proc, Origin(), 1);
+        Value* doubled = root->appendNew<SIMDValue>(proc, Origin(), VectorShl, B3::V128, lane, SIMDSignMode::None, mul, one);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, doubled);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        for (auto& accOp : v128Operands()) {
+            for (auto& xOp : v128Operands()) {
+                for (auto& yOp : v128Operands()) {
+                    vectors[0] = accOp.value;
+                    vectors[1] = xOp.value;
+                    vectors[2] = yOp.value;
+                    vectors[3] = v128_t { };
+                    invoke<void>(*code, vectors);
+                    v128_t expected = accOp.value;
+                    accumulateExtmulHigh(expected, xOp.value, yOp.value, lane, signMode);
+                    accumulateExtmulHigh(expected, xOp.value, yOp.value, lane, signMode);
+                    CHECK(bitEquals(vectors[3], expected));
+                }
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        test(lane, SIMDSignMode::Unsigned);
+        test(lane, SIMDSignMode::Signed);
+    }
+}
+
+// Pattern C for the High half: VectorAdd(acc, VectorAdd(M1, M2)) where M1, M2
+// are distinct VectorMulHigh nodes. -> two UMLAL2/SMLAL2s with different operands.
+void testVectorMulAddHighTwoMuls()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signMode1, SIMDSignMode signMode2) {
+        alignas(16) v128_t vectors[6]; // acc, x1, y1, x2, y2, result
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x1 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y1 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* x2 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        Value* y2 = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(4 * sizeof(v128_t)));
+        Value* mul1 = root->appendNew<SIMDValue>(proc, Origin(), VectorMulHigh, B3::V128, lane, signMode1, x1, y1);
+        Value* mul2 = root->appendNew<SIMDValue>(proc, Origin(), VectorMulHigh, B3::V128, lane, signMode2, x2, y2);
+        Value* sumOfMuls = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, mul1, mul2);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, sumOfMuls);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(5 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        auto operands = v128Operands();
+        for (unsigned aIdx = 0; aIdx < operands.size(); aIdx += 3) {
+            for (unsigned bIdx = 0; bIdx < operands.size(); bIdx += 2) {
+                vectors[0] = operands[aIdx].value;
+                vectors[1] = operands[bIdx].value;
+                vectors[2] = operands[(bIdx + 1) % operands.size()].value;
+                vectors[3] = operands[(bIdx + 3) % operands.size()].value;
+                vectors[4] = operands[(bIdx + 5) % operands.size()].value;
+                vectors[5] = v128_t { };
+                invoke<void>(*code, vectors);
+                v128_t expected = vectors[0];
+                accumulateExtmulHigh(expected, vectors[1], vectors[2], lane, signMode1);
+                accumulateExtmulHigh(expected, vectors[3], vectors[4], lane, signMode2);
+                CHECK(bitEquals(vectors[5], expected));
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        test(lane, SIMDSignMode::Unsigned, SIMDSignMode::Unsigned);
+        test(lane, SIMDSignMode::Signed, SIMDSignMode::Signed);
+        test(lane, SIMDSignMode::Unsigned, SIMDSignMode::Signed);
+        test(lane, SIMDSignMode::Signed, SIMDSignMode::Unsigned);
+    }
+}
+
+// The quantized-matmul bread-and-butter: VectorAdd(acc, VectorAdd(MulLow, MulHigh)).
+// Both halves of a single (x, y) pair are consumed in one iteration, so we expect
+// exactly one UMLAL + one UMLAL2 (or SMLAL + SMLAL2). Tests all four orderings
+// (Low+High, High+Low) and both Low/High sign-mode combos since they are
+// independent per-Mul.
+void testVectorMulAddMixedLowHigh()
+{
+    if constexpr (!isARM64())
+        return;
+
+    auto test = [&](SIMDLane lane, SIMDSignMode signModeLow, SIMDSignMode signModeHigh, bool highFirst) {
+        alignas(16) v128_t vectors[4]; // acc, x, y, result
+        Procedure proc;
+        BasicBlock* root = proc.addBlock();
+        auto arguments = cCallArgumentValues<void*>(proc, root);
+        Value* address = arguments[0];
+        Value* acc = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address);
+        Value* x = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(sizeof(v128_t)));
+        Value* y = root->appendNew<MemoryValue>(proc, Load, V128, Origin(), address, static_cast<int32_t>(2 * sizeof(v128_t)));
+        Value* mulLow = root->appendNew<SIMDValue>(proc, Origin(), VectorMulLow, B3::V128, lane, signModeLow, x, y);
+        Value* mulHigh = root->appendNew<SIMDValue>(proc, Origin(), VectorMulHigh, B3::V128, lane, signModeHigh, x, y);
+        Value* sumOfMuls = highFirst
+            ? root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, mulHigh, mulLow)
+            : root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, mulLow, mulHigh);
+        Value* result = root->appendNew<SIMDValue>(proc, Origin(), VectorAdd, B3::V128, lane, SIMDSignMode::None, acc, sumOfMuls);
+        root->appendNew<MemoryValue>(proc, Store, Origin(), result, address, static_cast<int32_t>(3 * sizeof(v128_t)));
+        root->appendNewControlValue(proc, Return, Origin());
+
+        auto code = compileProc(proc);
+        for (auto& accOp : v128Operands()) {
+            for (auto& xOp : v128Operands()) {
+                for (auto& yOp : v128Operands()) {
+                    vectors[0] = accOp.value;
+                    vectors[1] = xOp.value;
+                    vectors[2] = yOp.value;
+                    vectors[3] = v128_t { };
+                    invoke<void>(*code, vectors);
+                    v128_t expected = accOp.value;
+                    accumulateExtmulLow(expected, xOp.value, yOp.value, lane, signModeLow);
+                    accumulateExtmulHigh(expected, xOp.value, yOp.value, lane, signModeHigh);
+                    CHECK(bitEquals(vectors[3], expected));
+                }
+            }
+        }
+    };
+
+    for (SIMDLane lane : { SIMDLane::i16x8, SIMDLane::i32x4, SIMDLane::i64x2 }) {
+        for (bool highFirst : { false, true }) {
+            test(lane, SIMDSignMode::Unsigned, SIMDSignMode::Unsigned, highFirst);
+            test(lane, SIMDSignMode::Signed, SIMDSignMode::Signed, highFirst);
+            test(lane, SIMDSignMode::Unsigned, SIMDSignMode::Signed, highFirst);
+            test(lane, SIMDSignMode::Signed, SIMDSignMode::Unsigned, highFirst);
+        }
+    }
+}
+
 template<typename T, typename SignedT>
 static void testVectorShrImmediateForLane(SIMDLane lane, SIMDSignMode signMode, unsigned shift, T inputVal)
 {

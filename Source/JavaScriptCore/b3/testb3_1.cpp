@@ -1451,6 +1451,14 @@ void run(const TestConfig* config)
         RUN(testVectorExtractLane0Double());
         RUN(testVectorMulHigh());
         RUN(testVectorMulLow());
+        RUN(testVectorMulAddLowSimple());
+        RUN(testVectorMulAddLowDoubled());
+        RUN(testVectorMulAddLowTwoMuls());
+        RUN(testVectorMulAddLowBlaMka());
+        RUN(testVectorMulAddHighSimple());
+        RUN(testVectorMulAddHighDoubled());
+        RUN(testVectorMulAddHighTwoMuls());
+        RUN(testVectorMulAddMixedLowHigh());
         RUN(testVectorRelaxedMinMax());
         RUN(testVectorRelaxedQ15Mulr());
         RUN(testVectorRelaxedDotI8x16I7x16());
