@@ -435,6 +435,11 @@ static void trySOAuthorization(Ref<API::NavigationAction>&& navigationAction, We
         completionHandler(false);
         return;
     }
+    // URLs with a registered WKURLSchemeHandler are handled locally and should not go through SSO.
+    if (page.urlSchemeHandlerForScheme(navigationAction->request().url().protocol())) {
+        completionHandler(false);
+        return;
+    }
     protect(page.websiteDataStore())->soAuthorizationCoordinator(page).tryAuthorize(WTF::move(navigationAction), page, WTF::move(completionHandler));
 #else
     completionHandler(false);
@@ -491,6 +496,12 @@ static void interceptMarketplaceKitNavigation(Ref<API::NavigationAction>&& actio
 
 static void tryInterceptNavigation(Ref<API::NavigationAction>&& navigationAction, WebPageProxy& page, WTF::Function<void(bool)>&& completionHandler)
 {
+    // URLs with a registered WKURLSchemeHandler are handled locally and should not be intercepted by app links or SSO.
+    if (page.urlSchemeHandlerForScheme(navigationAction->request().url().protocol())) {
+        completionHandler(false);
+        return;
+    }
+
 #if HAVE(MARKETPLACE_KIT)
     if (isMarketplaceKitURL(navigationAction->request().url())) {
         interceptMarketplaceKitNavigation(WTF::move(navigationAction), page);
@@ -595,7 +606,7 @@ void NavigationState::NavigationClient::decidePolicyForNavigationAction(WebPageP
 
             auto nsURLRequest = wrapper(API::URLRequest::create(navigationAction->request()));
             if ((nsURLRequest.get().URL && [NSURLConnection canHandleRequest:nsURLRequest.get()])
-                || webPage->urlSchemeHandlerForScheme(nsURLRequest.get().URL.scheme)
+                || webPage->urlSchemeHandlerForScheme(String(nsURLRequest.get().URL.scheme))
                 || [nsURLRequest.get().URL.scheme isEqualToString:@"blob"]) {
                 if (navigationAction->shouldPerformDownload())
                     listener->download();

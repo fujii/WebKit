@@ -2267,7 +2267,7 @@ std::tuple<Ref<WebProcessProxy>, RefPtr<SuspendedPageProxy>, ASCIILiteral> WebPr
     // Redirects to a different scheme for which the client has registered their own custom handler.
     // We need to process swap so that we end up with a fresh navigation instead of a redirect, so
     // that the app's scheme handler gets used (rdar://117891282).
-    if (navigation.currentRequestIsRedirect() && navigation.originalRequest().url().protocol() != targetURL.protocol() && page.urlSchemeHandlerForScheme(targetURL.protocol().toString()))
+    if (navigation.currentRequestIsRedirect() && navigation.originalRequest().url().protocol() != targetURL.protocol() && page.urlSchemeHandlerForScheme(targetURL.protocol()))
         return { createNewProcess(), nullptr, "Redirect to a different scheme for which the app registered a custom handler"_s };
 
     bool siteIsolationEnabled = protect(page.preferences())->siteIsolationEnabled();
