@@ -76,6 +76,7 @@
 #include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/JSObjectInlines.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/SyntheticModuleRecord.h>

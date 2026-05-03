@@ -40,6 +40,7 @@
 #include "LocalFrameInlines.h"
 #include "PageGroup.h"
 #include "ScriptController.h"
+#include <JavaScriptCore/JSGlobalObjectInlines.h>
 #include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/WeakGCMapInlines.h>

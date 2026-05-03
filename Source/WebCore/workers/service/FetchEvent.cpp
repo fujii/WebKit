@@ -34,6 +34,7 @@
 #include "JSFetchResponse.h"
 #include "Logging.h"
 #include <JavaScriptCore/JSCJSValueInlines.h>
+#include <JavaScriptCore/StrongInlines.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/MakeString.h>
 

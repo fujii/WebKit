@@ -33,6 +33,7 @@
 #include "JSDOMConvertStrings.h"
 #include "LocalDOMWindow.h"
 #include "RenderView.h"
+#include <JavaScriptCore/JSObjectInlines.h>
 #include <wtf/SetForScope.h>
 #include <wtf/TZoneMallocInlines.h>
 

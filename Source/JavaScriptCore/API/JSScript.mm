@@ -25,6 +25,7 @@
 
 #import "config.h"
 #import "JSBase.h"
+#import "JSValueRef.h"
 #import "JSScriptInternal.h"
 
 #import "APICast.h"

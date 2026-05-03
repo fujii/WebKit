@@ -27,6 +27,7 @@
 #include "InlineCallFrame.h"
 
 #include "CodeBlock.h"
+#include "FunctionExecutable.h"
 #include "JSCJSValueInlines.h"
 
 namespace JSC {

@@ -29,6 +29,7 @@
 #include "PropertyNameArray.h"
 #include "ResourceExhaustion.h"
 #include "ScopedArguments.h"
+#include "TopExceptionScope.h"
 #include "TypeError.h"
 #include <wtf/Assertions.h>
 

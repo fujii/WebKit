@@ -86,6 +86,7 @@
 #include "TranslateTransformOperation.h"
 #include "ViewTimeline.h"
 #include <JavaScriptCore/Exception.h>
+#include <JavaScriptCore/IteratorOperations.h>
 #include <ranges>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/UUID.h>

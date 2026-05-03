@@ -27,6 +27,7 @@
 #include "ArrayBuffer.h"
 
 #include "JSArrayBufferView.h"
+#include "JSArrayBufferViewInlines.h"
 #include "JSCellInlines.h"
 #include "JSWebAssemblyInstance.h"
 #include "WaiterListManager.h"

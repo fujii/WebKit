@@ -41,6 +41,7 @@
 #include "JSPromiseReaction.h"
 #include "Microtask.h"
 #include "ObjectConstructor.h"
+#include "TopExceptionScope.h"
 
 namespace JSC {
 
