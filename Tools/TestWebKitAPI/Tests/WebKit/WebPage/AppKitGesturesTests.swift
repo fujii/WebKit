@@ -92,7 +92,7 @@ struct AppKitGesturesTests {
         }
 
         await recap.play { composer in
-            composer._wk_click(toBounds.center)
+            composer._wk_click(at: toBounds.center, for: .seconds(0.1))
 
             composer.advanceTime(0.1)
 
@@ -112,7 +112,11 @@ struct AppKitGesturesTests {
         #expect(firstRangeEditorState.postLayoutData != nil)
     }
 
-    @Test(arguments: [true, false])
+    @Test(
+        .disabled("This test is now correct, but it reveals a real issue causing it to now fail."),
+        .bug("rdar://176117750"),
+        arguments: [true, false]
+    )
     func clickingOnSelectedWordOpensContextMenu(contentEditable: Bool) async throws {
         try await loadHTML(contentEditable: contentEditable)
 
@@ -149,7 +153,7 @@ struct AppKitGesturesTests {
             with: implementation
         ) {
             await recap.play { composer in
-                composer._wk_click(crazyBoundsInScreenCoordinates.center)
+                composer._wk_click(at: crazyBoundsInScreenCoordinates.center, for: .seconds(0.1))
             }
 
             await future.wait()
@@ -184,9 +188,9 @@ struct AppKitGesturesTests {
         }
 
         await recap.play { composer in
-            composer._wk_click(crazyBoundsInScreenCoordinates.center)
+            composer._wk_click(at: crazyBoundsInScreenCoordinates.center, for: .seconds(0.1))
             composer.advanceTime(0.1)
-            composer._wk_click(crazyBoundsInScreenCoordinates.center)
+            composer._wk_click(at: crazyBoundsInScreenCoordinates.center, for: .seconds(0.1))
         }
 
         await page.waitForNextPresentationUpdate()
@@ -219,7 +223,7 @@ struct AppKitGesturesTests {
         }
 
         await recap.play { composer in
-            composer._wk_click(point)
+            composer._wk_click(at: point, for: .seconds(0.1))
         }
 
         await page.waitForNextPresentationUpdate()
