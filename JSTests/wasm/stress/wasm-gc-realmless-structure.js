@@ -1,6 +1,3 @@
-//@ requireOptions("--useWasmGC=1")
-//@ skip if !$isSupportedByHardware
-
 // Test that WasmGC objects work correctly with realmless structures (null realm).
 
 function makeWasmGCModule() {

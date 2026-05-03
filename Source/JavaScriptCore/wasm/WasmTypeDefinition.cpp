@@ -32,12 +32,14 @@
 #include "JSWebAssemblyArray.h"
 #include "JSWebAssemblyException.h"
 #include "JSWebAssemblyStruct.h"
+#include "Options.h"
 #include "WasmCallee.h"
 #include "WasmFormat.h"
 #include "WasmTypeDefinitionInlines.h"
 #include "WasmTypeSectionState.h"
 #include "WebAssemblyFunctionBase.h"
 #include <wtf/CommaPrinter.h>
+#include <wtf/DataLog.h>
 #include <wtf/FastMalloc.h>
 #include <wtf/ReferenceWrapperVector.h>
 #include <wtf/StringPrintStream.h>
@@ -153,7 +155,7 @@ RTTGroup::~RTTGroup()
         rtt->setCanonicalGroup(nullptr, 0);
 }
 
-void RTT::rewriteInternalRefs(TypeSectionState* state, const Vector<Ref<const RTT>>& groupMembers, const RecursionGroup* recursionGroup)
+void RTT::rewriteInternalRefs(TypeSectionState* state, std::span<const Ref<const RTT>> groupMembers, const RecursionGroup* recursionGroup)
 {
     // Walk every ref-bearing TypeSlot in the payload. For each placeholder
     // Projection ref, rewrite the slot's Type::index to the canonical RTT
@@ -206,6 +208,26 @@ void RTT::clearReferencedRTTs()
     visitChildrenRTT([](TypeSlot& slot) {
         slot.rttAnchor = nullptr;
     });
+}
+
+void RTT::clearAllDisplayRefs()
+{
+    for (unsigned i = 0; i < (m_displaySizeExcludingThis + 1); ++i)
+        at(i) = nullptr;
+}
+
+void RTT::setSelfDisplaySlot() const
+{
+    ASSERT(!at(m_displaySizeExcludingThis));
+    const_cast<RTT*>(this)->at(m_displaySizeExcludingThis) = this;
+}
+
+void TypeInformation::breakCyclesForReclamation(const RTT& rtt)
+{
+    RTT& mutableRTT = const_cast<RTT&>(rtt);
+    mutableRTT.clearAllDisplayRefs();
+    mutableRTT.clearReferencedRTTs();
+    rtt.setCanonicalGroup(nullptr, 0);
 }
 
 void RTT::dump(PrintStream& out) const
@@ -481,11 +503,11 @@ struct GroupLookup {
 
 // Singleton lookup: only matches the entry's own RTT at projection index 0.
 struct SingletonSelfRef {
-    SUPPRESS_UNCOUNTED_MEMBER const RTT* self;
+    SUPPRESS_UNCOUNTED_MEMBER const RTT& self;
     std::optional<size_t> operator()(const RTT* rtt) const
     {
-        if (rtt == self)
-            return size_t { 0 };
+        if (rtt == &self)
+            return 0;
         return std::nullopt;
     }
 };
@@ -666,15 +688,12 @@ bool CanonicalRecursionGroupEntry::operator==(const CanonicalRecursionGroupEntry
 
 unsigned CanonicalSingletonEntryHash::hash(const CanonicalSingletonEntry& entry)
 {
-    ASSERT(entry.rtt);
-    return hashRTTForRecGroup(*entry.rtt, SingletonSelfRef { entry.rtt.get() });
+    return hashRTTForRecGroup(entry.rtt.get(), SingletonSelfRef { entry.rtt.get() });
 }
 
 bool CanonicalSingletonEntryHash::equal(const CanonicalSingletonEntry& a, const CanonicalSingletonEntry& b)
 {
-    if (!a.rtt || !b.rtt)
-        return a.rtt == b.rtt;
-    return equalRTTsForRecGroup(*a.rtt, SingletonSelfRef { a.rtt.get() }, *b.rtt, SingletonSelfRef { b.rtt.get() });
+    return equalRTTsForRecGroup(a.rtt.get(), SingletonSelfRef { a.rtt.get() }, b.rtt.get(), SingletonSelfRef { b.rtt.get() });
 }
 
 bool CanonicalSingletonEntry::operator==(const CanonicalSingletonEntry& other) const
@@ -715,68 +734,45 @@ Vector<Ref<const RTT>> TypeInformation::canonicalizeRecursionGroupImpl(TypeSecti
     // The loop/HashSet logic below is correct for any size >= 1.
     ASSERT(!candidateRTTs.isEmpty());
 
-    Locker locker { m_lock };
-
-    // Rewrite internal Projection refs to canonical RTT pointers
-    // (self-references among the candidate RTTs themselves). Non-recursive
-    // RTTs have no placeholder-tagged refs in their payloads, so skip the
-    // rewrite walk entirely for them.
-    for (auto& rtt : candidateRTTs) {
-        if (rtt->hasRecursiveReference())
-            const_cast<RTT&>(rtt.get()).rewriteInternalRefs(state, candidateRTTs, recursionGroup);
+    auto candidateGroup = RTTGroup::create(WTF::move(candidateRTTs));
+    for (uint32_t i = 0; i < candidateGroup->size(); ++i) {
+        auto& rtt = candidateGroup->at(i);
+        // Resolve placeholder Projection refs to bare canonical RTT
+        // pointers. Pass candidateGroup->rtts(), not the moved-from
+        // candidateRTTs.
+        if (rtt.hasRecursiveReference())
+            const_cast<RTT&>(rtt).rewriteInternalRefs(state, candidateGroup->rtts().span(), recursionGroup);
+        rtt.setSelfDisplaySlot();
+        rtt.setCanonicalGroup(candidateGroup.ptr(), i);
     }
 
-    // Wrap the candidate RTTs in an RTTGroup and tag each member's
-    // canonicalGroup() back-pointer. Hash/equal can then O(1)-detect
-    // intra-group refs via rtt->canonicalGroup() == candidateGroup.get().
-    // If the candidate matches an existing canonical entry, the inserted
-    // Ref is dropped; our local candidateGroup keeps the RTTs alive while
-    // we break the intra-group rttAnchor cycles created by
-    // rewriteInternalRefs so they can actually be freed. RTTGroup's
-    // destructor then nulls each member's back-pointer for safety.
-    auto candidateGroup = RTTGroup::create(WTF::move(candidateRTTs));
-    for (uint32_t i = 0; i < candidateGroup->size(); ++i)
-        candidateGroup->at(i).setCanonicalGroup(candidateGroup.ptr(), i);
-
+    Locker locker { m_lock };
     CanonicalRecursionGroupEntry candidate { candidateGroup.copyRef() };
     auto addResult = m_canonicalRecursionGroups.add(WTF::move(candidate));
-
     if (!addResult.isNewEntry) {
-        for (auto& rtt : candidateGroup->rtts())
-            const_cast<RTT&>(rtt.get()).clearReferencedRTTs();
+        for (const Ref<const RTT>& member : candidateGroup->rtts())
+            breakCyclesForReclamation(member.get());
     }
-    // After add, addResult.iterator->group is either the existing canonical
-    // group or the just-inserted candidate group (both have equivalent rtts).
     return addResult.iterator->group->rtts();
 }
 
 Ref<const RTT> TypeInformation::canonicalizeSingletonImpl(TypeSectionState* state, const RecursionGroup* recursionGroup, Ref<const RTT>&& candidate)
 {
-    // Rewrite intra-group placeholder refs to the candidate RTT* so the
-    // singleton hash/equal can detect self-refs via pointer identity.
-    // Non-recursive payloads have nothing to rewrite; skip the walk.
-    bool hasRecursiveReference = candidate->hasRecursiveReference();
-    if (hasRecursiveReference) {
-        // rewriteInternalRefs consults the Vector<Ref<const RTT>>& to map
-        // projection indices to RTT pointers. A singleton's only valid
-        // projection index is 0, pointing at the candidate itself.
-        Vector<Ref<const RTT>> groupMembers;
+    // Rewrite self-ref placeholders to the candidate RTT so hash/equal can
+    // detect self-refs by pointer identity.
+    if (candidate->hasRecursiveReference()) {
+        Vector<Ref<const RTT>, 1> groupMembers;
         groupMembers.append(candidate.copyRef());
-        const_cast<RTT&>(candidate.get()).rewriteInternalRefs(state, groupMembers, recursionGroup);
+        const_cast<RTT&>(candidate.get()).rewriteInternalRefs(state, groupMembers.span(), recursionGroup);
     }
+    candidate->setSelfDisplaySlot();
 
     Locker locker { m_lock };
-    // Retain an external ref across HashSet::add so we can break the
-    // self-cycle that rewriteInternalRefs wrote into the candidate's
-    // TypeSlot anchors if the candidate is discarded as a duplicate. Only
-    // needed when the candidate actually went through rewriteInternalRefs
-    // (recursive case); non-recursive singletons have no self-refs to break.
-    Ref<const RTT> retainer = candidate.copyRef();
-    CanonicalSingletonEntry entry { WTF::move(candidate) };
+    CanonicalSingletonEntry entry { candidate.copyRef() };
     auto addResult = m_canonicalSingletonGroups.add(WTF::move(entry));
-    if (!addResult.isNewEntry && hasRecursiveReference)
-        const_cast<RTT&>(retainer.get()).clearReferencedRTTs();
-    return Ref<const RTT> { *addResult.iterator->rtt };
+    if (!addResult.isNewEntry)
+        breakCyclesForReclamation(candidate.get());
+    return addResult.iterator->rtt.copyRef();
 }
 
 Ref<const RTT> TypeInformation::canonicalizeStandaloneRTT(Ref<const RTT>&& candidate)
@@ -855,26 +851,156 @@ void TypeInformation::tryCleanup()
     auto& info = singleton();
     Locker locker { info.m_lock };
 
-    bool changed = false;
-    do {
-        changed = false;
-        info.m_canonicalSingletonGroups.removeIf([&](const CanonicalSingletonEntry& entry) {
-            if (entry.rtt && entry.rtt->hasOneRef()) {
-                changed = true;
-                return true;
-            }
-            return false;
-        });
-    } while (changed);
+    // Bacon-Rajan synchronous cycle collection. Snapshot -> trial-decrement
+    // internal edges -> restore via BFS from roots -> sweep zeros.
 
-    // Multi-member m_canonicalRecursionGroups: skipped. Members anchor each
-    // other through TypeSlot::rttAnchor (rewriteInternalRefs builds the
-    // cycles intentionally), so per-member hasOneRef() never fires. A
-    // correct collector would have to detect that the entire group's
-    // external refcount is zero and drop all members atomically; not worth
-    // the complexity until profiling justifies it. Also, if singleton case
-    // includes recursion, then it is also leaking.
-    // FIXME: Implement group-level reclamation. https://bugs.webkit.org/show_bug.cgi?id=313185
+    auto forEachCandidateGroup = [&](auto&& cb) {
+        for (const auto& entry : info.m_canonicalRecursionGroups)
+            cb(entry.group.get());
+    };
+    auto forEachCandidateRTT = [&](auto&& cb) {
+        forEachCandidateGroup([&](auto& group) {
+            for (const auto& rtt : group.rtts())
+                cb(rtt.get());
+        });
+        for (const auto& entry : info.m_canonicalSingletonGroups)
+            cb(entry.rtt.get());
+    };
+
+    // Phase 1: snapshot refCount() into scratch.
+    forEachCandidateGroup([](const RTTGroup& group) {
+        group.setVirtualRefCount(group.refCount());
+    });
+    forEachCandidateRTT([](const RTT& rtt) {
+        rtt.setVirtualRefCount(rtt.refCount());
+    });
+
+    auto decRTT = [](const RTT* tgt) {
+        if (!tgt)
+            return;
+        ASSERT(tgt->virtualRefCount() > 0);
+        tgt->setVirtualRefCount(tgt->virtualRefCount() - 1);
+    };
+    auto decGroup = [](const RTTGroup* tgt) {
+        if (!tgt)
+            return;
+        ASSERT(tgt->virtualRefCount() > 0);
+        tgt->setVirtualRefCount(tgt->virtualRefCount() - 1);
+    };
+
+    auto decEdgesFromRTT = [&](const RTT& rtt) {
+        decGroup(rtt.canonicalGroup());
+        rtt.forEachPayloadRTTRef(decRTT);
+        for (unsigned i = 0; i <= rtt.displaySizeExcludingThis(); ++i)
+            decRTT(rtt.displayEntry(i));
+    };
+
+    // Phase 2: trial-decrement every internal structural edge.
+    // Unlike original Bacon-Rajan, we do not need tri-color graph traversal since
+    // all RTTs and groups are reachable from m_canonicalRecursionGroups and m_canonicalSingletonGroups.
+
+    // Visit each group and RTT, perform trial-decrement for each edge.
+    // This edge includes edges from m_canonicalRecursionGroups / m_canonicalSingletonGroups.
+    for (const auto& entry : info.m_canonicalRecursionGroups) {
+        const RTTGroup& group = entry.group.get();
+        decGroup(&group);
+        for (const auto& rtt : group.rtts()) {
+            decRTT(rtt.ptr());
+            decEdgesFromRTT(rtt.get());
+        }
+    }
+    for (const auto& entry : info.m_canonicalSingletonGroups) {
+        decRTT(entry.rtt.ptr());
+        decEdgesFromRTT(entry.rtt.get());
+    }
+
+    // Phase 3: transitive-closure restore from any object still > 0.
+    Vector<const RTT*, 16> rttWorklist;
+    Vector<const RTTGroup*, 16> groupWorklist;
+
+    // After trial-decrement, if group / RTT are still non-zero count,
+    // this indicates that they are actually referenced outside of this registry.
+    forEachCandidateRTT([&](const RTT& rtt) {
+        if (rtt.virtualRefCount() > 0)
+            rttWorklist.append(&rtt);
+    });
+    forEachCandidateGroup([&](const RTTGroup& group) {
+        if (group.virtualRefCount() > 0)
+            groupWorklist.append(&group);
+    });
+
+    // Then restore virtualRefCount non-zero which are reachable from the above really live RTTs and groups.
+    auto incRTT = [&](const RTT* tgt) {
+        if (!tgt)
+            return;
+        bool wasZero = !tgt->virtualRefCount();
+        tgt->setVirtualRefCount(tgt->virtualRefCount() + 1);
+        if (wasZero)
+            rttWorklist.append(tgt);
+    };
+    auto incGroup = [&](const RTTGroup* tgt) {
+        if (!tgt)
+            return;
+        bool wasZero = !tgt->virtualRefCount();
+        tgt->setVirtualRefCount(tgt->virtualRefCount() + 1);
+        if (wasZero)
+            groupWorklist.append(tgt);
+    };
+
+    while (!rttWorklist.isEmpty() || !groupWorklist.isEmpty()) {
+        while (!groupWorklist.isEmpty()) {
+            const RTTGroup* group = groupWorklist.takeLast();
+            for (const auto& rtt : group->rtts())
+                incRTT(rtt.ptr());
+        }
+        while (!rttWorklist.isEmpty()) {
+            const RTT* rtt = rttWorklist.takeLast();
+            incGroup(rtt->canonicalGroup());
+            rtt->forEachPayloadRTTRef(incRTT);
+            for (unsigned i = 0; i <= rtt->displaySizeExcludingThis(); ++i)
+                incRTT(rtt->displayEntry(i));
+        }
+    }
+
+    // Phase 4: sweep objects whose virtualRefCount stayed 0.
+    size_t groupsBeforeSweep = info.m_canonicalRecursionGroups.size();
+    size_t singletonsBeforeSweep = info.m_canonicalSingletonGroups.size();
+    info.m_canonicalRecursionGroups.removeIf([&](const CanonicalRecursionGroupEntry& entry) {
+        const RTTGroup& group = entry.group.get();
+        if (group.virtualRefCount() > 0)
+            return false;
+        // Clear intra-group display / payload / m_group refs so the natural
+        // destructor cascade can drive each member's refcount to 0 once the
+        // table entry drops.
+        for (const auto& member : group.rtts())
+            breakCyclesForReclamation(member.get());
+        return true;
+    });
+
+    info.m_canonicalSingletonGroups.removeIf([&](const CanonicalSingletonEntry& entry) {
+        if (entry.rtt->virtualRefCount() > 0)
+            return false;
+        breakCyclesForReclamation(entry.rtt.get());
+        return true;
+    });
+
+    if (Options::verboseWasmTypeCleanup()) [[unlikely]] {
+        size_t groupsAfter = info.m_canonicalRecursionGroups.size();
+        size_t singletonsAfter = info.m_canonicalSingletonGroups.size();
+        dataLogLn("[Wasm::TypeInformation::tryCleanup] groups scanned=", groupsBeforeSweep,
+            " reclaimed=", groupsBeforeSweep - groupsAfter,
+            " live=", groupsAfter,
+            " | singletons scanned=", singletonsBeforeSweep,
+            " reclaimed=", singletonsBeforeSweep - singletonsAfter,
+            " live=", singletonsAfter);
+    }
+}
+
+size_t TypeInformation::canonicalTypeCount()
+{
+    auto& info = singleton();
+    Locker locker { info.m_lock };
+    return info.m_canonicalRecursionGroups.size() + info.m_canonicalSingletonGroups.size();
 }
 
 bool NODELETE Type::definitelyIsCellOrNull() const
