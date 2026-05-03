@@ -146,6 +146,7 @@
 #if PLATFORM(IOS_FAMILY)
 #import "AccessibilityUtilitiesSPI.h"
 #import "UIKitSPI.h"
+#import <WebCore/RenderThemeIOS.h>
 #import <wtf/spi/darwin/MemoryStatusSPI.h>
 #endif
 

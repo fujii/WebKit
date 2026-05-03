@@ -34,6 +34,7 @@
 #include <WebCore/AXTextMarker.h>
 #include <WebCore/AXTextRun.h>
 #include <WebCore/AXTreeStore.h>
+#include <WebCore/AccessibilityObject.h>
 #include <WebCore/ColorHash.h>
 #include <WebCore/FrameIdentifier.h>
 #include <WebCore/RenderStyleConstants.h>

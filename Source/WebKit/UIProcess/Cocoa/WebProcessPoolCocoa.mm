@@ -125,6 +125,7 @@
 #endif
 
 #if PLATFORM(IOS_FAMILY)
+#import <WebCore/RenderThemeIOS.h>
 #import <pal/spi/ios/GraphicsServicesSPI.h>
 #import <pal/spi/ios/MobileGestaltSPI.h>
 #endif

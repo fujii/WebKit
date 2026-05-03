@@ -8869,7 +8869,7 @@ struct WebCore::WrappedCryptoKey {
 };
 
 #if PLATFORM(IOS_FAMILY)
-using WebCore::RenderThemeIOS::CSSValueToSystemColorMap = HashMap<WebCore::CSSValueKey, WebCore::Color>
+using WebCore::CSSValueToSystemColorMap = HashMap<WebCore::CSSValueKey, WebCore::Color>
 #endif
 
 enum class WebCore::WorkerThreadMode : bool

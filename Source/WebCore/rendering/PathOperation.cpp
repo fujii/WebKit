@@ -103,6 +103,19 @@ std::optional<Path> ShapePathOperation::getPath(const TransformOperationData& da
     return Style::tryPath(shape(), data, zoom);
 }
 
+bool ShapePathOperation::operator==(const ShapePathOperation& other) const
+{
+    return m_shape == other.m_shape
+        && m_referenceBox == other.m_referenceBox;
+}
+
+bool ShapePathOperation::operator==(const PathOperation& other) const
+{
+    if (!isSameType(other))
+        return false;
+    return *this == uncheckedDowncast<ShapePathOperation>(other);
+}
+
 // MARK: - BoxPathOperation
 
 Ref<BoxPathOperation> BoxPathOperation::create(CSSBoxType referenceBox)
@@ -157,6 +170,18 @@ RefPtr<PathOperation> RayPathOperation::blend(const PathOperation* to, const Ble
 std::optional<Path> RayPathOperation::getPath(const TransformOperationData& data, Style::ZoomFactor zoom) const
 {
     return Style::tryPath(*ray(), data, zoom);
+}
+
+bool RayPathOperation::operator==(const RayPathOperation& other) const
+{
+    return m_ray == other.m_ray;
+}
+
+bool RayPathOperation::operator==(const PathOperation& other) const
+{
+    if (!isSameType(other))
+        return false;
+    return *this == uncheckedDowncast<RayPathOperation>(other);
 }
 
 } // namespace WebCore
