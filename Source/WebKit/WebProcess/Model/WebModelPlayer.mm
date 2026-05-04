@@ -333,7 +333,11 @@ void WebModelPlayer::handleMouseMove(const WebCore::LayoutPoint& currentPoint, M
     if (!m_initialPoint)
         return;
 
-    static constexpr float kDragToRotationMultiplier = 0.005;
+    static constexpr float kDefaultDragToRotationMultiplier = 0.005;
+    static float kDragToRotationMultiplier = [] {
+        auto factor = [[NSUserDefaults standardUserDefaults] floatForKey:@"WebKitModelDragToRotationMultiplier"];
+        return kDefaultDragToRotationMultiplier * (factor > 0 ? factor : 1.0f);
+    }();
 
     float totalDeltaX = static_cast<float>(m_initialPoint->x() - currentPoint.x()) * kDragToRotationMultiplier;
     float totalDeltaY = static_cast<float>(currentPoint.y() - m_initialPoint->y()) * kDragToRotationMultiplier;
