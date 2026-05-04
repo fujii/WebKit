@@ -1307,7 +1307,8 @@
 (deny syscall-unix (with no-report)
     (syscall-number
         (when (defined? 'SYS_crossarch_trap) SYS_crossarch_trap)
-        SYS_os_fault_with_payload))
+        SYS_os_fault_with_payload
+        SYS_socket))
 
 #if HAVE(SANDBOX_STATE_FLAGS)
 (with-filter (require-not (webcontent-process-launched))
