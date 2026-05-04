@@ -2951,6 +2951,27 @@ ExceptionOr<RefPtr<NodeList>> Internals::nodesFromRect(Document& document, int c
     return RefPtr<NodeList> { StaticNodeList::create(WTF::move(matches)) };
 }
 
+ExceptionOr<RefPtr<Node>> Internals::nodeFromPointIncludingChildFrames(Document& document, int x, int y) const
+{
+    if (!document.frame() || !document.frame()->view())
+        return Exception { ExceptionCode::InvalidAccessError };
+
+    document.updateLayout(LayoutOptions::IgnorePendingStylesheets);
+
+    auto* localFrame = document.frame();
+    if (!localFrame)
+        return RefPtr<Node> { };
+
+    constexpr OptionSet<HitTestRequest::Type> hitType {
+        HitTestRequest::Type::ReadOnly,
+        HitTestRequest::Type::Active,
+        HitTestRequest::Type::DisallowUserAgentShadowContent,
+        HitTestRequest::Type::AllowChildFrameContent,
+    };
+    auto result = localFrame->eventHandler().hitTestResultAtPoint(IntPoint(x, y), hitType);
+    return RefPtr<Node> { result.innerNode() };
+}
+
 class GetCallerCodeBlockFunctor {
 public:
     GetCallerCodeBlockFunctor()

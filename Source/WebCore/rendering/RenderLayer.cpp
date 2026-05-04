@@ -4970,7 +4970,7 @@ RenderLayer::HitLayer RenderLayer::hitTestLayerByApplyingTransform(RenderLayer* 
         newHitTestLocation = HitTestLocation(localPoint, localPointQuad);
     } else {
         auto localPointQuad = newTransformState->boundsOfMappedQuad();
-        newHitTestLocation = HitTestLocation(localPoint, FloatRect { localPointQuad });
+        newHitTestLocation = HitTestLocation(localPoint, FloatRect { localPointQuad }, HitTestLocation::RectBased::No);
     }
 
     // Now do a hit test with the root layer shifted to be us.
