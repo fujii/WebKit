@@ -3668,10 +3668,8 @@ auto OMGIRGenerator::addArrayNewDefault(TypeSignatureIndex typeIndex, Expression
         initValue = m_currentBlock->appendNew<WasmConstRefValue>(m_proc, origin(), JSValue::encode(jsNull()));
     else if (elementType.elementSize() == 16)
         initValue = constant(V128, v128_t { });
-    else if (elementType.elementSize() <= 4)
-        initValue = constant(Int32, 0);
     else
-        initValue = constant(Int64, 0);
+        initValue = constant(toB3Type(elementType.unpacked()), 0);
 
     Value* sizeValue = get(size);
 
@@ -4029,10 +4027,8 @@ auto OMGIRGenerator::addStructNewDefault(TypeSignatureIndex typeIndex, Expressio
             initValue = m_currentBlock->appendNew<WasmConstRefValue>(m_proc, origin(), JSValue::encode(jsNull()));
         else if (typeSizeInBytes(fieldType) == 16)
             initValue = constant(V128, v128_t { });
-        else if (typeSizeInBytes(fieldType) <= 4)
-            initValue = constant(Int32, 0);
         else
-            initValue = constant(Int64, 0);
+            initValue = constant(toB3Type(fieldType.unpacked()), 0);
         // We know all the values here are not cells so we don't need a writeBarrier.
         bool needsWriteBarrier = emitStructSet(/* canTrap */ false, structNew, i, rtt, initValue);
         UNUSED_VARIABLE(needsWriteBarrier);
