@@ -1895,30 +1895,6 @@ bool Quirks::needsIPhoneUserAgent(const URL& url, UseDesktopClassBrowsing useDes
     return false;
 }
 
-bool Quirks::needsChromeForAndroidUserAgent(const URL& url)
-{
-#if PLATFORM(IOS_FAMILY)
-    // nfl.com rdar://171113872
-    if (url.host() == "www.nfl.com"_s && PAL::currentUserInterfaceIdiomIsSmallScreen())
-        return true;
-#else
-    UNUSED_PARAM(url);
-#endif
-    return false;
-}
-
-bool Quirks::needsMediaSourceEnabled(const URL& url)
-{
-#if PLATFORM(IOS_FAMILY)
-    // nfl.com rdar://171113872
-    if (url.host() == "www.nfl.com"_s && PAL::currentUserInterfaceIdiomIsSmallScreen())
-        return true;
-#else
-    UNUSED_PARAM(url);
-#endif
-    return false;
-}
-
 std::optional<String> Quirks::needsCustomUserAgentOverride(const URL& url, const String& applicationNameForUserAgent, const String& currentUserAgent)
 {
     auto hostDomain = RegistrableDomain(url);
@@ -2321,6 +2297,14 @@ bool Quirks::shouldLimitHLSPlaybackRate() const
     QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
 
     return m_quirksData.quirkIsEnabled(QuirksData::SiteSpecificQuirk::ShouldLimitHLSPlaybackRate);
+}
+
+// nfl.com:
+bool Quirks::shouldSuppressHLSSubtitles() const
+{
+    QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
+
+    return m_quirksData.quirkIsEnabled(QuirksData::SiteSpecificQuirk::ShouldSuppressHLSSubtitles);
 }
 
 // spotify.com rdar://140707449
@@ -3457,6 +3441,13 @@ static void NODELETE handleNBAQuirks(QuirksData& quirksData, const URL& /* quirk
 #endif
 }
 
+static void handleNFLQuirks(QuirksData& quirksData, const URL& /* quirksURL */, const String& quirksDomainString, const URL&  /* documentURL */)
+{
+    QUIRKS_EARLY_RETURN_IF_NOT_DOMAIN("nfl.com"_s);
+
+    quirksData.enableQuirk(QuirksData::SiteSpecificQuirk::ShouldSuppressHLSSubtitles);
+}
+
 static void handleNHLQuirks(QuirksData& quirksData, const URL& /* quirksURL */, const String& quirksDomainString, const URL&  /* documentURL */)
 {
     QUIRKS_EARLY_RETURN_IF_NOT_DOMAIN("nhl.com"_s);
@@ -3906,6 +3897,7 @@ void Quirks::determineRelevantQuirks()
         { "messenger"_s, &handleFacebookMessengerQuirks },
         { "netflix"_s, &handleNetflixQuirks },
         { "nba"_s, &handleNBAQuirks },
+        { "nfl"_s, &handleNFLQuirks },
         { "nhl"_s, &handleNHLQuirks },
 #if PLATFORM(IOS) || PLATFORM(VISION)
         { "nytimes"_s, &handleNYTimesQuirks },

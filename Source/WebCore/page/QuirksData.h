@@ -258,6 +258,7 @@ struct QuirksData {
 #endif
         ShouldLimitHLSPlaybackRate,
         ShouldDeferIntersectionObserversDuringResize,
+        ShouldSuppressHLSSubtitles,
 
         NumberOfQuirks
     };
