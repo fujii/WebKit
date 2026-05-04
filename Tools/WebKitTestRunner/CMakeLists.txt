@@ -128,6 +128,7 @@ WEBKIT_LIBRARY_DECLARE(TestRunnerInjectedBundle)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
 WEBKIT_LIBRARY(TestRunnerInjectedBundle)
+ADD_WEBKIT_PREFIX_HEADERS(TestRunnerInjectedBundle WebKitTestRunnerPrefix.h)
 WEBKIT_EXECUTABLE(WebKitTestRunner)
 ADD_WEBKIT_PREFIX_HEADERS(WebKitTestRunner WebKitTestRunnerPrefix.h)
 

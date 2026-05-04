@@ -522,12 +522,13 @@ list(APPEND WebKit_SOURCES
     webpushd/_WKMockUserNotificationCenter.mm
 )
 
-# Generated JSWebExtension*.mm IDL bindings need -fobjc-arc per file.
-# NB: file(GLOB) runs at configure time; on first clean build these don't exist yet.
-file(GLOB _webkit_js_extension_sources "${WebKit_DERIVED_SOURCES_DIR}/JSWebExtension*.mm")
-set_source_files_properties(${_webkit_js_extension_sources} PROPERTIES COMPILE_FLAGS "-fobjc-arc" GENERATED TRUE)
-list(APPEND WebKit_SOURCES ${_webkit_js_extension_sources})
-unset(_webkit_js_extension_sources)
+# Generated JSWebExtension*.mm IDL bindings need -fobjc-arc; route to WebKitARC.
+foreach (_file IN LISTS WebKit_BINDINGS_IN_FILES)
+    get_filename_component(_name ${_file} NAME_WE)
+    list(APPEND WebKit_ARC_SOURCES ${WebKit_DERIVED_SOURCES_DIR}/JS${_name}.mm)
+    set_source_files_properties(${WebKit_DERIVED_SOURCES_DIR}/JS${_name}.mm PROPERTIES GENERATED TRUE)
+endforeach ()
+unset(_name)
 
 find_library(CRYPTOTOKENKIT_LIBRARY CryptoTokenKit)
 find_library(USERNOTIFICATIONS_LIBRARY UserNotifications)

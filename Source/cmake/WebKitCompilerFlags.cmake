@@ -289,6 +289,9 @@ if (COMPILER_IS_GCC_OR_CLANG)
         # with PCH enabled the pragma is lost when the PCH is loaded.
         WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-Wno-invalid-offsetof)
 
+        # Ditto for SentinelLinkedList.h.
+        WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-Wno-dangling-pointer)
+
         # Match Clang's behavor and exit after emitting 20 errors.
         # https://bugs.webkit.org/show_bug.cgi?id=244621
         WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS(-fmax-errors=20)

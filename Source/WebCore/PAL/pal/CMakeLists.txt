@@ -145,6 +145,7 @@ WEBKIT_COPY_FILES(PAL_CopyHeaders
 )
 
 WEBKIT_FRAMEWORK(PAL)
+ADD_WEBKIT_PREFIX_HEADERS(PAL PALPrefix.h)
 
 # PAL's Swift sources need the module.modulemap and headers to be installed
 # before compilation (they import the underlying pal module). The CopyHeaders

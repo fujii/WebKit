@@ -62,9 +62,18 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <wtf/CheckedPtr.h>
+#include <wtf/HashMap.h>
+#include <wtf/HashSet.h>
+#include <wtf/RetainPtr.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/ThreadSafeWeakHashSet.h>
+#include <wtf/URL.h>
 #include <wtf/Variant.h>
+#include <wtf/Vector.h>
+#include <wtf/text/StringHash.h>
+#include <wtf/text/WTFString.h>
 #endif
 
 #ifdef __OBJC__
@@ -73,8 +82,8 @@
 #endif
 
 #ifdef __cplusplus
-#define new ("if you use new/delete make sure to include config.h at the top of the file"()) 
-#define delete ("if you use new/delete make sure to include config.h at the top of the file"()) 
+#define new ("if you use new/delete make sure to include config.h at the top of the file"())
+#define delete ("if you use new/delete make sure to include config.h at the top of the file"())
 #endif
 
 #if USE(OS_LOG)

@@ -2218,6 +2218,7 @@ void CodeBlock::linkIncomingCall(JSCell* caller, CallLinkInfoBase* incoming)
 
 void CodeBlock::unlinkOrUpgradeIncomingCalls(VM& vm, CodeBlock* newCodeBlock)
 {
+IGNORE_GCC_WARNINGS_BEGIN("dangling-pointer")
     SentinelLinkedList<CallLinkInfoBase, BasicRawSentinelNode<CallLinkInfoBase>> toBeRemoved;
     toBeRemoved.takeFrom(m_incomingCalls);
 
@@ -2226,6 +2227,7 @@ void CodeBlock::unlinkOrUpgradeIncomingCalls(VM& vm, CodeBlock* newCodeBlock)
     // be accumulated correctly.
     while (!toBeRemoved.isEmpty())
         toBeRemoved.begin()->unlinkOrUpgrade(vm, this, newCodeBlock);
+IGNORE_GCC_WARNINGS_END
 }
 
 CodeBlock* CodeBlock::newReplacement()

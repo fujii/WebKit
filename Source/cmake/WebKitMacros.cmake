@@ -67,13 +67,13 @@ macro(WEBKIT_COMPUTE_SOURCES _framework)
         foreach (_file IN LISTS _outputTmp)
             if (_file MATCHES "\\.c$")
                 list(APPEND ${_framework}_C_SOURCES ${_file})
+            elseif (_file MATCHES "-ARC\\.mm$")
+                # generate-unified-source-bundles.rb emits *-ARC.mm and *-nonARC.mm bundles based
+                # on @nonARC annotations in Sources*.txt. The ARC bundles compile in a separate
+                # OBJECT library so the OBJCXX precompiled header agrees on -fobjc-arc.
+                list(APPEND ${_framework}_ARC_SOURCES ${_file})
             else ()
                 list(APPEND ${_framework}_SOURCES ${_file})
-                # generate-unified-source-bundles.rb emits *-ARC.mm and *-nonARC.mm bundles based
-                # on @no-arc annotations in Sources*.txt. Xcode uses per-file CLANG_ENABLE_OBJC_ARC.
-                if (_file MATCHES "-ARC\\.mm$")
-                    set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS "-fobjc-arc")
-                endif ()
             endif ()
         endforeach ()
 
@@ -123,43 +123,19 @@ macro(WEBKIT_ADD_SOURCE_DEPENDENCIES _source _deps)
     unset(_tmp)
 endmacro()
 
-# Wrapper around target_precompile_headers() with two workarounds:
+# Wrapper around target_precompile_headers().
 #
-# 1. OBJCXX is excluded from the PCH because WebKit targets mix ARC and
-#    non-ARC .mm sources in the same target. CMake generates one PCH per
-#    language per target, so ARC sources would get a non-ARC PCH (or vice
-#    versa), producing:
-#      "ARC was disabled in precompiled file ... but is currently enabled"
-#    OBJCXX sources still get the prefix header via a plain -include flag.
+# Swift sources are unaffected: with CMP0157 NEW (set in the top-level
+# CMakeLists.txt) the Swift link rule receives only object files, so the
+# .pch is never passed to swiftc.
 #
-# 2. Targets with Swift sources fall back to -include for ALL languages.
-#    CMake's Swift linker rule includes the .pch in the link inputs,
-#    producing "unexpected input file: ...pch". Using -include avoids
-#    generating a .pch file entirely.
+# Targets that mix ARC and non-ARC .mm split the ARC sources into a separate
+# OBJECT library (see ${_framework}_ARC_SOURCES) so each gets a matching PCH.
 #
-# On ports where OBJC/OBJCXX are not enabled languages the OBJC/OBJCXX
-# clauses are no-ops.
-# FIXME: We should refactor this so that sources differentiate by language
-# so we use PCHs consistently rather than just prefix headers.
+# On ports where OBJC/OBJCXX are not enabled languages those clauses are no-ops.
 macro(ADD_WEBKIT_PREFIX_HEADERS _target _header)
-    get_target_property(_sources ${_target} SOURCES)
-    set(_has_swift FALSE)
-    foreach (_src IN LISTS _sources)
-        if (_src MATCHES "\\.swift$")
-            set(_has_swift TRUE)
-            break ()
-        endif ()
-    endforeach ()
-
-    if (_has_swift)
-        target_compile_options(${_target} PRIVATE
-            "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-include;${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
-    else ()
-        target_precompile_headers(${_target} PRIVATE
-            "$<$<COMPILE_LANGUAGE:C,CXX,OBJC>:${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
-        target_compile_options(${_target} PRIVATE
-            "$<$<COMPILE_LANGUAGE:OBJCXX>:-include;${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
-    endif ()
+    target_precompile_headers(${_target} PRIVATE
+        "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
 endmacro()
 
 macro(WEBKIT_FRAMEWORK_DECLARE _target)

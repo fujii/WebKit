@@ -6,8 +6,8 @@ set(MACOSX_FRAMEWORK_BUNDLE_VERSION 615.1.1+)
 # Enable Objective-C / Objective-C++ so .m/.mm sources use the OBJC/OBJCXX
 # compile rules and $<COMPILE_LANGUAGE:OBJC/OBJCXX> generator expressions
 # match. Without this CMake compiles .mm as CXX, CMAKE_OBJCXX_FLAGS are
-# ignored, and the -include flag in ADD_WEBKIT_PREFIX_HEADERS never fires
-# for .mm sources.
+# ignored, and ADD_WEBKIT_PREFIX_HEADERS produces no OBJCXX precompiled
+# header for .mm sources.
 enable_language(OBJC OBJCXX)
 
 WEBKIT_OPTION_BEGIN()

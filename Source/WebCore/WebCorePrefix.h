@@ -162,12 +162,16 @@
 #ifdef __cplusplus
 
 #if !PLATFORM(WIN)
+#include <wtf/CheckedPtr.h>
 #include <wtf/FastMalloc.h>
 #include <wtf/HashMap.h>
+#include <wtf/HashSet.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/ThreadSafeWeakHashSet.h>
 #include <wtf/text/AtomString.h>
+#include <wtf/text/StringHash.h>
 #include <wtf/text/WTFString.h>
 #endif
 

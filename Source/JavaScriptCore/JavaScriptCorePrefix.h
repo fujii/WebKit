@@ -59,6 +59,18 @@
 #endif
 
 #ifdef __cplusplus
+#include "Bytecodes.h"
+#include "CodeBlock.h"
+#include "Heap.h"
+#include "JSCJSValue.h"
+#include "JSCJSValuePropertyInlines.h"
+#include "JSGlobalObject.h"
+#include "JSObject.h"
+#include "JSString.h"
+#include "MarkedBlockInlines.h"
+#include "OptionsList.h"
+#include "Structure.h"
+#include "VM.h"
 #include <chrono>
 #include <functional>
 #include <list>
@@ -66,14 +78,36 @@
 #include <mutex>
 #include <string>
 #include <typeinfo>
+#include <wtf/HashMap.h>
+#include <wtf/HashSet.h>
+#include <wtf/SIMDHelpers.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/ValidatedReinterpretCast.h>
 #include <wtf/Variant.h>
+#include <wtf/Vector.h>
+#include <wtf/text/WTFString.h>
+
+#if ENABLE(ASSEMBLER)
+#include "GPRInfo.h"
+#include "LinkBuffer.h"
+#include "MacroAssembler.h"
+#endif
+
+#if ENABLE(JIT)
+#include "AssemblyHelpers.h"
+#include "CCallHelpers.h"
+#include "JITOperations.h"
+#endif
+
+#if ENABLE(WEBASSEMBLY)
+#include "WasmCallingConvention.h"
+#endif
 #endif
 
 #ifdef __cplusplus
-#define new ("if you use new/delete make sure to include config.h at the top of the file"()) 
-#define delete ("if you use new/delete make sure to include config.h at the top of the file"()) 
+#define new ("if you use new/delete make sure to include config.h at the top of the file"())
+#define delete ("if you use new/delete make sure to include config.h at the top of the file"())
 #endif
 
 /* When C++ exceptions are disabled, the C++ library defines |try| and |catch|

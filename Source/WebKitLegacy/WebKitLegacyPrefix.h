@@ -30,9 +30,8 @@
 #include "cmakeconfig.h"
 #endif
 
-#include <wtf/Platform.h>
-
 #include <TargetConditionals.h>
+#include <wtf/Platform.h>
 
 #ifdef __cplusplus
 #define NULL __null
@@ -40,19 +39,17 @@
 #define NULL ((void *)0)
 #endif
 
+#import <CoreGraphics/CoreGraphics.h>
+#import <errno.h>
+#import <fcntl.h>
+#import <pthread.h>
+#import <signal.h>
 #import <stddef.h>
 #import <stdio.h>
-#import <fcntl.h>
-#import <errno.h>
-#import <unistd.h>
-#import <signal.h>
-#import <sys/types.h>
-#import <sys/time.h>
 #import <sys/resource.h>
-
-#import <pthread.h>
-
-#import <CoreGraphics/CoreGraphics.h>
+#import <sys/time.h>
+#import <sys/types.h>
+#import <unistd.h>
 
 #ifdef __cplusplus
 
@@ -93,6 +90,15 @@ typedef float CGFloat;
 #undef catch
 
 #ifdef __cplusplus
+#include <wtf/CheckedPtr.h>
 #include <wtf/FastMalloc.h>
+#include <wtf/HashMap.h>
+#include <wtf/HashSet.h>
+#include <wtf/RetainPtr.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/ThreadSafeWeakHashSet.h>
+#include <wtf/URL.h>
+#include <wtf/Vector.h>
+#include <wtf/text/StringHash.h>
+#include <wtf/text/WTFString.h>
 #endif

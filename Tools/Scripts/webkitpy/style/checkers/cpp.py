@@ -4188,7 +4188,7 @@ def check_include_line(filename, file_extension, clean_lines, line_number, inclu
         return
 
     # Check to make sure *Includes.h headers never appear inside a non-Includes.h header.
-    if header_type == _INLINES_HEADER and file_is_header and not filename.endswith('Inlines.h'):
+    if header_type == _INLINES_HEADER and file_is_header and not filename.endswith('Inlines.h') and not filename.endswith('Prefix.h'):
         error(line_number, 'build-speed/inlines', 4, 'Never put an Inlines.h header in a non-Inlines.h header.')
 
     # Check to make sure we have a blank line after and none before primary header.

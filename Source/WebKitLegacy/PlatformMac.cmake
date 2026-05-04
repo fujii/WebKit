@@ -565,7 +565,7 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     ${WEBCORE_DIR}/plugins/npapi.h
 )
 
-ADD_WEBKIT_PREFIX_HEADERS(WebKitLegacy mac/WebKitPrefix.h)
+ADD_WEBKIT_PREFIX_HEADERS(WebKitLegacy WebKitLegacyPrefix.h)
 
 foreach (_file ${WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES})
     get_filename_component(_name "${_file}" NAME)
