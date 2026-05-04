@@ -5641,6 +5641,13 @@ private:
             return arrayBufferView;
         }
         case CryptoKeyTag: {
+            if (auto* globalObject = dynamicDowncast<JSDOMGlobalObject>(m_globalObject)) {
+                if (RefPtr context = globalObject->scriptExecutionContext(); context && !context->isSecureContext()) {
+                    SERIALIZE_TRACE("FAIL deserialize");
+                    fail();
+                    return JSValue();
+                }
+            }
             Vector<uint8_t> wrappedKey;
             if (!read(wrappedKey)) {
                 SERIALIZE_TRACE("FAIL deserialize");
