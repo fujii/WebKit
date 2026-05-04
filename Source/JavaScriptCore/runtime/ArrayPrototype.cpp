@@ -1606,6 +1606,8 @@ JSArray* tryConcatOneArgFast(JSGlobalObject* globalObject, VM& vm, JSArray* firs
     JSArray* secondArray = uncheckedDowncast<JSArray>(argumentObject);
     if (!firstArray->canFastCopy(secondArray)) [[unlikely]]
         return nullptr;
+    if (firstArray->mergeIndexingTypeForCopying(secondArray->indexingType(), /* allowPromotion */ true) == NonArray) [[unlikely]]
+        return nullptr;
     RELEASE_AND_RETURN(scope, tryConcatAppendArrayFastWithWatchpoints(globalObject, vm, firstArray, secondArray));
 }
 

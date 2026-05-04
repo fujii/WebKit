@@ -1409,6 +1409,8 @@ JSC_DEFINE_JIT_OPERATION(operationArrayConcatArray, JSArray*, (JSGlobalObject* g
     CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
     JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
     auto scope = DECLARE_THROW_SCOPE(vm);
+    if (firstArray->mergeIndexingTypeForCopying(secondArray->indexingType(), /* allowPromotion */ true) == NonArray) [[unlikely]]
+        OPERATION_RETURN(scope, nullptr);
     OPERATION_RETURN(scope, tryConcatAppendArrayFastWithWatchpoints(globalObject, vm, firstArray, secondArray));
 }
 
