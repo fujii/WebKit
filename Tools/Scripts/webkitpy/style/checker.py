@@ -37,6 +37,7 @@ import re
 
 from webkitpy.common.host import Host
 from webkitpy.common.system.logutils import configure_logging as _configure_logging
+from webkitpy.layout_tests.controllers.layout_test_finder import IMPORTED_WPT_DIR
 from webkitpy.port.config import apple_additions
 from webkitpy.style.checkers.basexcconfig import BaseXcconfigChecker
 from webkitpy.style.checkers.common import categories as CommonCategories
@@ -65,6 +66,7 @@ from webkitpy.style.checkers.watchlist import WatchListChecker
 from webkitpy.style.checkers.xcodeproj import XcodeProjectFileChecker
 from webkitpy.style.checkers.xcscheme import XcodeSchemeChecker
 from webkitpy.style.checkers.xml import XMLChecker
+from webkitpy.style.checkers.wpt import wpt_lint_categories, run_wpt_lint
 from webkitpy.style.error_handlers import DefaultStyleErrorHandler
 from webkitpy.style.filter import FilterConfiguration
 from webkitpy.style.optparser import ArgumentParser
@@ -445,6 +447,40 @@ _PATH_RULES_SPECIFIER = [
     ([  # Ignore whitespace issues in third party library esprima.js
      os.path.join('Source', 'WebInspectorUI', 'UserInterface', 'External', 'Esprima', 'esprima.js')],
      ["-whitespace/tab"]),
+
+    ([  # Import artifact written by Tools/Scripts/import-w3c-tests.
+      'w3c-import.log'],
+     ['-wpt/lint']),
+
+    ([  # WebKit's expectations.
+      '-expected.txt'],
+     ['-wpt/lint']),
+
+    ([  # Dummy .html files generated from .any.js templates by
+        # Tools/Scripts/import-w3c-tests (excluding those sharing the basename, see below).
+      '.any.window-module.html',
+      '.any.serviceworker.html',
+      '.any.serviceworker-module.html',
+      '.any.sharedworker.html',
+      '.any.sharedworker-module.html',
+      '.any.worker.html',
+      '.any.worker-module.html',
+      '.any.shadowrealm-in-window.html',
+      '.any.shadowrealm-in-shadowrealm.html',
+      '.any.shadowrealm-in-dedicatedworker.html',
+      '.any.shadowrealm-in-sharedworker.html',
+      '.any.shadowrealm-in-serviceworker.html',
+      '.any.shadowrealm-in-audioworklet.html'],
+     ['-wpt/lint/worker_collision']),
+
+    ([  # Templated test sources and their generated dummy .html counterparts.
+      '.any.js',
+      '.any.html',
+      '.window.js',
+      '.window.html',
+      '.worker.js',
+      '.worker.html'],
+     ['-wpt/lint/duplicate_basename_path', '-wpt/lint/worker_collision']),
 ]
 
 
@@ -631,6 +667,8 @@ def _all_categories():
     #        (which validate the consistency of the configuration
     #        settings against the known categories, etc).
     categories = categories.union(["pep8/W191", "pep8/W291", "pep8/E501", "pycodestyle/E501"])
+
+    categories = categories.union(wpt_lint_categories())
 
     if apple_additions():
         categories = categories.union(apple_additions().all_categories())
@@ -1273,3 +1311,14 @@ class StyleProcessor(ProcessorBase):
     def do_association_check(self, files, cwd, host=Host()):
         _log.debug("Running TestExpectations linter")
         TestExpectationsChecker.lint_test_expectations(files, self._configuration, cwd, self._increment_error_count, host=host)
+
+        wpt_dir = os.path.join('LayoutTests', *IMPORTED_WPT_DIR.split('/'))
+        wpt_paths = []
+        for abs_path in files:
+            rel_path = os.path.relpath(abs_path, cwd)
+            if rel_path.startswith(wpt_dir + os.sep):
+                wpt_rel = os.path.relpath(rel_path, wpt_dir)
+                wpt_paths.append(wpt_rel)
+        if wpt_paths:
+            wpt_repo_dir = os.path.join(cwd, wpt_dir)
+            run_wpt_lint(wpt_repo_dir, wpt_paths, self._configuration, self._increment_error_count)

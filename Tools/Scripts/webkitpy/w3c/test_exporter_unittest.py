@@ -90,7 +90,7 @@ class TestExporterTest(testing.PathTestCase):
 
         def lint(self):
             self.calls.append('lint')
-            return 0
+            return iter([])
 
     def test_export(self):
         with OutputCapture(level=logging.INFO) as captured, bmocks.Bugzilla(self.BUGZILLA_URL.split('://')[1], issues=bmocks.ISSUES, environment=wkmocks.Environment(
