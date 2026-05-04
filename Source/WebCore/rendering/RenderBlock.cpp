@@ -3298,6 +3298,27 @@ LayoutUnit RenderBlock::adjustIntrinsicLogicalHeightForBoxSizing(LayoutUnit heig
     return height + intrinsicBorderForFieldset();
 }
 
+LayoutSize RenderBlock::intrinsicSize() const
+{
+    if (!style().hasUsedAppearance())
+        return { };
+
+    // CSS UI 4: widgets are replaced elements, but WebKit has them as RenderBlock with appearance (not RenderReplaced).
+    // Provide intrinsic size from the theme so they participate in replaced-element sizing paths.
+    auto zoom = style().evaluationTimeZoomEnabled() ? 1.0f : style().usedZoom();
+    auto controlSize = theme().controlSize(style().usedAppearance(), style().fontCascade(), { Style::PreferredSize { CSS::Keyword::Auto { } }, Style::PreferredSize { CSS::Keyword::Auto { } } }, zoom);
+
+    auto width = LayoutUnit { };
+    if (auto fixedWidth = controlSize.width().tryFixed())
+        width = LayoutUnit { fixedWidth->resolveZoom(style().usedZoomForLength()) };
+
+    auto height = LayoutUnit { };
+    if (auto fixedHeight = controlSize.height().tryFixed())
+        height = LayoutUnit { fixedHeight->resolveZoom(style().usedZoomForLength()) };
+
+    return { width, height };
+}
+
 void RenderBlock::paintExcludedChildrenInBorder(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
 {
     if (!isFieldset())

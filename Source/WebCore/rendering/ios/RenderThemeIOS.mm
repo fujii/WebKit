@@ -224,6 +224,15 @@ void RenderThemeIOS::adjustMinimumIntrinsicSizeForAppearance(StyleAppearance app
     }
 }
 
+Style::PreferredSizePair RenderThemeIOS::controlSize(StyleAppearance appearance, const FontCascade& fontCascade, const Style::PreferredSizePair& zoomedSize, float) const
+{
+    if (appearance != StyleAppearance::Checkbox && appearance != StyleAppearance::Radio)
+        return zoomedSize;
+
+    auto size = Style::PreferredSize::Fixed { std::max(fontCascade.size(), 16.f) };
+    return { size, size };
+}
+
 void RenderThemeIOS::adjustRadioStyle(RenderStyle& style, const Element*) const
 {
     adjustMinimumIntrinsicSizeForAppearance(StyleAppearance::Radio, style);
