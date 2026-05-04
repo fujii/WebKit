@@ -113,7 +113,6 @@ struct AppKitGesturesTests {
     }
 
     @Test(
-        .disabled("This test is now correct, but it reveals a real issue causing it to now fail."),
         .bug("rdar://176117750"),
         arguments: [true, false]
     )

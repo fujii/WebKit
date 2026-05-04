@@ -7641,6 +7641,11 @@ void WebViewImpl::addTextSelectionManager()
 {
     [m_textSelectionController addTextSelectionManager];
 }
+
+bool WebViewImpl::isTextSelectedAtPoint(NSPoint point)
+{
+    return [m_textSelectionController isTextSelectedAtPoint:point];
+}
 #endif // HAVE(APPKIT_GESTURES_SUPPORT)
 
 } // namespace WebKit

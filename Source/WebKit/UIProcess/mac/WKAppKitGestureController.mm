@@ -1022,15 +1022,28 @@ static inline bool isSamePair(NSGestureRecognizer *a, NSGestureRecognizer *b, NS
 {
     WK_APPKIT_GESTURE_CONTROLLER_RELEASE_LOG(RefPtr { _page.get() }->logIdentifier(), "Gesture: %@", gestureRecognizer);
 
+    CheckedPtr viewImpl = _viewImpl.get();
+    if (!viewImpl)
+        return NO;
+
+    RetainPtr webView = viewImpl->view();
+    if (!webView)
+        return NO;
+
     if (gestureRecognizer == _doubleClickGestureRecognizer) {
-        CheckedPtr viewImpl = _viewImpl.get();
-        if (!viewImpl || !viewImpl->allowsMagnification())
+        if (!viewImpl->allowsMagnification())
             return NO;
     }
 
     if (gestureRecognizer == _secondaryClickGestureRecognizer) {
         // FIXME: Implement logic for determining if the clicked node is not text.
         return NO;
+    }
+
+    if (gestureRecognizer == _singleClickGestureRecognizer || gestureRecognizer == _mouseTrackingGestureRecognizer) {
+        // The platform text selection interaction should handle any gestures on a selection.
+        NSPoint locationInViewCoordinates = [gestureRecognizer locationInView:webView];
+        return !viewImpl->isTextSelectedAtPoint(locationInViewCoordinates);
     }
 
     return YES;
