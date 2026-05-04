@@ -105,7 +105,6 @@ media/modern-media-controls/media-controller/media-controller-fade-controls-when
 media/modern-media-controls/mute-support/mute-support-press-on-button.html [ Timeout ]
 media/restore-from-page-cache.html [ Timeout ]
 requestidlecallback/requestidlecallback-in-page-cache.html [ Timeout ]
-security/contentSecurityPolicy/plugins-types-allows-youtube-plugin-replacement.html [ Timeout ]
 storage/indexeddb/IDBTransaction-page-cache.html [ Timeout ]
 tiled-drawing/tiled-drawing-scroll-position-page-cache-restoration.html [ Timeout ]
 webrtc/datachannel/datachannel-page-cache-send.html [ Timeout ]

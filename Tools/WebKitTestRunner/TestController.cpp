@@ -4321,7 +4321,14 @@ void TestController::decidePolicyForNavigationAction(WKPageRef page, WKNavigatio
                 if (!mainFrameIsExternal && !m_allowedHosts.count(toSTD(host))) {
                     auto urlString = adoptWK(WKURLCopyString(url.get()));
                     auto blockedURL = sanitizeExternalURL(urlString.get());
-                    protectedCurrentInvocation()->outputText(makeString("CONSOLE MESSAGE: Blocked access to external URL "_s, blockedURL, '\n'));
+                    auto message = makeString("CONSOLE MESSAGE: Blocked access to external URL "_s, blockedURL, '\n');
+                    if (protectedCurrentInvocation()->shouldDumpJSConsoleLogInStdErr()) {
+                        if (auto string = message.tryGetUTF8())
+                            SAFE_FPRINTF(stderr, "%s", *string);
+                        else
+                            SAFE_FPRINTF(stderr, "Out of memory\n");
+                    } else
+                        protectedCurrentInvocation()->outputText(WTF::move(message));
                     WKFramePolicyListenerIgnore(listener);
                     return;
                 }
