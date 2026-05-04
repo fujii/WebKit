@@ -41,6 +41,7 @@
 #include "EventNames.h"
 #include "FetchRequestCredentials.h"
 #include "IDBConnectionProxy.h"
+#include "JSDOMGlobalObject.h"
 #include "LoaderStrategy.h"
 #include "LocalDOMWindow.h"
 #include "MessageEvent.h"
@@ -158,13 +159,20 @@ void WorkerMessagingProxy::startWorkerGlobalScope(const URL& scriptURL, PAL::Ses
 
     bool isOnline = parentWorkerGlobalScope ? parentWorkerGlobalScope->isOnline() : platformStrategies()->loaderStrategy()->isOnLine();
 
+    String agentClusterID;
+    if (parentWorkerGlobalScope)
+        agentClusterID = parentWorkerGlobalScope->agentClusterID();
+    else
+        agentClusterID = JSDOMGlobalObject::defaultAgentClusterID();
+
     m_scriptURL = scriptURL;
 
     WorkerParameters params { scriptURL, scriptExecutionContext->url(), name, identifier, WTF::move(initializationData.userAgent), isOnline, contentSecurityPolicyResponseHeaders, shouldBypassMainWorldContentSecurityPolicy, crossOriginEmbedderPolicy, timeOrigin, referrerPolicy, workerType, credentials, scriptExecutionContext->settingsValues(), WorkerThreadMode::CreateNewThread, sessionID,
         WTF::move(initializationData.serviceWorkerData),
         initializationData.clientIdentifier,
         scriptExecutionContext->advancedPrivacyProtections(),
-        scriptExecutionContext->noiseInjectionHashSalt()
+        scriptExecutionContext->noiseInjectionHashSalt(),
+        WTF::move(agentClusterID)
     };
     auto thread = DedicatedWorkerThread::create(params, sourceCode, *this, *this, *this, *this, startMode, protect(scriptExecutionContext->topOrigin()), proxy.get(), socketProvider.get(), runtimeFlags);
 

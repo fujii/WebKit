@@ -10097,7 +10097,7 @@ WorkerAsynchronousURLErrorHandlingEnabled:
 
 WorkerInSharedWorkerEnabled:
   type: bool
-  status: unstable
+  status: preview
   category: dom
   humanReadableName: "Worker in SharedWorker"
   humanReadableDescription: "Allow creating dedicated workers from shared workers"

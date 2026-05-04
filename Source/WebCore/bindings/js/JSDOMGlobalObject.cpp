@@ -60,9 +60,7 @@
 #include "RejectedPromiseTracker.h"
 #include "ScriptController.h"
 #include "ScriptModuleLoader.h"
-#include "ServiceWorkerGlobalScope.h"
 #include "ShadowRealmGlobalScope.h"
-#include "SharedWorkerGlobalScope.h"
 #include "StructuredClone.h"
 #include "TrustedType.h"
 #include "WebCoreJSBuiltinInternals.h"
@@ -789,11 +787,10 @@ String JSDOMGlobalObject::defaultAgentClusterID()
 
 String JSDOMGlobalObject::agentClusterID() const
 {
-    // Service workers may run in process but they need to be in a separate agent cluster.
-    if (is<ServiceWorkerGlobalScope>(scriptExecutionContext()))
-        return makeString(Process::identifier().toUInt64(), "-serviceworker"_s);
-    if (is<SharedWorkerGlobalScope>(scriptExecutionContext()))
-        return makeString(Process::identifier().toUInt64(), "-sharedworker"_s);
+    if (auto* workerGlobalScope = dynamicDowncast<WorkerGlobalScope>(scriptExecutionContext())) {
+        ASSERT(!workerGlobalScope->agentClusterID().isEmpty());
+        return workerGlobalScope->agentClusterID();
+    }
     return defaultAgentClusterID();
 }
 

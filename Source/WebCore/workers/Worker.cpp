@@ -88,11 +88,12 @@ Worker::Worker(ScriptExecutionContext& context, JSC::RuntimeFlags runtimeFlags, 
     , m_runtimeFlags(runtimeFlags)
     , m_clientIdentifier(ScriptExecutionContextIdentifier::generate())
 {
-    static bool addedListener;
-    if (!addedListener) {
-        platformStrategies()->loaderStrategy()->addOnlineStateChangeListener(&networkStateChanged);
-        addedListener = true;
-    }
+    static std::once_flag addListenerFlag;
+    std::call_once(addListenerFlag, [] {
+        ensureOnMainThread([] {
+            platformStrategies()->loaderStrategy()->addOnlineStateChangeListener(&networkStateChanged);
+        });
+    });
 
     Locker locker { allWorkersLock };
     auto addResult = allWorkerContexts().add(m_clientIdentifier);

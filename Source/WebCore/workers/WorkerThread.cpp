@@ -74,7 +74,8 @@ WorkerParameters WorkerParameters::isolatedCopy() const
         crossThreadCopy(serviceWorkerData),
         clientIdentifier,
         advancedPrivacyProtections,
-        noiseInjectionHashSalt
+        noiseInjectionHashSalt,
+        agentClusterID.isolatedCopy()
     };
 }
 

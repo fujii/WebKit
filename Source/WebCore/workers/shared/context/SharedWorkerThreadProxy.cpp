@@ -41,6 +41,7 @@
 #include "MessagePort.h"
 #include "Page.h"
 #include "PlatformStrategies.h"
+#include "ProcessIdentifier.h"
 #include "RTCDataChannelRemoteHandlerConnection.h"
 #include "SharedWorker.h"
 #include "SharedWorkerContextManager.h"
@@ -86,7 +87,8 @@ static WorkerParameters generateWorkerParameters(const WorkerFetchResult& worker
         WTF::move(initializationData.serviceWorkerData),
         *initializationData.clientIdentifier,
         document.advancedPrivacyProtections(),
-        document.noiseInjectionHashSalt()
+        document.noiseInjectionHashSalt(),
+        makeString(Process::identifier().toUInt64(), "-sharedworker-"_s, initializationData.clientIdentifier->toString())
     };
 }
 

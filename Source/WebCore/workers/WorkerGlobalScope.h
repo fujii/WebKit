@@ -177,6 +177,8 @@ public:
 
     WorkerClient* workerClient() LIFETIME_BOUND { return m_workerClient.get(); }
 
+    const String& agentClusterID() const LIFETIME_BOUND { return m_agentClusterID; }
+
     void reportErrorToWorkerObject(const String&);
 
 protected:
@@ -251,6 +253,7 @@ private:
     SettingsValues m_settingsValues;
     WorkerType m_workerType;
     FetchOptions::Credentials m_credentials;
+    String m_agentClusterID;
     const RefPtr<WorkerStorageConnection> m_storageConnection;
     RefPtr<WorkerFileSystemStorageConnection> m_fileSystemStorageConnection;
 };

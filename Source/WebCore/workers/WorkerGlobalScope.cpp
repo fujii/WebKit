@@ -125,6 +125,7 @@ WorkerGlobalScope::WorkerGlobalScope(WorkerThreadType type, const WorkerParamete
     , m_settingsValues(params.settingsValues)
     , m_workerType(params.workerType)
     , m_credentials(params.credentials)
+    , m_agentClusterID(params.agentClusterID)
 {
     {
         Locker locker { allWorkerGlobalScopeIdentifiersLock };
