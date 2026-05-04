@@ -438,6 +438,8 @@ inline CapabilityLevel canCompile(Node* node)
     case CallDOM:
     case CallDOMGetter:
     case ArraySlice:
+    case ArrayConcatArray:
+    case ArrayConcatAppendOne:
     case ArraySplice:
     case ArrayIncludes:
     case ArrayIndexOf:

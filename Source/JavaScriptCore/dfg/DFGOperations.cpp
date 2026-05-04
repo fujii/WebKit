@@ -1403,6 +1403,25 @@ JSC_DEFINE_JIT_OPERATION(operationArraySpliceIgnoreResult, EncodedJSValue, (JSGl
     OPERATION_RETURN(scope, result);
 }
 
+JSC_DEFINE_JIT_OPERATION(operationArrayConcatArray, JSArray*, (JSGlobalObject* globalObject, JSArray* firstArray, JSArray* secondArray))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+    OPERATION_RETURN(scope, tryConcatAppendArrayFastWithWatchpoints(globalObject, vm, firstArray, secondArray));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationArrayConcatAppendOne, JSArray*, (JSGlobalObject* globalObject, JSArray* firstArray, EncodedJSValue encodedSecond))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    OPERATION_RETURN(scope, tryConcatOneArgFast(globalObject, vm, firstArray, JSValue::decode(encodedSecond)));
+}
+
 JSC_DEFINE_JIT_OPERATION(operationRegExpExecString, EncodedJSValue, (JSGlobalObject* globalObject, RegExpObject* regExpObject, JSString* argument))
 {
     SuperSamplerScope superSamplerScope(false);

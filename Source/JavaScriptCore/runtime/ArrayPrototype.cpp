@@ -103,7 +103,7 @@ void ArrayPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject)
     putDirectWithoutTransition(vm, vm.propertyNames->iteratorSymbol, globalObject->arrayProtoValuesFunction(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSC_NATIVE_FUNCTION_WITHOUT_TRANSITION(vm.propertyNames->toLocaleString, arrayProtoFuncToLocaleString, static_cast<unsigned>(PropertyAttribute::DontEnum), 0, ImplementationVisibility::Public);
-    JSC_NATIVE_FUNCTION_WITHOUT_TRANSITION(vm.propertyNames->builtinNames().concatPublicName(), arrayProtoFuncConcat, static_cast<unsigned>(PropertyAttribute::DontEnum), 1, ImplementationVisibility::Public);
+    JSC_NATIVE_INTRINSIC_FUNCTION_WITHOUT_TRANSITION(vm.propertyNames->builtinNames().concatPublicName(), arrayProtoFuncConcat, static_cast<unsigned>(PropertyAttribute::DontEnum), 1, ImplementationVisibility::Public, ArrayConcatIntrinsic);
     JSC_NATIVE_FUNCTION_WITHOUT_TRANSITION(vm.propertyNames->fill, arrayProtoFuncFill, static_cast<unsigned>(PropertyAttribute::DontEnum), 1, ImplementationVisibility::Public);
     JSC_NATIVE_FUNCTION_WITHOUT_TRANSITION(vm.propertyNames->join, arrayProtoFuncJoin, static_cast<unsigned>(PropertyAttribute::DontEnum), 1, ImplementationVisibility::Public);
     JSC_NATIVE_INTRINSIC_FUNCTION_WITHOUT_TRANSITION("pop"_s, arrayProtoFuncPop, static_cast<unsigned>(PropertyAttribute::DontEnum), 0, ImplementationVisibility::Public, ArrayPopIntrinsic);
@@ -1456,7 +1456,7 @@ JSC_DEFINE_HOST_FUNCTION(arrayProtoFuncLastIndexOf, (JSGlobalObject* globalObjec
     return JSValue::encode(jsNumber(-1));
 }
 
-static JSArray* concatAppendOne(JSGlobalObject* globalObject, VM& vm, JSArray* first, JSValue second)
+static JSArray* tryConcatAppendOneNonArray(JSGlobalObject* globalObject, VM& vm, JSArray* first, JSValue second)
 {
     auto scope = DECLARE_THROW_SCOPE(vm);
 
@@ -1510,9 +1510,12 @@ static JSArray* concatAppendOne(JSGlobalObject* globalObject, VM& vm, JSArray* f
     return result;
 }
 
-static JSArray* concatAppendArray(JSGlobalObject* globalObject, VM& vm, JSArray* firstArray, JSArray* secondArray)
+JSArray* tryConcatAppendArrayFastWithWatchpoints(JSGlobalObject* globalObject, VM& vm, JSArray* firstArray, JSArray* secondArray)
 {
     auto scope = DECLARE_THROW_SCOPE(vm);
+
+    ASSERT(!globalObject->isHavingABadTime());
+    ASSERT(firstArray->canFastCopy(secondArray));
 
     Butterfly* firstButterfly = firstArray->butterfly();
     Butterfly* secondButterfly = secondArray->butterfly();
@@ -1522,60 +1525,36 @@ static JSArray* concatAppendArray(JSGlobalObject* globalObject, VM& vm, JSArray*
 
     CheckedUint32 checkedResultSize = firstArraySize;
     checkedResultSize += secondArraySize;
-
-    if (checkedResultSize.hasOverflowed()) [[unlikely]] {
-        throwOutOfMemoryError(globalObject, scope);
-        return { };
-    }
+    if (checkedResultSize.hasOverflowed() || checkedResultSize.value() >= MIN_SPARSE_ARRAY_INDEX) [[unlikely]]
+        return nullptr;
 
     unsigned resultSize = checkedResultSize;
+
     IndexingType firstType = firstArray->indexingType();
     IndexingType secondType = secondArray->indexingType();
-    bool allowPromotion = true;
-    IndexingType type = firstArray->mergeIndexingTypeForCopying(secondType, allowPromotion);
-    if (type == NonArray || !firstArray->canFastCopy(secondArray) || resultSize >= MIN_SPARSE_ARRAY_INDEX) {
-        JSArray* result = constructEmptyArray(globalObject, nullptr, resultSize);
-        RETURN_IF_EXCEPTION(scope, { });
+    IndexingType type = firstArray->mergeIndexingTypeForCopying(secondType, /* allowPromotion */ true);
+    ASSERT(type != NonArray);
 
-        bool success = moveArrayElements<ArrayFillMode::Empty>(globalObject, vm, result, 0, firstArray, firstArraySize);
-        EXCEPTION_ASSERT(!scope.exception() == success);
-        if (!success) [[unlikely]]
-            return { };
-        success = moveArrayElements<ArrayFillMode::Empty>(globalObject, vm, result, firstArraySize, secondArray, secondArraySize);
-        EXCEPTION_ASSERT(!scope.exception() == success);
-        if (!success) [[unlikely]]
-            return { };
+    if (!resultSize)
+        RELEASE_AND_RETURN(scope, constructEmptyArray(globalObject, nullptr));
 
-        return result;
-    }
-
-    if (!globalObject->isHavingABadTime()) [[likely]] {
-        if (!resultSize)
-            RELEASE_AND_RETURN(scope, constructEmptyArray(globalObject, nullptr));
-
-        if (!secondArraySize) {
-            if (isCopyOnWrite(firstArray->indexingMode()))
-                return JSArray::createWithButterfly(vm, nullptr, globalObject->originalArrayStructureForIndexingType(firstArray->indexingMode()), firstArray->butterfly());
-        } else if (!firstArraySize) {
-            if (isCopyOnWrite(secondArray->indexingMode()))
-                return JSArray::createWithButterfly(vm, nullptr, globalObject->originalArrayStructureForIndexingType(secondArray->indexingMode()), secondArray->butterfly());
-        }
-    }
+    if (!secondArraySize && isCopyOnWrite(firstArray->indexingMode()))
+        return JSArray::createWithButterfly(vm, nullptr, globalObject->originalArrayStructureForIndexingType(firstArray->indexingMode()), firstButterfly);
+    if (!firstArraySize && isCopyOnWrite(secondArray->indexingMode()))
+        return JSArray::createWithButterfly(vm, nullptr, globalObject->originalArrayStructureForIndexingType(secondArray->indexingMode()), secondButterfly);
 
     Structure* resultStructure = globalObject->arrayStructureForIndexingTypeDuringAllocation(type);
-    if (hasAnyArrayStorage(resultStructure->indexingType())) [[unlikely]]
-        return { };
+    ASSERT(!hasAnyArrayStorage(resultStructure->indexingType()));
 
-    ASSERT(!globalObject->isHavingABadTime());
     auto vectorLength = Butterfly::optimalContiguousVectorLength(resultStructure, resultSize);
     if (vectorLength > MAX_STORAGE_VECTOR_LENGTH) [[unlikely]]
-        return { };
+        return nullptr;
 
     ASSERT(!resultStructure->outOfLineCapacity());
     void* memory = vm.auxiliarySpace().allocate(vm, Butterfly::totalSize(0, 0, true, vectorLength * sizeof(EncodedJSValue)), nullptr, AllocationFailureMode::ReturnNull);
     if (!memory) [[unlikely]] {
         throwOutOfMemoryError(globalObject, scope);
-        return { };
+        return nullptr;
     }
     auto* butterfly = Butterfly::fromBase(memory, 0, 0);
     butterfly->setVectorLength(vectorLength);
@@ -1602,6 +1581,34 @@ static JSArray* concatAppendArray(JSGlobalObject* globalObject, VM& vm, JSArray*
     return JSArray::createWithButterfly(vm, nullptr, resultStructure, butterfly);
 }
 
+JSArray* tryConcatOneArgFast(JSGlobalObject* globalObject, VM& vm, JSArray* firstArray, JSValue argumentValue)
+{
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    ASSERT(!globalObject->isHavingABadTime());
+
+    if (!argumentValue.isObject()) {
+        if (firstArray->length() >= MIN_SPARSE_ARRAY_INDEX) [[unlikely]]
+            return nullptr;
+        RELEASE_AND_RETURN(scope, tryConcatAppendOneNonArray(globalObject, vm, firstArray, argumentValue));
+    }
+
+    JSObject* argumentObject = asObject(argumentValue);
+    if (!arrayMissingIsConcatSpreadable(vm, argumentObject)) [[unlikely]]
+        return nullptr;
+
+    if (!isJSArray(argumentObject)) {
+        if (firstArray->length() >= MIN_SPARSE_ARRAY_INDEX) [[unlikely]]
+            return nullptr;
+        RELEASE_AND_RETURN(scope, tryConcatAppendOneNonArray(globalObject, vm, firstArray, argumentValue));
+    }
+
+    JSArray* secondArray = uncheckedDowncast<JSArray>(argumentObject);
+    if (!firstArray->canFastCopy(secondArray)) [[unlikely]]
+        return nullptr;
+    RELEASE_AND_RETURN(scope, tryConcatAppendArrayFastWithWatchpoints(globalObject, vm, firstArray, secondArray));
+}
+
 JSC_DEFINE_HOST_FUNCTION(arrayProtoFuncConcat, (JSGlobalObject* globalObject, CallFrame* callFrame))
 {
     VM& vm = globalObject->vm();
@@ -1623,33 +1630,14 @@ JSC_DEFINE_HOST_FUNCTION(arrayProtoFuncConcat, (JSGlobalObject* globalObject, Ca
         JSValue argumentValue = callFrame->uncheckedArgument(0);
         if (isJSArray(thisValue)) [[likely]] {
             auto* firstArray = uncheckedDowncast<JSArray>(thisValue);
-            if (arrayMissingIsConcatSpreadable(vm, firstArray) && arraySpeciesWatchpointIsValid(vm, firstArray)) [[likely]] {
+            if (!globalObject->isHavingABadTime() && arrayMissingIsConcatSpreadable(vm, firstArray) && arraySpeciesWatchpointIsValid(vm, firstArray) && !firstArray->mayInterceptIndexedAccesses()) [[likely]] {
                 // This code assumes that neither array has set Symbol.isConcatSpreadable. If the first array
                 // has indexed accessors then one of those accessors might change the value of Symbol.isConcatSpreadable
                 // on the second argument.
-                if (!firstArray->mayInterceptIndexedAccesses()) [[likely]] {
-                    if (!argumentValue.isObject()) {
-                        auto* result = concatAppendOne(globalObject, vm, firstArray, argumentValue);
-                        RETURN_IF_EXCEPTION(scope, { });
-                        if (result) [[likely]]
-                            return JSValue::encode(result);
-                    } else {
-                        auto* argumentObject = uncheckedDowncast<JSObject>(argumentValue);
-                        if (arrayMissingIsConcatSpreadable(vm, argumentObject)) [[likely]] {
-                            if (!isJSArray(argumentObject)) {
-                                auto* result = concatAppendOne(globalObject, vm, firstArray, argumentValue);
-                                RETURN_IF_EXCEPTION(scope, { });
-                                if (result) [[likely]]
-                                    return JSValue::encode(result);
-                            } else {
-                                auto* result = concatAppendArray(globalObject, vm, firstArray, uncheckedDowncast<JSArray>(argumentValue));
-                                RETURN_IF_EXCEPTION(scope, { });
-                                if (result) [[likely]]
-                                    return JSValue::encode(result);
-                            }
-                        }
-                    }
-                }
+                JSArray* result = tryConcatOneArgFast(globalObject, vm, firstArray, argumentValue);
+                RETURN_IF_EXCEPTION(scope, { });
+                if (result) [[likely]]
+                    return JSValue::encode(result);
             }
         }
     }

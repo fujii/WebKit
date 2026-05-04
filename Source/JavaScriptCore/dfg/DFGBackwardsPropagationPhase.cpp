@@ -393,7 +393,13 @@ private:
             break;
         }
 
-            
+        case ArrayConcatArray:
+        case ArrayConcatAppendOne: {
+            node->child1()->mergeFlags(NodeBytecodeUsesAsValue);
+            node->child2()->mergeFlags(NodeBytecodeUsesAsValue);
+            break;
+        }
+
         case UInt32ToNumber: {
             node->child1()->mergeFlags(flags);
             break;

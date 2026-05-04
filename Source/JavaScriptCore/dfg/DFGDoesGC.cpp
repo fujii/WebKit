@@ -460,6 +460,8 @@ bool doesGC(Graph& graph, Node* node)
     case CallDOMGetter:
     case CallDOM:
     case ArraySlice:
+    case ArrayConcatArray:
+    case ArrayConcatAppendOne:
     case ArrayIncludes:
     case ArrayIndexOf:
     case ParseInt: // We might resolve a rope even though we don't clobber anything.

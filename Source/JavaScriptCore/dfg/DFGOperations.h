@@ -218,6 +218,8 @@ JSC_DECLARE_JIT_OPERATION(operationArrayPop, EncodedJSValue, (JSGlobalObject*, J
 JSC_DECLARE_JIT_OPERATION(operationArrayPopAndRecoverLength, EncodedJSValue, (JSGlobalObject*, JSArray*));
 JSC_DECLARE_JIT_OPERATION(operationArraySplice, EncodedJSValue, (JSGlobalObject*, JSArray*, int32_t start, int32_t deleteCount, EncodedJSValue*, unsigned));
 JSC_DECLARE_JIT_OPERATION(operationArraySpliceIgnoreResult, EncodedJSValue, (JSGlobalObject*, JSArray*, int32_t start, int32_t deleteCount, EncodedJSValue*, unsigned));
+JSC_DECLARE_JIT_OPERATION(operationArrayConcatArray, JSArray*, (JSGlobalObject*, JSArray*, JSArray*));
+JSC_DECLARE_JIT_OPERATION(operationArrayConcatAppendOne, JSArray*, (JSGlobalObject*, JSArray*, EncodedJSValue));
 JSC_DECLARE_JIT_OPERATION(operationRegExpExecString, EncodedJSValue, (JSGlobalObject*, RegExpObject*, JSString*));
 JSC_DECLARE_JIT_OPERATION(operationRegExpExec, EncodedJSValue, (JSGlobalObject*, RegExpObject*, EncodedJSValue));
 JSC_DECLARE_JIT_OPERATION(operationRegExpExecGeneric, EncodedJSValue, (JSGlobalObject*, EncodedJSValue, EncodedJSValue));

@@ -343,6 +343,8 @@ namespace JSC { namespace DFG {
     macro(ArrayPush, NodeResultJS | NodeMustGenerate | NodeHasVarArgs) \
     macro(ArrayPop, NodeResultJS | NodeMustGenerate) \
     macro(ArraySlice, NodeResultJS | NodeMustGenerate | NodeHasVarArgs) \
+    macro(ArrayConcatArray, NodeResultJS | NodeMustGenerate) \
+    macro(ArrayConcatAppendOne, NodeResultJS | NodeMustGenerate) \
     macro(ArrayIncludes, NodeResultBoolean | NodeHasVarArgs) \
     macro(ArrayIndexOf, NodeResultInt32 | NodeHasVarArgs) \
     macro(ArraySplice, NodeResultJS | NodeMustGenerate | NodeHasVarArgs) \

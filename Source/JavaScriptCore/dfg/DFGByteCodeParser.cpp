@@ -2820,6 +2820,66 @@ auto ByteCodeParser::handleIntrinsicCall(Node* callee, Operand resultOperand, Ca
             return CallOptimizationResult::Inlined;
         }
 
+        case ArrayConcatIntrinsic: {
+            if (argumentCountIncludingThis != 2)
+                return CallOptimizationResult::DidNothing;
+
+            if (m_inlineStackTop->m_exitProfile.hasExitSite(m_currentIndex, BadConstantCache)
+                || m_inlineStackTop->m_exitProfile.hasExitSite(m_currentIndex, BadCache)
+                || m_inlineStackTop->m_exitProfile.hasExitSite(m_currentIndex, BadType)
+                || m_inlineStackTop->m_exitProfile.hasExitSite(m_currentIndex, ExoticObjectMode))
+                return CallOptimizationResult::DidNothing;
+
+            ArrayMode arrayMode = getArrayMode(Array::Read);
+            if (!arrayMode.isJSArray())
+                return CallOptimizationResult::DidNothing;
+
+            if (!arrayMode.isJSArrayWithOriginalStructure())
+                return CallOptimizationResult::DidNothing;
+
+            switch (arrayMode.type()) {
+            case Array::Double:
+            case Array::Int32:
+            case Array::Contiguous: {
+                JSGlobalObject* globalObject = m_graph.globalObjectFor(currentNodeOrigin().semantic);
+                if (globalObject->arraySpeciesWatchpointSet().state() != IsWatched
+                    || !globalObject->havingABadTimeWatchpointSet().isStillValid()
+                    || globalObject->arrayPrototypeChainIsSaneWatchpointSet().state() != IsWatched
+                    || globalObject->arrayIsConcatSpreadableWatchpointSet().state() != IsWatched)
+                    return CallOptimizationResult::DidNothing;
+
+                m_graph.watchpoints().addLazily(globalObject->arraySpeciesWatchpointSet());
+                m_graph.watchpoints().addLazily(globalObject->havingABadTimeWatchpointSet());
+                m_graph.watchpoints().addLazily(globalObject->arrayPrototypeChainIsSaneWatchpointSet());
+                m_graph.watchpoints().addLazily(globalObject->arrayIsConcatSpreadableWatchpointSet());
+
+                insertChecks();
+
+                Node* receiver = get(virtualRegisterForArgumentIncludingThis(0, registerOffset));
+                Node* argument = get(virtualRegisterForArgumentIncludingThis(1, registerOffset));
+
+                StructureSet receiverStructureSet;
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(ArrayWithUndecided));
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(ArrayWithInt32));
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(ArrayWithContiguous));
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(ArrayWithDouble));
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(CopyOnWriteArrayWithInt32));
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(CopyOnWriteArrayWithContiguous));
+                receiverStructureSet.add(globalObject->originalArrayStructureForIndexingType(CopyOnWriteArrayWithDouble));
+                addToGraph(CheckStructure, OpInfo(m_graph.addStructureSet(receiverStructureSet)), receiver);
+
+                Node* node = addToGraph(ArrayConcatAppendOne, OpInfo(), OpInfo(prediction), receiver, argument);
+                setResult(node);
+                return CallOptimizationResult::Inlined;
+            }
+            default:
+                return CallOptimizationResult::DidNothing;
+            }
+
+            RELEASE_ASSERT_NOT_REACHED();
+            return CallOptimizationResult::DidNothing;
+        }
+
         case ArrayIncludesIntrinsic:
         case ArrayIndexOfIntrinsic: {
             if (argumentCountIncludingThis < 2)

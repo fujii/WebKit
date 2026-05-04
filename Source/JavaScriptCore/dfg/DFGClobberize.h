@@ -703,6 +703,22 @@ void clobberize(Graph& graph, Node* node, const ReadFunctor& read, const WriteFu
         write(HeapObjectCount);
         return;
 
+    case ArrayConcatArray:
+    case ArrayConcatAppendOne: {
+        read(MiscFields);
+        read(JSCell_indexingType);
+        read(JSCell_structureID);
+        read(JSObject_butterfly);
+        read(Butterfly_publicLength);
+        read(IndexedDoubleProperties);
+        read(IndexedInt32Properties);
+        read(IndexedContiguousProperties);
+        read(IndexedArrayStorageProperties);
+        read(HeapObjectCount);
+        write(HeapObjectCount);
+        return;
+    }
+
     case ArrayIncludes:
     case ArrayIndexOf: {
         // FIXME: Should support a CSE rule.

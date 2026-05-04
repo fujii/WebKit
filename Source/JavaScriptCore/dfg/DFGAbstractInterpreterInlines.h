@@ -3305,6 +3305,11 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
         break;
     }
 
+    case ArrayConcatArray:
+    case ArrayConcatAppendOne:
+        setTypeForNode(node, SpecArray);
+        break;
+
     case ArraySplice:
         clobberWorld();
         makeBytecodeTopForNode(node);

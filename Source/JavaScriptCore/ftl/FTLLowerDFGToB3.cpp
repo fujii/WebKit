@@ -1183,6 +1183,12 @@ private:
         case ArraySlice:
             compileArraySlice();
             break;
+        case ArrayConcatArray:
+            compileArrayConcatArray();
+            break;
+        case ArrayConcatAppendOne:
+            compileArrayConcatAppendOne();
+            break;
         case ArraySplice:
             compileArraySplice();
             break;
@@ -8425,6 +8431,26 @@ IGNORE_CLANG_WARNINGS_END
 
         mutatorFence();
         setJSValue(arrayResult.array);
+    }
+
+    void compileArrayConcatArray()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        LValue firstArray = lowCell(m_node->child1());
+        LValue secondArray = lowCell(m_node->child2());
+        LValue result = vmCall(pointerType(), operationArrayConcatArray, weakPointer(globalObject), firstArray, secondArray);
+        speculate(ExoticObjectMode, noValue(), nullptr, m_out.isNull(result));
+        setJSValue(result);
+    }
+
+    void compileArrayConcatAppendOne()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        LValue firstArray = lowCell(m_node->child1());
+        LValue second = lowJSValue(m_node->child2());
+        LValue result = vmCall(pointerType(), operationArrayConcatAppendOne, weakPointer(globalObject), firstArray, second);
+        speculate(ExoticObjectMode, noValue(), nullptr, m_out.isNull(result));
+        setJSValue(result);
     }
 
     void compileArraySplice()

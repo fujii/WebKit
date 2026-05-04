@@ -361,6 +361,8 @@ bool safeToExecute(AbstractStateType& state, Graph& graph, Node* node, bool igno
         return state.forNode(node->child1()).isType(SpecObject);
 
     case ArraySlice:
+    case ArrayConcatArray:
+    case ArrayConcatAppendOne:
     case ArrayIncludes:
     case ArrayIndexOf: {
         // You could plausibly move this code around as long as you proved the

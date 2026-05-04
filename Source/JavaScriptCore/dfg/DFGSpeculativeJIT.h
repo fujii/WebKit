@@ -1683,6 +1683,8 @@ public:
     void compileNewArray(Node*);
     void compileNewArrayWithSpread(Node*);
     void compileArraySlice(Node*);
+    void compileArrayConcatArray(Node*);
+    void compileArrayConcatAppendOne(Node*);
     void compileArraySplice(Node*);
     void compileArrayIndexOfOrArrayIncludes(Node*);
     void compileArrayPush(Node*);

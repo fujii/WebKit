@@ -9991,6 +9991,38 @@ void SpeculativeJIT::compileArraySlice(Node* node)
     cellResult(resultGPR, node);
 }
 
+void SpeculativeJIT::compileArrayConcatArray(Node* node)
+{
+    SpeculateCellOperand firstArray(this, node->child1());
+    SpeculateCellOperand secondArray(this, node->child2());
+
+    GPRReg firstArrayGPR = firstArray.gpr();
+    GPRReg secondArrayGPR = secondArray.gpr();
+
+    flushRegisters();
+    GPRFlushedCallResult result(this);
+    GPRReg resultGPR = result.gpr();
+    callOperation(operationArrayConcatArray, resultGPR, LinkableConstant::globalObject(*this, node), firstArrayGPR, secondArrayGPR);
+    speculationCheck(ExoticObjectMode, JSValueSource(), nullptr, branchTestPtr(Zero, resultGPR));
+    cellResult(resultGPR, node);
+}
+
+void SpeculativeJIT::compileArrayConcatAppendOne(Node* node)
+{
+    SpeculateCellOperand firstArray(this, node->child1());
+    JSValueOperand second(this, node->child2());
+
+    GPRReg firstArrayGPR = firstArray.gpr();
+    JSValueRegs secondRegs = second.jsValueRegs();
+
+    flushRegisters();
+    GPRFlushedCallResult result(this);
+    GPRReg resultGPR = result.gpr();
+    callOperation(operationArrayConcatAppendOne, resultGPR, LinkableConstant::globalObject(*this, node), firstArrayGPR, secondRegs);
+    speculationCheck(ExoticObjectMode, JSValueSource(), nullptr, branchTestPtr(Zero, resultGPR));
+    cellResult(resultGPR, node);
+}
+
 void SpeculativeJIT::compileArraySplice(Node* node)
 {
     unsigned refCount = node->refCount();

@@ -163,6 +163,8 @@ BasicBlock* CloneHelper::cloneBlock(BasicBlock* const block, const CustomizeSucc
     CLONE_STATUS(ArrayPop, Common) \
     CLONE_STATUS(ArrayPush, Common) \
     CLONE_STATUS(ArraySlice, Common) \
+    CLONE_STATUS(ArrayConcatArray, Common) \
+    CLONE_STATUS(ArrayConcatAppendOne, Common) \
     CLONE_STATUS(ArraySplice, Common) \
     CLONE_STATUS(Arrayify, Common) \
     CLONE_STATUS(ArrayifyToStructure, Common) \

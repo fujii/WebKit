@@ -1365,6 +1365,8 @@ private:
             break;
             
         case ArraySlice:
+        case ArrayConcatArray:
+        case ArrayConcatAppendOne:
         case NewArrayWithSpread:
         case NewArray:
         case NewArrayWithSize:
