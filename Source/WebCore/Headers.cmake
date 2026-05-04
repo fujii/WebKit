@@ -1830,6 +1830,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/CookieJar.h
     loader/CrossOriginAccessControl.h
     loader/CrossOriginEmbedderPolicy.h
+    loader/CrossOriginEmbedderPolicyValue.h
     loader/CrossOriginOpenerPolicy.h
     loader/CrossOriginPreflightResultCache.h
     loader/CustomHeaderFields.h
