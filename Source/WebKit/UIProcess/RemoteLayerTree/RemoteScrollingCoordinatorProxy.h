@@ -229,8 +229,6 @@ private:
 protected:
     WebCore::ScrollRequestData m_scrollRequestData;
     RemoteScrollingUIState m_uiState;
-    std::optional<unsigned> m_currentHorizontalSnapPointIndex;
-    std::optional<unsigned> m_currentVerticalSnapPointIndex;
     bool m_waitingForDidScrollReply { false };
     HashSet<WebCore::PlatformLayerIdentifier> m_layersWithScrollingRelations;
 };

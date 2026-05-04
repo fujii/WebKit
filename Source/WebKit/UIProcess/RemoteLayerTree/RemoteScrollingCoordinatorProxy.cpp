@@ -489,8 +489,6 @@ void RemoteScrollingCoordinatorProxy::sendUIStateChangedIfNecessary()
 
 void RemoteScrollingCoordinatorProxy::resetStateAfterProcessExited()
 {
-    m_currentHorizontalSnapPointIndex = 0;
-    m_currentVerticalSnapPointIndex = 0;
     m_uiState.reset();
 }
 

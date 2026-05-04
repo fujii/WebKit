@@ -3291,7 +3291,7 @@ void LocalFrameView::setScrollOffsetWithOptions(const ScrollOffset& scrollOffset
     if (page && page->isMonitoringWheelEvents())
         scrollAnimator().setWheelEventTestMonitor(page->wheelEventTestMonitor());
 
-    ScrollOffset snappedOffset = ceiledIntPoint(scrollAnimator().scrollOffsetAdjustedForSnapping(scrollOffset, options.snapPointSelectionMethod));
+    auto snappedOffset = ceiledIntPoint(scrollAnimator().scrollOffsetAdjustedForSnapping(scrollOffset, options.snapPointSelectionMethod));
     auto snappedPosition = scrollPositionFromOffset(snappedOffset);
 
     if (options.animated == ScrollIsAnimated::Yes)
