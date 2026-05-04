@@ -67,9 +67,9 @@ RenderSVGRoot::RenderSVGRoot(SVGSVGElement& element, RenderStyle&& style)
 {
     ASSERT(isRenderSVGRoot());
     LayoutSize intrinsicSize(computeIntrinsicSize());
-    if (!intrinsicSize.width())
+    if (!svgSVGElement().hasIntrinsicWidth())
         intrinsicSize.setWidth(defaultWidth);
-    if (!intrinsicSize.height())
+    if (!svgSVGElement().hasIntrinsicHeight())
         intrinsicSize.setHeight(defaultHeight);
     setIntrinsicSize(intrinsicSize);
 }

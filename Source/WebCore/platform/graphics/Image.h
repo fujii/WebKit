@@ -97,6 +97,9 @@ public:
 
     virtual void setContainerSize(const FloatSize&) { }
     virtual bool usesContainerSize() const { return false; }
+    virtual bool hasIntrinsicWidth() const { return true; }
+    virtual bool hasIntrinsicHeight() const { return true; }
+    // FIXME: hasRelativeWidth/Height should be deduplicated with hasIntrinsicWidth/Height.
     virtual bool hasRelativeWidth() const { return false; }
     virtual bool hasRelativeHeight() const { return false; }
     virtual void computeIntrinsicDimensions(float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio);

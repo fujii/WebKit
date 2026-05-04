@@ -656,7 +656,7 @@ unsigned HTMLImageElement::width()
 
         // if the image is available, use its width
         if (RefPtr image = m_imageLoader->image())
-            return image->imageSizeForRenderer(nullptr, 1.0f).width().toUnsigned();
+            return image->imageSizeForRenderer(nullptr, 1.0f, CachedImage::IntrinsicSize).width().toUnsigned();
     }
 
     CheckedPtr box = renderBox();
@@ -679,7 +679,7 @@ unsigned HTMLImageElement::height()
 
         // if the image is available, use its height
         if (RefPtr image = m_imageLoader->image())
-            return image->imageSizeForRenderer(nullptr, 1.0f).height().toUnsigned();
+            return image->imageSizeForRenderer(nullptr, 1.0f, CachedImage::IntrinsicSize).height().toUnsigned();
     }
 
     CheckedPtr box = renderBox();
@@ -689,29 +689,20 @@ unsigned HTMLImageElement::height()
     return Style::adjustLayoutUnitForAbsoluteZoom(contentRect.height(), *box).round();
 }
 
-float HTMLImageElement::effectiveImageDevicePixelRatio() const
-{
-    RefPtr cachedImage = m_imageLoader->image();
-    if (!cachedImage)
-        return 1.0f;
-
-    RefPtr image = cachedImage->image();
-    if (image && image->drawsSVGImage())
-        return 1.0f;
-
-    return m_imageDevicePixelRatio;
-}
-
 unsigned HTMLImageElement::naturalWidth() const
 {
     RefPtr image = m_imageLoader->image();
-    return image ? image->unclampedImageSizeForRenderer(protect(renderer()).get(), effectiveImageDevicePixelRatio()).width().toUnsigned() : 0;
+    if (!image)
+        return 0;
+    return image->unclampedImageSizeForRenderer(protect(renderer()).get(), 1.0f, CachedImage::IntrinsicSize, m_imageDevicePixelRatio).width().toUnsigned();
 }
 
 unsigned HTMLImageElement::naturalHeight() const
 {
     RefPtr image = m_imageLoader->image();
-    return image ? image->unclampedImageSizeForRenderer(protect(renderer()).get(), effectiveImageDevicePixelRatio()).height().toUnsigned() : 0;
+    if (!image)
+        return 0;
+    return image->unclampedImageSizeForRenderer(protect(renderer()).get(), 1.0f, CachedImage::IntrinsicSize, m_imageDevicePixelRatio).height().toUnsigned();
 }
 
 bool HTMLImageElement::isURLAttribute(const Attribute& attribute) const

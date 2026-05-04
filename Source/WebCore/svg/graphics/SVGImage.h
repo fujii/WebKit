@@ -59,6 +59,8 @@ public:
 
     bool renderingTaintsOrigin() const final;
 
+    bool hasIntrinsicWidth() const final;
+    bool hasIntrinsicHeight() const final;
     bool hasRelativeWidth() const final;
     bool hasRelativeHeight() const final;
 
@@ -74,6 +76,8 @@ public:
 
     Page* internalPage() { return m_page.get(); }
     WEBCORE_EXPORT RefPtr<SVGSVGElement> rootElement() const;
+
+    FloatSize resolvedIntrinsicSize(float density = 1.0f) const;
 
     RefPtr<NativeImage> nativeImage(const FloatSize&, const DestinationColorSpace& = DestinationColorSpace::SRGB());
 
