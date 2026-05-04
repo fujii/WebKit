@@ -822,8 +822,6 @@ webkit.org/b/198195 fast/css/sticky/sticky-left-percentage.html [ Pass ImageOnly
 
 webkit.org/b/187828 [ Release ] fast/css-grid-layout/flex-content-sized-columns-resize.html [ Pass ImageOnlyFailure ]
 
-#webkit.org/b/198663 http/tests/storageAccess/request-and-grant-access-then-navigate-same-site-should-have-access.html [ Pass Timeout ]
-
 # <rdar://problem/60929239> [ macOS wk2 ] editing/selection/caret-at-bidi-boundary.html is a flaky timeout
 webkit.org/b/206696 editing/selection/caret-at-bidi-boundary.html [ Pass Timeout ]
 
