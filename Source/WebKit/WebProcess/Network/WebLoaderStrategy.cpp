@@ -599,6 +599,8 @@ void WebLoaderStrategy::scheduleLoadFromNetworkProcess(ResourceLoader& resourceL
         if (RefPtr documentLoader = resourceLoader.documentLoader()) {
             loadParameters.navigationID = documentLoader->navigationID();
             loadParameters.navigationRequester = documentLoader->triggeringAction().requester();
+            if (loadParameters.navigationRequester && (!loadParameters.sourceOrigin || loadParameters.sourceOrigin->isOpaque()))
+                loadParameters.sourceOrigin = loadParameters.navigationRequester->securityOrigin.ptr();
         }
     }
     loadParameters.isCrossOriginOpenerPolicyEnabled = document && document->settings().crossOriginOpenerPolicyEnabled();
@@ -608,6 +610,12 @@ void WebLoaderStrategy::scheduleLoadFromNetworkProcess(ResourceLoader& resourceL
     if (RefPtr openerFrame = frame ? dynamicDowncast<LocalFrame>(frame->opener()) : nullptr) {
         if (RefPtr openerDocument = openerFrame->document())
             loadParameters.openerURL = openerDocument->url();
+    } else if (webFrame) {
+        // Populate openerURL when openerFrame is a RemoteFrame
+        if (RefPtr page = webFrame->page()) {
+            if (!page->mainFrameOpenerURL().isNull())
+                loadParameters.openerURL = page->mainFrameOpenerURL();
+        }
     }
 
     loadParameters.shouldEnableCrossOriginResourcePolicy = !loadParameters.isMainFrameNavigation;

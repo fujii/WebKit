@@ -2195,7 +2195,15 @@ void NetworkResourceLoader::sendReportToEndpoints(const URL& baseURL, std::span<
             updatedEndpointTokens.append(token);
     }
 
-    send(Messages::WebPage::SendReportToEndpoints { frameIdentifierForReport(), baseURL, updatedEndpointURIs, updatedEndpointTokens, IPC::FormDataReference { WTF::move(report) }, reportType }, pageID());
+    auto [targetPageID, targetFrameID, targetConnection] = [&]() -> std::tuple<WebCore::PageIdentifier, WebCore::FrameIdentifier, Ref<NetworkConnectionToWebProcess>> {
+        if (auto& requester = m_parameters.navigationRequester; requester && requester->pageID && requester->frameID && requester->processIdentifier) {
+            if (RefPtr requesterConnection = connectionToWebProcess().networkProcess().webProcessConnection(*requester->processIdentifier))
+                return { *requester->pageID, *requester->frameID, requesterConnection.releaseNonNull() };
+        }
+        return { pageID(), frameIdentifierForReport(), connectionToWebProcess() };
+    }();
+
+    targetConnection->connection().send(Messages::WebPage::SendReportToEndpoints { targetFrameID, baseURL, updatedEndpointURIs, updatedEndpointTokens, IPC::FormDataReference { WTF::move(report) }, reportType }, targetPageID.toUInt64());
 }
 
 #if ENABLE(CONTENT_FILTERING)

@@ -954,6 +954,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
     Ref page = Page::create(WTF::move(pageConfiguration));
     m_page = page.copyRef();
+    m_mainFrameOpenerURL = parameters.mainFrameOpenerURL;
 
     updateAfterDrawingAreaCreation(parameters);
 
@@ -10555,6 +10556,8 @@ void WebPage::updateOpener(WebCore::FrameIdentifier frameID, std::optional<WebCo
         coreFrame->disownOpener(WebCore::Frame::NotifyUIProcess::No);
         if (RefPtr provisionalFrame = frame->provisionalFrame())
             provisionalFrame->disownOpener(WebCore::Frame::NotifyUIProcess::No);
+        if (coreFrame->isMainFrame())
+            m_mainFrameOpenerURL = { };
         return;
     }
 
@@ -10568,6 +10571,8 @@ void WebPage::updateOpener(WebCore::FrameIdentifier frameID, std::optional<WebCo
     coreFrame->updateOpener(*coreNewOpener, WebCore::Frame::NotifyUIProcess::No);
     if (RefPtr provisionalFrame = frame->provisionalFrame())
         provisionalFrame->updateOpener(*coreNewOpener, WebCore::Frame::NotifyUIProcess::No);
+    if (coreFrame->isMainFrame())
+        m_mainFrameOpenerURL = newOpener->url();
 }
 
 void WebPage::setFramePrinting(WebCore::FrameIdentifier frameID, bool printing, FloatSize pageSize, FloatSize originalPageSize, float maximumShrinkRatio, AdjustViewSize shouldAdjustViewSize)

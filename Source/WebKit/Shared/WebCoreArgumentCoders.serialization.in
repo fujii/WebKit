@@ -4811,6 +4811,7 @@ struct WebCore::NavigationRequester {
     bool hasLoadedThirdPartyFrame;
     bool hasHadUserInteraction;
     bool parentOriginIsSameAsTopOrigin;
+    std::optional<WebCore::ProcessIdentifier> processIdentifier;
 };
 
 struct WebCore::PolicyContainer {

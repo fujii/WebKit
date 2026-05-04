@@ -841,6 +841,7 @@ public:
     void updateTextIndicator(RefPtr<WebCore::TextIndicator>&&);
 
     WebFrame& mainWebFrame() const { return m_mainFrame; }
+    const URL& mainFrameOpenerURL() const { return m_mainFrameOpenerURL; }
 
     WebCore::Frame* NODELETE mainFrame() const;
     WebCore::FrameView* mainFrameView() const;
@@ -2790,6 +2791,7 @@ private:
 
     const Ref<WebFrame> m_mainFrame;
     std::optional<WebCore::FrameIdentifier> m_unresolvedMainFrameOpenerIdentifier;
+    URL m_mainFrameOpenerURL;
 
     const Ref<WebPageGroupProxy> m_pageGroup;
 
