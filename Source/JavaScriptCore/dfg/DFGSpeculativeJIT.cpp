@@ -15334,12 +15334,20 @@ void SpeculativeJIT::compileNewButterflyWithSize(Node* node)
     static_assert(Butterfly::offsetOfPublicLength() + static_cast<ptrdiff_t>(sizeof(uint32_t)) == Butterfly::offsetOfVectorLength());
     storePair32(sizeGPR, sizeGPR, storageGPR, TrustedImm32(Butterfly::offsetOfPublicLength()));
 
-    if (hasDouble(indexingMode))
-        moveTrustedValue(jsNaN(), scratchRegs);
-    else
-        moveTrustedValue(JSValue(), scratchRegs);
+    constexpr unsigned zeroFillUnrollLimit = 16;
+    if (butterflyLength <= zeroFillUnrollLimit) {
+        if (hasDouble(indexingMode))
+            emitFillStorageWithDoubleEmpty(storageGPR, 0, butterflyLength, scratchGPR);
+        else
+            emitFillStorageWithJSEmpty(storageGPR, 0, butterflyLength, scratchGPR);
+    } else {
+        if (hasDouble(indexingMode))
+            moveTrustedValue(jsNaN(), scratchRegs);
+        else
+            moveTrustedValue(JSValue(), scratchRegs);
 
-    emitInitializeButterfly(storageGPR, sizeGPR, scratchRegs, sizeGPR);
+        emitInitializeButterfly(storageGPR, sizeGPR, scratchRegs, sizeGPR);
+    }
     storageResult(storageGPR, node);
 }
 
