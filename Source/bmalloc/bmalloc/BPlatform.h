@@ -339,11 +339,7 @@
 #define BOS_EFFECTIVE_ADDRESS_WIDTH 32
 #endif
 
-#if BCOMPILER(GCC_COMPATIBLE)
 #define BATTRIBUTE_PRINTF(formatStringArgument, extraArguments) __attribute__((__format__(printf, formatStringArgument, extraArguments)))
-#else
-#define BATTRIBUTE_PRINTF(formatStringArgument, extraArguments)
-#endif
 
 /* Export macro support. Detects the attributes available for shared library symbol export
    decorations. */
