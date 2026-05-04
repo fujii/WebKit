@@ -282,6 +282,8 @@ struct TraversalContext {
     WeakHashSet<Node, WeakPtrImplWithEventTargetData> additionalContainersToCollect;
     unsigned inAdditionalContainerToCollectCount { 0 };
     Vector<bool, 1> hasOverflowItemsStack;
+    Vector<unsigned, 2> visualBlockContainerStack { 0 };
+    unsigned nextVisualBlockContainerNumber { 1 };
     unsigned onlyCollectTextAndLinksCount { 0 };
     bool mergeParagraphs { false };
     bool skipNearlyTransparentContent { false };
@@ -292,6 +294,11 @@ struct TraversalContext {
     inline bool NODELETE shouldIncludeNodeWithRect(const FloatRect& rect) const
     {
         return !rectInRootView || rectInRootView->intersects(rect);
+    }
+
+    unsigned currentVisualBlockContainerNumber() const
+    {
+        return visualBlockContainerStack.isEmpty() ? 0 : visualBlockContainerStack.last();
     }
 
     void pushEnclosingBlock(const Node& node)
@@ -838,6 +845,18 @@ static bool areSameOrigin(Document& document, Document& other)
     return protect(document.securityOrigin())->isSameOriginAs(protect(other.securityOrigin()));
 }
 
+static bool isVisuallyDistinctContainer(const RenderStyle& style, const FloatRect& rect, const FloatRect&)
+{
+    bool hasEnclosingBorder = style.border().hasVisibleBorder() && style.usedBorderTopWidth() && style.usedBorderRightWidth() && style.usedBorderBottomWidth() && style.usedBorderLeftWidth();
+    bool hasVisualStyling = style.hasBackground() || style.hasOutline() || !style.boxShadow().isNone() || style.hasExplicitlySetBorderRadius() || hasEnclosingBorder;
+    if (!hasVisualStyling)
+        return false;
+
+    static constexpr auto minimumWidth = 150;
+    static constexpr auto minimumHeight = 90;
+    return rect.width() >= minimumWidth && rect.height() >= minimumHeight;
+}
+
 static inline void extractRecursive(Node& node, Item& parentItem, TraversalContext& context)
 {
     if (context.nodesToSkip.contains(node))
@@ -851,7 +870,18 @@ static inline void extractRecursive(Node& node, Item& parentItem, TraversalConte
     if (isAdditionalContainerToCollect)
         context.inAdditionalContainerToCollectCount++;
 
+    bool pushedVisualBlockContainer = false;
+    if (CheckedPtr renderer = node.renderer()) {
+        auto nodeBounds = rootViewBounds(node);
+        if (isBlock && isVisuallyDistinctContainer(protect(renderer->style()).get(), nodeBounds, parentItem.rectInRootView)) {
+            context.visualBlockContainerStack.append(context.nextVisualBlockContainerNumber++);
+            pushedVisualBlockContainer = true;
+        }
+    }
+
     auto extractionScope = makeScopeExit([&] {
+        if (pushedVisualBlockContainer)
+            context.visualBlockContainerStack.removeLast();
         if (isAdditionalContainerToCollect)
             context.inAdditionalContainerToCollectCount--;
         if (isBlock)
@@ -1066,6 +1096,9 @@ static inline void extractRecursive(Node& node, Item& parentItem, TraversalConte
 
     if (auto* renderer = node.renderer(); renderer && item)
         item->hasLineThrough = renderer->style().textDecorationLineInEffect().hasLineThrough();
+
+    if (item)
+        item->visualBlockContainerNumber = context.currentVisualBlockContainerNumber();
 
     ASSERT_IMPLIES(isScrollable, item);
 
