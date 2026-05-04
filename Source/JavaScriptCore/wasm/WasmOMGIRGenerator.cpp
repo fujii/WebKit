@@ -2081,15 +2081,21 @@ auto OMGIRGenerator::addCurrentMemory(ExpressionType& result, uint8_t memoryInde
 
 auto OMGIRGenerator::addMemoryFill(ExpressionType dstAddress, ExpressionType target, ExpressionType count, uint8_t memoryIndex) -> PartialResult
 {
+    auto* dstAddressValue = m_info.memory(memoryIndex).isMemory64()
+        ? get(dstAddress)
+        : m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(dstAddress));
+    auto* targetValue = get(target);
+    auto* countValue = m_info.memory(memoryIndex).isMemory64()
+        ? get(count)
+        : m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(count));
+
     if (!memoryIndex) {
         auto* memorySize = m_currentBlock->appendNew<MemoryValue>(m_proc, Load, pointerType(), origin(), instanceValue(), safeCast<int32_t>(JSWebAssemblyInstance::offsetOfCachedMemory0Size()));
         m_heaps.decorateMemory(&m_heaps.JSWebAssemblyInstance_cachedMemory0Size, memorySize);
 
-        auto* dstAddressValue = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(dstAddress));
-        auto* targetValue = get(target);
-        auto* countValue = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(count));
-
-        Value* outOfBounds = m_currentBlock->appendNew<Value>(m_proc, Above, origin(), m_currentBlock->appendNew<Value>(m_proc, Add, origin(), dstAddressValue, countValue), memorySize);
+        auto* sum = m_currentBlock->appendNew<Value>(m_proc, Add, origin(), dstAddressValue, countValue);
+        auto* sumOverflowed = m_currentBlock->appendNew<Value>(m_proc, Below, origin(), sum, dstAddressValue);
+        Value* outOfBounds = m_currentBlock->appendNew<Value>(m_proc, BitOr, origin(), sumOverflowed, m_currentBlock->appendNew<Value>(m_proc, Above, origin(), sum, memorySize));
         CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(), outOfBounds);
         check->setGenerator([=, this, origin = this->origin()](CCallHelpers& jit, const B3::StackmapGenerationParams&) {
             this->emitExceptionCheck(jit, origin, ExceptionType::OutOfBoundsMemoryAccess);
@@ -2102,7 +2108,7 @@ auto OMGIRGenerator::addMemoryFill(ExpressionType dstAddress, ExpressionType tar
             countValue);
     } else {
         Value* resultValue = callWasmOperation(m_currentBlock, toB3Type(Types::I32), operationWasmMemoryFill,
-            instanceValue(), get(dstAddress), get(target), get(count), constant(Int32, memoryIndex));
+            instanceValue(), dstAddressValue, targetValue, countValue, constant(Int32, memoryIndex));
 
         {
             CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(),
@@ -2119,10 +2125,16 @@ auto OMGIRGenerator::addMemoryFill(ExpressionType dstAddress, ExpressionType tar
 
 auto OMGIRGenerator::addMemoryInit(unsigned dataSegmentIndex, ExpressionType dstAddress, ExpressionType srcAddress, ExpressionType length, uint8_t memoryIndex) -> PartialResult
 {
+    auto dstAddressValue = m_info.memory(memoryIndex).isMemory64()
+        ? get(dstAddress)
+        : m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(dstAddress));
+
+    auto srcAddressValue = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(srcAddress));
+
     Value* resultValue = callWasmOperation(m_currentBlock, toB3Type(Types::I32), operationWasmMemoryInit,
         instanceValue(),
         constant(Int32, dataSegmentIndex),
-        get(dstAddress), get(srcAddress), get(length), constant(Int32, memoryIndex));
+        dstAddressValue, srcAddressValue, get(length), constant(Int32, memoryIndex));
 
     {
         CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(),
@@ -2138,22 +2150,33 @@ auto OMGIRGenerator::addMemoryInit(unsigned dataSegmentIndex, ExpressionType dst
 
 auto OMGIRGenerator::addMemoryCopy(ExpressionType dstAddress, ExpressionType srcAddress, ExpressionType count, uint8_t dstMemoryIndex, uint8_t srcMemoryIndex) -> PartialResult
 {
+    auto* dstAddressValue = m_info.memory(dstMemoryIndex).isMemory64()
+        ? get(dstAddress)
+        : m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(dstAddress));
+    auto* srcAddressValue = m_info.memory(srcMemoryIndex).isMemory64()
+        ? get(srcAddress)
+        : m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(srcAddress));
+    auto* countValue = m_info.memory(srcMemoryIndex).isMemory64() && m_info.memory(dstMemoryIndex).isMemory64()
+        ? get(count)
+        : m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(count));
+
     if (!dstMemoryIndex && !srcMemoryIndex) {
         auto* memorySize = m_currentBlock->appendNew<MemoryValue>(m_proc, Load, pointerType(), origin(), instanceValue(), safeCast<int32_t>(JSWebAssemblyInstance::offsetOfCachedMemory0Size()));
         m_heaps.decorateMemory(&m_heaps.JSWebAssemblyInstance_cachedMemory0Size, memorySize);
-
-        auto* dstAddressValue = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(dstAddress));
-        auto* srcAddressValue = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(srcAddress));
-        auto* countValue = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), get(count));
-
         {
-            CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(), m_currentBlock->appendNew<Value>(m_proc, Above, origin(), m_currentBlock->appendNew<Value>(m_proc, Add, origin(), dstAddressValue, countValue), memorySize));
+            auto* dstSum = m_currentBlock->appendNew<Value>(m_proc, Add, origin(), dstAddressValue, countValue);
+            auto* dstSumOverflowed = m_currentBlock->appendNew<Value>(m_proc, Below, origin(), dstSum, dstAddressValue);
+            Value* outOfBounds = m_currentBlock->appendNew<Value>(m_proc, BitOr, origin(), dstSumOverflowed, m_currentBlock->appendNew<Value>(m_proc, Above, origin(), dstSum, memorySize));
+            CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(), outOfBounds);
             check->setGenerator([=, this, origin = this->origin()](CCallHelpers& jit, const B3::StackmapGenerationParams&) {
                 this->emitExceptionCheck(jit, origin, ExceptionType::OutOfBoundsMemoryAccess);
             });
         }
         {
-            CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(), m_currentBlock->appendNew<Value>(m_proc, Above, origin(), m_currentBlock->appendNew<Value>(m_proc, Add, origin(), srcAddressValue, countValue), memorySize));
+            auto* srcSum = m_currentBlock->appendNew<Value>(m_proc, Add, origin(), srcAddressValue, countValue);
+            auto* srcSumOverflowed = m_currentBlock->appendNew<Value>(m_proc, Below, origin(), srcSum, srcAddressValue);
+            Value* outOfBounds = m_currentBlock->appendNew<Value>(m_proc, BitOr, origin(), srcSumOverflowed, m_currentBlock->appendNew<Value>(m_proc, Above, origin(), srcSum, memorySize));
+            CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(), outOfBounds);
             check->setGenerator([=, this, origin = this->origin()](CCallHelpers& jit, const B3::StackmapGenerationParams&) {
                 this->emitExceptionCheck(jit, origin, ExceptionType::OutOfBoundsMemoryAccess);
             });
@@ -2167,7 +2190,7 @@ auto OMGIRGenerator::addMemoryCopy(ExpressionType dstAddress, ExpressionType src
     } else {
         Value* resultValue = callWasmOperation(m_currentBlock, toB3Type(Types::I32), operationWasmMemoryCopy,
             instanceValue(),
-            get(dstAddress), get(srcAddress), get(count), constant(Int32, dstMemoryIndex), constant(Int32, srcMemoryIndex));
+            dstAddressValue, srcAddressValue, countValue, constant(Int32, dstMemoryIndex), constant(Int32, srcMemoryIndex));
 
         {
             CheckValue* check = m_currentBlock->appendNew<CheckValue>(m_proc, Check, origin(),

@@ -614,7 +614,8 @@ WASM_IPINT_EXTERN_CPP_DECL(memory_init, int32_t dataIndex, IPIntStackEntry* sp, 
 {
     int32_t n = sp[0].i32;
     int32_t s = sp[1].i32;
-    int64_t d = sp[2].i64;
+    const auto& info = instance->module().moduleInformation();
+    uint64_t d = info.memory(memoryIndex).isMemory64() ? sp[2].i64 : static_cast<uint32_t>(sp[2].i32);
 
     if (!Wasm::memoryInit(instance, dataIndex, d, s, n, memoryIndex))
         IPINT_THROW(Wasm::ExceptionType::OutOfBoundsMemoryAccess);
@@ -631,9 +632,11 @@ WASM_IPINT_EXTERN_CPP_DECL(memory_copy, IPIntStackEntry* sp)
 {
     uint8_t srcMemoryIndex = static_cast<uint8_t>(sp[0].i64);
     uint8_t dstMemoryIndex = static_cast<uint8_t>(sp[1].i64);
-    int64_t count = sp[2].i64;
-    int64_t src = sp[3].i64;
-    int64_t dst = sp[4].i64;
+    const auto& info = instance->module().moduleInformation();
+    bool bothMemory64 = info.memory(srcMemoryIndex).isMemory64() && info.memory(dstMemoryIndex).isMemory64();
+    uint64_t count = bothMemory64 ? sp[2].i64 : static_cast<uint32_t>(sp[2].i32);
+    uint64_t src = info.memory(srcMemoryIndex).isMemory64() ? sp[3].i64 : static_cast<uint32_t>(sp[3].i32);
+    uint64_t dst = info.memory(dstMemoryIndex).isMemory64() ? sp[4].i64 : static_cast<uint32_t>(sp[4].i32);
     if (!Wasm::memoryCopy(instance, dst, src, count, dstMemoryIndex, srcMemoryIndex))
         IPINT_THROW(Wasm::ExceptionType::OutOfBoundsMemoryAccess);
     IPINT_END();
@@ -642,9 +645,10 @@ WASM_IPINT_EXTERN_CPP_DECL(memory_copy, IPIntStackEntry* sp)
 WASM_IPINT_EXTERN_CPP_DECL(memory_fill, IPIntStackEntry* sp)
 {
     uint8_t memoryIndex = static_cast<uint8_t>(sp[0].i64);
-    int64_t count = sp[1].i64;
+    const auto& info = instance->module().moduleInformation();
+    uint64_t count = info.memory(memoryIndex).isMemory64() ? sp[1].i64 : static_cast<uint32_t>(sp[1].i32);
     int32_t targetValue = sp[2].i32;
-    int64_t dst = sp[3].i64;
+    uint64_t dst = info.memory(memoryIndex).isMemory64() ? sp[3].i64 : static_cast<uint32_t>(sp[3].i32);
     if (!Wasm::memoryFill(instance, dst, targetValue, count, memoryIndex))
         IPINT_THROW(Wasm::ExceptionType::OutOfBoundsMemoryAccess);
     IPINT_END();

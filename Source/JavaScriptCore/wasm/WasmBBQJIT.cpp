@@ -1144,6 +1144,18 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     ASSERT(count.type() == m_info.memory(memoryIndex).addressType());
     ASSERT(targetValue.type() == TypeKind::I32);
 
+    if (!m_info.memory(memoryIndex).isMemory64()) {
+        if (!dstAddress.isConst()) {
+            Location dstLoc = loadIfNecessary(dstAddress);
+            m_jit.zeroExtend32ToWord(dstLoc.asGPR(), dstLoc.asGPR());
+        }
+
+        if (!count.isConst()) {
+            Location countLoc = loadIfNecessary(count);
+            m_jit.zeroExtend32ToWord(countLoc.asGPR(), countLoc.asGPR());
+        }
+    }
+
     Vector<Value, 8> arguments = {
         instanceValue(),
         dstAddress, targetValue, count, Value::fromI32(memoryIndex)
@@ -1170,6 +1182,27 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     else
         ASSERT(count.type() == TypeKind::I32);
 
+    if (!m_info.memory(dstMemoryIndex).isMemory64()) {
+        if (!dstAddress.isConst()) {
+            Location dstLoc = loadIfNecessary(dstAddress);
+            m_jit.zeroExtend32ToWord(dstLoc.asGPR(), dstLoc.asGPR());
+        }
+    }
+
+    if (!m_info.memory(srcMemoryIndex).isMemory64()) {
+        if (!srcAddress.isConst()) {
+            Location srcLoc = loadIfNecessary(srcAddress);
+            m_jit.zeroExtend32ToWord(srcLoc.asGPR(), srcLoc.asGPR());
+        }
+    }
+
+    if (!m_info.memory(srcMemoryIndex).isMemory64() || !m_info.memory(dstMemoryIndex).isMemory64()) {
+        if (!count.isConst()) {
+            Location countLoc = loadIfNecessary(count);
+            m_jit.zeroExtend32ToWord(countLoc.asGPR(), countLoc.asGPR());
+        }
+    }
+
     Vector<Value, 8> arguments = {
         instanceValue(),
         dstAddress, srcAddress, count, Value::fromI32(dstMemoryIndex), Value::fromI32(srcMemoryIndex)
@@ -1192,6 +1225,13 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     ASSERT(dstAddress.type() == m_info.memory(memoryIndex).addressType());
     ASSERT(srcAddress.type() == TypeKind::I32);
     ASSERT(length.type() == TypeKind::I32);
+
+    if (!m_info.memory(memoryIndex).isMemory64()) {
+        if (!dstAddress.isConst()) {
+            Location dstLoc = loadIfNecessary(dstAddress);
+            m_jit.zeroExtend32ToWord(dstLoc.asGPR(), dstLoc.asGPR());
+        }
+    }
 
     Vector<Value, 8> arguments = {
         instanceValue(),
