@@ -723,23 +723,26 @@ bool RenderFlexibleBox::isMultiline() const
 }
 
 // https://drafts.csswg.org/css-flexbox/#min-size-auto
-bool RenderFlexibleBox::shouldApplyMinSizeAutoForFlexItem(const RenderBox& flexItem) const
+bool RenderFlexibleBox::useContentBasedMinimumSize(const RenderBox& flexItem) const
 {
     auto minSize = minMainSizeLengthForFlexItem(flexItem);
     // min, max and fit-content are equivalent to the automatic size for block sizes https://drafts.csswg.org/css-sizing-3/#valdef-width-min-content.
-    bool flexItemBlockSizeIsEquivalentToAutomaticSize  = !mainAxisIsFlexItemInlineAxis(flexItem) && (minSize.isMinContent() || minSize.isMaxContent() || minSize.isFitContent());
+    // Unlike auto, these are explicit author values so the overflow gate does not apply.
+    bool flexItemBlockSizeIsEquivalentToAutomaticSize = !mainAxisIsFlexItemInlineAxis(flexItem) && (minSize.isMinContent() || minSize.isMaxContent() || minSize.isFitContent());
+    if (flexItemBlockSizeIsEquivalentToAutomaticSize)
+        return true;
 
     auto computedOverflowIsNotScrollable = [this, &flexItem]() {
         auto overflow = mainAxisOverflowForFlexItem(flexItem);
         return overflow == Overflow::Visible || overflow == Overflow::Clip;
     };
 
-    return (minSize.isAuto() || flexItemBlockSizeIsEquivalentToAutomaticSize) && computedOverflowIsNotScrollable();
+    return minSize.isAuto() && computedOverflowIsNotScrollable();
 }
 
-bool RenderFlexibleBox::shouldApplyMinBlockSizeAutoForFlexItem(const RenderBox& flexItem) const
+bool RenderFlexibleBox::useContentBasedMinimumBlockSize(const RenderBox& flexItem) const
 {
-    return !mainAxisIsFlexItemInlineAxis(flexItem) && shouldApplyMinSizeAutoForFlexItem(flexItem);
+    return !mainAxisIsFlexItemInlineAxis(flexItem) && useContentBasedMinimumSize(flexItem);
 }
 
 Style::FlexBasis RenderFlexibleBox::flexBasisForFlexItem(const RenderBox& flexItem) const
@@ -1897,7 +1900,7 @@ std::pair<LayoutUnit, LayoutUnit> RenderFlexibleBox::computeFlexItemMinMaxSizes(
         return { minExtent, maxExtent.value_or(LayoutUnit::max()) };
     }
 
-    if (shouldApplyMinSizeAutoForFlexItem(flexItem)) {
+    if (useContentBasedMinimumSize(flexItem)) {
         // FIXME: If the min value is expected to be valid here, we need to come up with a non optional version of computeMainAxisExtentForFlexItem and
         // ensure it's valid through the virtual calls of computeSizingKeywordLogicalContentHeightUsing.
         LayoutUnit contentSize;
@@ -2489,7 +2492,7 @@ bool RenderFlexibleBox::flexItemHasIntrinsicMainAxisSize(const RenderBox& flexIt
     if (!flexItemMainSizeIsDefinite(flexItem, flexBasis) || minSize.isIntrinsic() || maxSize.isIntrinsic())
         return true;
 
-    if (shouldApplyMinSizeAutoForFlexItem(flexItem))
+    if (useContentBasedMinimumSize(flexItem))
         return true;
 
     return false;

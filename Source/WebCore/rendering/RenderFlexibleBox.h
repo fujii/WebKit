@@ -96,7 +96,7 @@ public:
     enum class GapType : uint8_t { BetweenLines, BetweenItems };
     LayoutUnit computeGap(GapType) const;
 
-    bool shouldApplyMinBlockSizeAutoForFlexItem(const RenderBox&) const;
+    bool useContentBasedMinimumBlockSize(const RenderBox&) const;
 
     bool isComputingFlexBaseSizes() const { return m_isComputingFlexBaseSizes; }
 
@@ -164,7 +164,7 @@ private:
     const Style::PreferredSize& NODELETE preferredCrossSizeLengthForFlexItem(const RenderBox&) const LIFETIME_BOUND;
     const Style::MinimumSize& NODELETE minCrossSizeLengthForFlexItem(const RenderBox&) const LIFETIME_BOUND;
     const Style::MaximumSize& NODELETE maxCrossSizeLengthForFlexItem(const RenderBox&) const LIFETIME_BOUND;
-    bool shouldApplyMinSizeAutoForFlexItem(const RenderBox&) const;
+    bool useContentBasedMinimumSize(const RenderBox&) const;
     LayoutUnit NODELETE crossAxisExtentForFlexItem(const RenderBox& flexItem) const;
     LayoutUnit crossAxisIntrinsicExtentForFlexItem(RenderBox& flexItem);
     LayoutUnit flexItemIntrinsicLogicalHeight(RenderBox& flexItem) const;
