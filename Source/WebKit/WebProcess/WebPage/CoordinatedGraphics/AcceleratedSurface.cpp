@@ -51,6 +51,7 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
 #include "AcceleratedBackingStoreMessages.h"
 #include "AcceleratedSurfaceMessages.h"
+#include <WebCore/DMABufBuffer.h>
 #include <epoxy/egl.h>
 #endif
 
@@ -61,7 +62,6 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #endif
 
 #if USE(GBM)
-#include <WebCore/DMABufBuffer.h>
 #include <WebCore/DRMDeviceManager.h>
 #include <WebCore/GBMVersioning.h>
 #include <drm_fourcc.h>

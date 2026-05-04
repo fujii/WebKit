@@ -20,7 +20,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#if USE(GBM)
+#if PLATFORM(GTK) || PLATFORM(WPE)
+
 header: <WebCore/DMABufBufferAttributes.h>
 [RValue, CustomHeader] class WebCore::DMABufBufferAttributes {
     WebCore::IntSize size;
@@ -30,5 +31,5 @@ header: <WebCore/DMABufBufferAttributes.h>
     Vector<uint32_t> strides;
     uint64_t modifier;
 }
-#endif
 
+#endif // PLATFORM(GTK) || PLATFORM(WPE)
