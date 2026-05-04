@@ -442,7 +442,7 @@ void CompositorCoordinator::update()
     }
 
     // FIXME: rdar://175742010
-    callOnMainThread([this, isRenderingStalled]() { // NOLINT
+    callOnMainRunLoop([this, isRenderingStalled]() {
         if (!m_terminationPending && isRenderingStalled) {
             if (RefPtr<WebPageProxy> page = m_sessionPage.get())
                 terminateSession(*page, PlatformXRSessionEndReason::NoFrameUpdateScheduled);
@@ -605,7 +605,7 @@ void CompositorCoordinator::render(cp_frame_t frame, cp_drawable_t drawable, NST
         tracePoint(WebXRCPFrameStartSubmissionEnd);
 
         // FIXME: rdar://175742010
-        callOnMainThread([callback = WTF::move(m_onFrameUpdate), frameData = WTF::move(frameData)]() mutable { // NOLINT
+        callOnMainRunLoop([callback = WTF::move(m_onFrameUpdate), frameData = WTF::move(frameData)]() mutable {
             callback(WTF::move(frameData));
         });
 
