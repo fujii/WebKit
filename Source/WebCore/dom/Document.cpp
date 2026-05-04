@@ -2024,15 +2024,14 @@ ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceU
     return createElementNS(namespaceURI, qualifiedName, { });
 }
 
-std::optional<DocumentEventTiming> Document::documentEventTimingFromNavigationTiming()
+DocumentEventTiming* Document::documentEventTimingFromNavigationTiming()
 {
     RefPtr window = this->window();
     if (!window)
-        return std::nullopt;
-    RefPtr navigationTiming = window->performance().navigationTiming();
-    if (!navigationTiming)
-        return std::nullopt;
-    return navigationTiming->documentEventTiming();
+        return nullptr;
+    if (auto* navigationTiming = window->performance().navigationTiming())
+        return &navigationTiming->documentEventTiming();
+    return nullptr;
 }
 
 void Document::setReadyState(ReadyState readyState)
@@ -2045,7 +2044,7 @@ void Document::setReadyState(ReadyState readyState)
         if (!m_eventTiming.domLoading) {
             auto now = MonotonicTime::now();
             m_eventTiming.domLoading = now;
-            if (auto eventTiming = documentEventTimingFromNavigationTiming())
+            if (auto* eventTiming = documentEventTimingFromNavigationTiming())
                 eventTiming->domLoading = now;
             // We do this here instead of in the Document constructor because monotonicTimestamp() is 0 when the Document constructor is running.
             if (!url().isEmpty())
@@ -2057,7 +2056,7 @@ void Document::setReadyState(ReadyState readyState)
         if (!m_eventTiming.domComplete) {
             auto now = MonotonicTime::now();
             m_eventTiming.domComplete = now;
-            if (auto eventTiming = documentEventTimingFromNavigationTiming())
+            if (auto* eventTiming = documentEventTimingFromNavigationTiming())
                 eventTiming->domComplete = now;
             WTFEmitSignpost(this, NavigationAndPaintTiming, "domComplete");
         }
@@ -2066,7 +2065,7 @@ void Document::setReadyState(ReadyState readyState)
         if (!m_eventTiming.domInteractive) {
             auto now = MonotonicTime::now();
             m_eventTiming.domInteractive = now;
-            if (auto eventTiming = documentEventTimingFromNavigationTiming())
+            if (auto* eventTiming = documentEventTimingFromNavigationTiming())
                 eventTiming->domInteractive = now;
             WTFEmitSignpost(this, NavigationAndPaintTiming, "domInteractive");
         }
@@ -8109,7 +8108,7 @@ void Document::finishedParsing()
     if (!m_eventTiming.domContentLoadedEventStart) {
         auto now = MonotonicTime::now();
         m_eventTiming.domContentLoadedEventStart = now;
-        if (auto eventTiming = documentEventTimingFromNavigationTiming())
+        if (auto* eventTiming = documentEventTimingFromNavigationTiming())
             eventTiming->domContentLoadedEventStart = now;
         WTFEmitSignpost(this, NavigationAndPaintTiming, "domContentLoadedEventBegin");
     }
@@ -8125,7 +8124,7 @@ void Document::finishedParsing()
     if (!m_eventTiming.domContentLoadedEventEnd) {
         auto now = MonotonicTime::now();
         m_eventTiming.domContentLoadedEventEnd = now;
-        if (auto eventTiming = documentEventTimingFromNavigationTiming())
+        if (auto* eventTiming = documentEventTimingFromNavigationTiming())
             eventTiming->domContentLoadedEventEnd = now;
         WTFEmitSignpost(this, NavigationAndPaintTiming, "domContentLoadedEventEnd");
     }
