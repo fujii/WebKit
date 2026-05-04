@@ -22,8 +22,6 @@
 #pragma once
 
 #include <JavaScriptCore/Breakpoint.h>
-#include <JavaScriptCore/CallData.h>
-#include <JavaScriptCore/DebuggerCallFrame.h>
 #include <JavaScriptCore/DebuggerParseData.h>
 #include <JavaScriptCore/DebuggerPrimitives.h>
 #include <JavaScriptCore/JSCJSValue.h>
@@ -34,17 +32,22 @@
 #include <wtf/Forward.h>
 #include <wtf/ListHashSet.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/text/TextPosition.h>
 
 namespace JSC {
 
 class CallFrame;
 class CodeBlock;
+class DebuggerCallFrame;
 class Exception;
 class JSGenerator;
 class JSGlobalObject;
 class Microtask;
+class NativeExecutable;
 class SourceProvider;
 class VM;
+
+enum class ProfilingReason : uint8_t;
 
 class Debugger : public DoublyLinkedListNode<Debugger> {
     WTF_MAKE_TZONE_ALLOCATED_EXPORT(Debugger, JS_EXPORT_PRIVATE);

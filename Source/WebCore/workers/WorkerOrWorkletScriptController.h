@@ -28,6 +28,8 @@
 
 #include <JavaScriptCore/Debugger.h>
 #include <JavaScriptCore/JSRunLoopTimer.h>
+#include <JavaScriptCore/Strong.h>
+#include <JavaScriptCore/VM.h>
 #include <WebCore/FetchOptions.h>
 #include <WebCore/WorkerThreadType.h>
 #include <wtf/CheckedPtr.h>
