@@ -843,8 +843,11 @@ void SkiaCompositingLayer::recursivePaint(SkCanvas& canvas, PaintContext& contex
     if (!isVisible())
         return;
 
+    auto blendMode = m_blendMode;
+    if (!blendMode && m_shouldBlend)
+        blendMode = SkBlendMode::kSrcOver;
     SetForScope scopedOpacity(context.opacity, context.opacity * opacity());
-    SetForScope scopedBlendMode(context.blendMode, context.blendMode ? context.blendMode : m_blendMode);
+    SetForScope scopedBlendMode(context.blendMode, context.blendMode ? context.blendMode : blendMode);
 
     if (m_preserves3D) {
         paintUsing3DRenderingContext(canvas, context);
