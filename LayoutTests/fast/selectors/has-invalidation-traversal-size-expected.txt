@@ -9,7 +9,7 @@
 :has(+ .trigger) with compound peer .c5
   Traversal count: 1
 :has(:is(.trigger + .other)) with compound peer .c6
-  Traversal count: 14
+  Traversal count: 13
 :has(.trigger) non-subject with scope-bounded traversal .c7
   Traversal count: 7
 :not(:has(.trigger)) inside :not() with compound peer .c8
@@ -18,4 +18,20 @@
   Traversal count: 7
 :is(.other :has(.trigger)) inside :is() with complex selector and compound peer .c10
   Traversal count: 7
+(Parent, DirectSibling) .c11:has(+ .trigger11) > .target
+  Traversal count: 6
+(Parent, IndirectSibling) .c12:has(~ .trigger12) > .target
+  Traversal count: 6
+(Ancestor, DirectSibling) .c13:has(+ .trigger13) .target
+  Traversal count: 6
+(Ancestor, IndirectSibling) .c14:has(~ .trigger14) .target
+  Traversal count: 6
+(Parent, SiblingChild) .c15:has(~ .other15 > .trigger15) > .target
+  Traversal count: 17
+(Parent, SiblingDescendant) .c16:has(~ .other16 .trigger16) > .target
+  Traversal count: 17
+(Ancestor, SiblingChild) .c17:has(~ .other17 > .trigger17) .target
+  Traversal count: 17
+(Ancestor, SiblingDescendant) .c18:has(~ .other18 .trigger18) .target
+  Traversal count: 17
 

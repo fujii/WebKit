@@ -1593,11 +1593,18 @@ static CSSSelectorList buildScopeSelector(const HasCompoundContext& context)
     return CSSSelectorList { WTF::move(result) };
 }
 
+// Returns a selector for the :has() scope element. Encodes three cases:
+//   - Specific selectors: strong scope (e.g. `.c1` for `.c1:has(> .trigger)`).
+//   - Universal `*`: weak scope. Bearer has no compound peer (e.g. `:has(+ .trigger)`).
+//   - Empty list: scope-breaking. A nested :is()/:not() combinator reaches outside the scope.
 CSSSelectorList CSSSelectorParser::makeHasScopeSelector(const CSSSelector& hasPseudoClass)
 {
     auto context = collectHasCompoundContext(hasPseudoClass);
-    if (!context)
-        return { };
+    if (!context) {
+        MutableCSSSelectorList result;
+        result.append(makeUnique<MutableCSSSelector>(anyQName()));
+        return CSSSelectorList { WTF::move(result) };
+    }
     return buildScopeSelector(*context);
 }
 

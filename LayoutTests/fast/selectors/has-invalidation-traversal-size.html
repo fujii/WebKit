@@ -22,6 +22,22 @@
 .c9:is(:has(.trigger)) .target { color: green; }
 /* :has() inside :is() with complex selector and compound peer */
 .c10:is(.other :has(.trigger)) .target { color: green; }
+/* Non-subject (Parent, DirectSibling): bearer has direct next sibling */
+.c11:has(+ .trigger11) > .target { color: green; }
+/* Non-subject (Parent, IndirectSibling): bearer has any later sibling */
+.c12:has(~ .trigger12) > .target { color: green; }
+/* Non-subject (Ancestor, DirectSibling): subject is descendant of bearer */
+.c13:has(+ .trigger13) .target { color: green; }
+/* Non-subject (Ancestor, IndirectSibling): subject is descendant of bearer */
+.c14:has(~ .trigger14) .target { color: green; }
+/* Non-subject (Parent, SiblingChild): bearer ~ .other > .trigger */
+.c15:has(~ .other15 > .trigger15) > .target { color: green; }
+/* Non-subject (Parent, SiblingDescendant): bearer ~ .other .trigger */
+.c16:has(~ .other16 .trigger16) > .target { color: green; }
+/* Non-subject (Ancestor, SiblingChild): subject is descendant of bearer */
+.c17:has(~ .other17 > .trigger17) .target { color: green; }
+/* Non-subject (Ancestor, SiblingDescendant): subject is descendant of bearer */
+.c18:has(~ .other18 .trigger18) .target { color: green; }
 </style>
 <script>
 if (window.testRunner)
@@ -60,16 +76,16 @@ function makeTree(containerClass, childCount, wrapperClass) {
     return container;
 }
 
-function runTest(description, containerClass, mutate, expectGreen, wrapperClass) {
-    var container = makeTree(containerClass, 5, wrapperClass);
-    // Force initial style.
+function runTest(description, containerClass, mutate, expectGreen, options) {
+    options = options || {};
+    var container = makeTree(containerClass, 5, options.wrapperClass);
+    var mutateTarget = options.setup ? options.setup(container) : container;
     document.body.offsetHeight;
 
     internals.resetStyleInvalidationTraversalCount();
 
-    mutate(container);
+    mutate(mutateTarget);
 
-    // Force style resolution.
     document.body.offsetHeight;
 
     var count = internals.styleInvalidationTraversalCount;
@@ -82,7 +98,9 @@ function runTest(description, containerClass, mutate, expectGreen, wrapperClass)
     if (!passed)
         log("  FAIL: unexpected color " + color);
 
-    (container.parentNode === document.getElementById("tests") ? container : container.parentNode).remove();
+    var tests = document.getElementById("tests");
+    while (tests.firstChild)
+        tests.firstChild.remove();
 }
 
 runTest(":has(> .trigger) with compound peer .c1", "c1", function(container) {
@@ -143,7 +161,65 @@ runTest(":is(.other :has(.trigger)) inside :is() with complex selector and compo
     var trigger = document.createElement("div");
     trigger.className = "trigger";
     container.appendChild(trigger);
-}, true, "other");
+}, true, { wrapperClass: "other" });
+
+runTest("(Parent, DirectSibling) .c11:has(+ .trigger11) > .target", "c11", function(container) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger11";
+    container.parentNode.insertBefore(trigger, container.nextSibling);
+}, true);
+
+runTest("(Parent, IndirectSibling) .c12:has(~ .trigger12) > .target", "c12", function(container) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger12";
+    container.parentNode.appendChild(trigger);
+}, true);
+
+runTest("(Ancestor, DirectSibling) .c13:has(+ .trigger13) .target", "c13", function(container) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger13";
+    container.parentNode.insertBefore(trigger, container.nextSibling);
+}, true);
+
+runTest("(Ancestor, IndirectSibling) .c14:has(~ .trigger14) .target", "c14", function(container) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger14";
+    container.parentNode.appendChild(trigger);
+}, true);
+
+function setupFollowingOther(otherClass) {
+    return function(container) {
+        var other = document.createElement("div");
+        other.className = otherClass;
+        other.appendChild(document.createElement("div"));
+        container.parentNode.insertBefore(other, container.nextSibling);
+        return other;
+    };
+}
+
+runTest("(Parent, SiblingChild) .c15:has(~ .other15 > .trigger15) > .target", "c15", function(other) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger15";
+    other.appendChild(trigger);
+}, true, { setup: setupFollowingOther("other15") });
+
+runTest("(Parent, SiblingDescendant) .c16:has(~ .other16 .trigger16) > .target", "c16", function(other) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger16";
+    other.firstElementChild.appendChild(trigger);
+}, true, { setup: setupFollowingOther("other16") });
+
+runTest("(Ancestor, SiblingChild) .c17:has(~ .other17 > .trigger17) .target", "c17", function(other) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger17";
+    other.appendChild(trigger);
+}, true, { setup: setupFollowingOther("other17") });
+
+runTest("(Ancestor, SiblingDescendant) .c18:has(~ .other18 .trigger18) .target", "c18", function(other) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger18";
+    other.firstElementChild.appendChild(trigger);
+}, true, { setup: setupFollowingOther("other18") });
 </script>
 </script>
 </body>
