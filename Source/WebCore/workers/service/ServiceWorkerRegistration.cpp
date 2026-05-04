@@ -332,7 +332,7 @@ void ServiceWorkerRegistration::showNotification(ScriptExecutionContext& context
 
         if (RefPtr pushEvent = serviceWorkerGlobalScope->pushEvent()) {
             auto& globalObject = *promise->globalObject();
-            auto& jsPromise = *uncheckedDowncast<JSC::JSPromise>(promise->promise());
+            auto& jsPromise = *downcast<JSC::JSPromise>(promise->promise());
             pushEvent->waitUntil(DOMPromise::create(globalObject, jsPromise));
         }
 

@@ -306,7 +306,7 @@ JSC::JSValue WorkerOrWorkletScriptController::evaluateModule(const URL& sourceUR
     } else if (moduleRecord.inherits<JSC::SyntheticModuleRecord>())
         InspectorInstrumentation::willEvaluateScript(*globalScope, sourceURL.string(), 1, 1);
     else {
-        auto* jsModuleRecord = uncheckedDowncast<JSModuleRecord>(&moduleRecord);
+        auto* jsModuleRecord = downcast<JSModuleRecord>(&moduleRecord);
         const auto& jsSourceCode = jsModuleRecord->sourceCode();
         InspectorInstrumentation::willEvaluateScript(*globalScope, sourceURL.string(), jsSourceCode.firstLine().oneBasedInt(), jsSourceCode.startColumn().oneBasedInt());
     }
@@ -525,7 +525,7 @@ void WorkerOrWorkletScriptController::loadAndEvaluateModule(const URL& moduleURL
             RETURN_IF_EXCEPTION(scope, { });
             scriptFetcher->notifyLoadCompleted(*moduleKey.impl());
 
-            RefPtr context = downcast<WorkerOrWorkletGlobalScope>(uncheckedDowncast<JSDOMGlobalObject>(globalObject)->scriptExecutionContext());
+            RefPtr context = downcast<WorkerOrWorkletGlobalScope>(downcast<JSDOMGlobalObject>(globalObject)->scriptExecutionContext());
             if (!context || !context->script()) {
                 task->run(std::nullopt);
                 return JSValue::encode(jsUndefined());

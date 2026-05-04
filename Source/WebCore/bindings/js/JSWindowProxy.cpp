@@ -150,7 +150,7 @@ void JSWindowProxy::attachDebugger(JSC::Debugger* debugger)
 DOMWindow& JSWindowProxy::wrapped() const
 {
     auto* window = this->window();
-    return uncheckedDowncast<JSDOMWindowBase>(window)->wrapped();
+    return downcast<JSDOMWindowBase>(window)->wrapped();
 }
 
 JSValue toJS(JSGlobalObject* lexicalGlobalObject, WindowProxy& windowProxy)
@@ -169,8 +169,8 @@ WindowProxy* JSWindowProxy::toWrapped(VM&, JSValue value)
     if (!value.isObject())
         return nullptr;
     JSObject* object = asObject(value);
-    if (object->inherits<JSWindowProxy>())
-        return uncheckedDowncast<JSWindowProxy>(object)->windowProxy();
+    if (auto* windowProxy = dynamicDowncast<JSWindowProxy>(*object))
+        return windowProxy->windowProxy();
     return nullptr;
 }
 

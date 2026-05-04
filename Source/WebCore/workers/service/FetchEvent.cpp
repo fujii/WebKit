@@ -61,9 +61,9 @@ static inline Ref<DOMPromise> retrieveHandledPromise(JSC::JSGlobalObject& global
 
     JSC::JSLockHolder lock(globalObject.vm());
 
-    auto& jsDOMGlobalObject = uncheckedDowncast<JSDOMGlobalObject>(globalObject);
+    auto& jsDOMGlobalObject = downcast<JSDOMGlobalObject>(globalObject);
     auto deferredPromise = DeferredPromise::create(jsDOMGlobalObject);
-    return DOMPromise::create(jsDOMGlobalObject, *uncheckedDowncast<JSC::JSPromise>(deferredPromise->promise()));
+    return DOMPromise::create(jsDOMGlobalObject, *downcast<JSC::JSPromise>(deferredPromise->promise()));
 }
 
 FetchEvent::FetchEvent(JSC::JSGlobalObject& globalObject, const AtomString& type, Init&& initializer, IsTrusted isTrusted)

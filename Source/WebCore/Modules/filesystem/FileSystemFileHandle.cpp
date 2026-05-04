@@ -146,7 +146,7 @@ void FileSystemFileHandle::createWritable(const CreateWritableOptions& options, 
             return promise.reject(Exception { ExceptionCode::InvalidStateError, "Context has stopped"_s });
         }
 
-        auto* globalObject = uncheckedDowncast<JSDOMGlobalObject>(context->globalObject());
+        auto* globalObject = downcast<JSDOMGlobalObject>(context->globalObject());
         if (!globalObject) {
             closeWritable(streamIdentifier, FileSystemWriteCloseReason::Aborted);
             return promise.reject(Exception { ExceptionCode::InvalidStateError, "Global object is invalid"_s });
