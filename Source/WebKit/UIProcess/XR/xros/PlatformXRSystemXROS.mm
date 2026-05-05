@@ -35,15 +35,7 @@ namespace WebKit {
 
 PlatformXRCoordinator* PlatformXRSystem::xrCoordinator()
 {
-    if (!CompositorCoordinator::isCompositorServicesAvailable())
-        return nullptr;
-
-    static LazyNeverDestroyed<CompositorCoordinator> xrCoordinator;
-    static std::once_flag once;
-    std::call_once(once, [] {
-        xrCoordinator.construct();
-    });
-    return &xrCoordinator.get();
+    return CompositorCoordinator::singleton();
 }
 
 #if ENABLE(WEBXR_LAYERS)
