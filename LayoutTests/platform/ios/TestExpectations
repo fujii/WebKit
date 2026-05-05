@@ -8499,9 +8499,8 @@ webaudio/createMediaStreamSource-null.html [ Pass Failure ]
 webrtc/getUserMedia-webaudio-autoplay.html [ Pass Failure ]
 fast/forms/ios/scroll-to-reveal-focused-select.html [ Pass ]
 fast/events/ios/should-be-able-to-dismiss-form-accessory-after-tapping-outside-iframe-with-focused-field.html [ Pass ]
-http/tests/site-isolation/remote-frame-loaded-while-hidden.html [ Pass ImageOnlyFailure ]
 
-# from fast/ tests that are flaky: adding timeout 
+# from fast/ tests that are flaky: adding timeout
 webkit.org/b/304027 fast/block/basic/001.html [ Pass Failure Timeout ]
 
 webkit.org/b/303650 fast/lists/marker-before-empty-inline.html [ ImageOnlyFailure ]
