@@ -26,6 +26,7 @@ set(bmalloc_SOURCES
     bmalloc/Mutex.cpp
     bmalloc/TZoneHeap.cpp
     bmalloc/TZoneHeapManager.cpp
+    bmalloc/VMAllocate.cpp
     bmalloc/bmalloc.cpp
 
     libpas/src/libpas/bmalloc_heap.c
@@ -619,7 +620,7 @@ if (USE_MIMALLOC)
     )
 endif ()
 
-if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+if (APPLE)
     list(APPEND bmalloc_SOURCES
         bmalloc/TZoneLog.cpp
     )
