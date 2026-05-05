@@ -1,6 +1,6 @@
 Filler Text
 
-PASS animationstart event is instanceof AnimationEvent
-PASS animationend event is instanceof AnimationEvent
-PASS animationiteration event is instanceof AnimationEvent
+FAIL animationstart event is instanceof AnimationEvent assert_idl_attribute: animationstart has animation property property "animation" not found in prototype chain
+FAIL animationend event is instanceof AnimationEvent assert_idl_attribute: animationend has animation property property "animation" not found in prototype chain
+FAIL animationiteration event is instanceof AnimationEvent assert_idl_attribute: animationiteration has animation property property "animation" not found in prototype chain
 
