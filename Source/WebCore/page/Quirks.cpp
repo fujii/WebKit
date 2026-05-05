@@ -3801,6 +3801,10 @@ void Quirks::determineRelevantQuirks()
     m_quirksData.setQuirkState(QuirksData::SiteSpecificQuirk::ShouldDisablePushStateFilePathRestrictions, shouldDisablePushStateFilePathRestrictions);
 #endif
 
+#if PLATFORM(COCOA)
+    m_quirksData.setQuirkState(QuirksData::SiteSpecificQuirk::NeedsYouTubeCaptionQuirk, isYoutubeEmbedDomain());
+#endif
+
     auto quirksURL = topDocumentURL();
     if (quirksURL.isEmpty())
         return;
