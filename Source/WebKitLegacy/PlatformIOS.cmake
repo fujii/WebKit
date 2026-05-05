@@ -1,32 +1,106 @@
 include(PlatformCocoa.cmake)
 
-find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
-find_library(QUARTZ_LIBRARY Quartz)
-find_library(SECURITYINTERFACE_LIBRARY SecurityInterface)
-add_definitions(-iframework ${QUARTZ_LIBRARY}/Frameworks)
-add_definitions(-iframework ${APPLICATIONSERVICES_LIBRARY}/Versions/Current/Frameworks)
+find_library(UIKIT_LIBRARY UIKit)
 
 list(APPEND WebKitLegacy_PRIVATE_LIBRARIES
-    ${SECURITYINTERFACE_LIBRARY}
+    ${UIKIT_LIBRARY}
+)
+
+set(BUNDLE_VERSION "${MACOSX_FRAMEWORK_BUNDLE_VERSION}")
+set(SHORT_VERSION_STRING "${WEBKIT_MAC_VERSION}")
+set(PRODUCT_NAME "WebKitLegacy")
+set(PRODUCT_BUNDLE_IDENTIFIER "com.apple.WebKitLegacy")
+configure_file(${WEBKITLEGACY_DIR}/mac/Info.plist ${CMAKE_CURRENT_BINARY_DIR}/WebKitLegacy-Info.plist)
+execute_process(COMMAND plutil -insert MinimumOSVersion -string "${CMAKE_OSX_DEPLOYMENT_TARGET}" ${CMAKE_CURRENT_BINARY_DIR}/WebKitLegacy-Info.plist)
+execute_process(COMMAND plutil -insert UIDeviceFamily -json "[1,2]" ${CMAKE_CURRENT_BINARY_DIR}/WebKitLegacy-Info.plist)
+
+set(WebKitLegacy_POST_BUILD_COMMAND
+    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/WebKitLegacy-Info.plist
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKitLegacy.framework/Info.plist
+    COMMAND codesign --force --sign - ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKitLegacy.framework
+)
+set_target_properties(WebKitLegacy PROPERTIES
+    INSTALL_NAME_DIR "${WebKitLegacy_INSTALL_NAME_DIR}"
+)
+target_link_options(WebKitLegacy PRIVATE
+    -compatibility_version 1.0.0
+    -current_version ${WEBKIT_MAC_VERSION}
+)
+
+target_link_options(WebKitLegacy PRIVATE
+    -unexported_symbols_list ${WEBKITLEGACY_DIR}/WebKitLegacy-iOS-unexported.exp
+)
+
+# FIXME: Generate exported symbols list. https://bugs.webkit.org/show_bug.cgi?id=312083
+
+list(APPEND WebKitLegacy_PRIVATE_INCLUDE_DIRECTORIES
+    "${WEBKITLEGACY_DIR}/ios"
+
+    "${WEBKITLEGACY_DIR}/ios/DefaultDelegates"
+    "${WEBKITLEGACY_DIR}/ios/Misc"
+    "${WEBKITLEGACY_DIR}/ios/WebCoreSupport"
+    "${WEBKITLEGACY_DIR}/ios/WebView"
+
+    "${WEBKITLEGACY_DIR}/mac/DOM"
+    "${WEBKITLEGACY_DIR}/mac/DefaultDelegates"
+    "${WEBKITLEGACY_DIR}/mac/History"
+    "${WEBKITLEGACY_DIR}/mac/Plugins"
+    "${WEBKITLEGACY_DIR}/mac/Storage"
+    "${WEBKITLEGACY_DIR}/mac/WebInspector"
+    "${WEBKITLEGACY_DIR}/mac/WebView"
 )
 
 list(APPEND WebKitLegacy_SOURCES
+    ios/DefaultDelegates/WebDefaultFormDelegate.m
+    ios/DefaultDelegates/WebDefaultFrameLoadDelegate.m
+    ios/DefaultDelegates/WebDefaultResourceLoadDelegate.m
+    ios/DefaultDelegates/WebDefaultUIKitDelegate.m
+
+    ios/Misc/WebGeolocationCoreLocationProvider.mm
+    ios/Misc/WebGeolocationProviderIOS.mm
+    ios/Misc/WebNSStringExtrasIOS.m
+    ios/Misc/WebUIKitSupport.mm
+
+    ios/WebCoreSupport/PopupMenuIOS.mm
+    ios/WebCoreSupport/SearchPopupMenuIOS.cpp
+    ios/WebCoreSupport/WebChromeClientIOS.mm
+    ios/WebCoreSupport/WebFixedPositionContent.mm
+    ios/WebCoreSupport/WebFrameIOS.mm
+    ios/WebCoreSupport/WebGeolocation.mm
+    ios/WebCoreSupport/WebInspectorClientIOS.mm
+    ios/WebCoreSupport/WebMIMETypeRegistry.mm
+    ios/WebCoreSupport/WebSelectionRect.m
+    ios/WebCoreSupport/WebVisiblePosition.mm
+
+    ios/WebView/WebFrameViewWAKCompatibility.m
+    ios/WebView/WebPDFViewIOS.mm
+    ios/WebView/WebPDFViewPlaceholder.mm
+    ios/WebView/WebPlainWhiteView.mm
+
     mac/DefaultDelegates/WebDefaultEditingDelegate.m
     mac/DefaultDelegates/WebDefaultPolicyDelegate.mm
     mac/DefaultDelegates/WebDefaultUIDelegate.mm
 
+    mac/WebView/WebPDFDocumentExtras.mm
+)
+
+list(APPEND WebKitLegacy_PRIVATE_LIBRARIES
+    "-F${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+    "-framework WebCore"
+)
+add_dependencies(WebKitLegacy WebCore)
+
+list(APPEND WebKitLegacy_SOURCES
     mac/History/BackForwardList.mm
     mac/History/BinaryPropertyList.cpp
     mac/History/HistoryPropertyList.mm
     mac/History/WebHistory.mm
     mac/History/WebHistoryItem.mm
-    mac/History/WebURLsWithTitles.m
 
     mac/Misc/WebCache.mm
     mac/Misc/WebCoreStatistics.mm
     mac/Misc/WebDownload.mm
     mac/Misc/WebElementDictionary.mm
-    mac/Misc/WebIconDatabase.mm
     mac/Misc/WebKitErrors.m
     mac/Misc/WebKitLogInitialization.mm
     mac/Misc/WebKitLogging.m
@@ -35,25 +109,14 @@ list(APPEND WebKitLegacy_SOURCES
     mac/Misc/WebKitVersionChecks.mm
     mac/Misc/WebLocalizableStrings.mm
     mac/Misc/WebLocalizableStringsInternal.mm
-    mac/Misc/WebNSControlExtras.m
     mac/Misc/WebNSDataExtras.mm
     mac/Misc/WebNSDictionaryExtras.m
-    mac/Misc/WebNSEventExtras.m
     mac/Misc/WebNSFileManagerExtras.mm
-    mac/Misc/WebNSImageExtras.m
     mac/Misc/WebNSObjectExtras.mm
-    mac/Misc/WebNSPasteboardExtras.mm
-    mac/Misc/WebNSPrintOperationExtras.m
     mac/Misc/WebNSURLExtras.mm
     mac/Misc/WebNSURLRequestExtras.m
     mac/Misc/WebNSUserDefaultsExtras.mm
-    mac/Misc/WebNSViewExtras.m
-    mac/Misc/WebNSWindowExtras.m
-    mac/Misc/WebStringTruncator.mm
     mac/Misc/WebUserContentURLPattern.mm
-
-    mac/Panels/WebAuthenticationPanel.m
-    mac/Panels/WebPanelAuthenticationHandler.m
 
     mac/Plugins/WebPluginPackage.mm
 
@@ -64,10 +127,7 @@ list(APPEND WebKitLegacy_SOURCES
     mac/Storage/WebStorageManager.mm
     mac/Storage/WebStorageTrackerClient.mm
 
-    mac/WebCoreSupport/CorrectionPanel.mm
     mac/WebCoreSupport/LegacyHistoryItemClient.mm
-    mac/WebCoreSupport/PopupMenuMac.mm
-    mac/WebCoreSupport/SearchPopupMenuMac.mm
     mac/WebCoreSupport/WebAlternativeTextClient.mm
     mac/WebCoreSupport/WebChromeClient.mm
     mac/WebCoreSupport/WebContextMenuClient.mm
@@ -75,8 +135,6 @@ list(APPEND WebKitLegacy_SOURCES
     mac/WebCoreSupport/WebEditorClient.mm
     mac/WebCoreSupport/WebFrameNetworkingContext.mm
     mac/WebCoreSupport/WebGeolocationClient.mm
-    mac/WebCoreSupport/WebInspectorClient.mm
-    mac/WebCoreSupport/WebJavaScriptTextInputPanel.m
     mac/WebCoreSupport/WebKitFullScreenListener.mm
     mac/WebCoreSupport/WebMediaKeySystemClient.mm
     mac/WebCoreSupport/WebNotificationClient.mm
@@ -100,7 +158,6 @@ list(APPEND WebKitLegacy_SOURCES
     mac/WebView/WebDeviceOrientation.mm
     mac/WebView/WebDeviceOrientationProviderMock.mm
     mac/WebView/WebDocumentLoaderMac.mm
-    mac/WebView/WebDynamicScrollBarsView.mm
     mac/WebView/WebFeature.m
     mac/WebView/WebFormDelegate.m
     mac/WebView/WebGeolocationPosition.mm
@@ -110,23 +167,24 @@ list(APPEND WebKitLegacy_SOURCES
     mac/WebView/WebMediaPlaybackTargetPicker.mm
     mac/WebView/WebNavigationData.mm
     mac/WebView/WebNotification.mm
-    mac/WebView/WebPDFDocumentExtras.mm
     mac/WebView/WebPolicyDelegate.mm
     mac/WebView/WebPreferences.mm
     mac/WebView/WebPreferencesDefaultValues.mm
     mac/WebView/WebResource.mm
-    mac/WebView/WebTextCompletionController.mm
     mac/WebView/WebTextIterator.mm
-    mac/WebView/WebVideoFullscreenController.mm
     mac/WebView/WebViewData.mm
-    mac/WebView/WebWindowAnimation.mm
 )
 
 set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     ${WEBCORE_DIR}/bridge/objc/WebScriptObject.h
     ${WEBCORE_DIR}/platform/cocoa/WebKitAvailability.h
-    ${WEBCORE_DIR}/plugins/npapi.h
-    ${WEBCORE_DIR}/plugins/npfunctions.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKAppKitStubs.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKResponder.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKView.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKWindow.h
+    ${WEBCORE_DIR}/platform/ios/wak/WKContentObservation.h
+    ${WEBCORE_DIR}/platform/ios/wak/WKGraphics.h
+    ${WEBCORE_DIR}/platform/ios/wak/WKTypes.h
 
     mac/DOM/DOM.h
     mac/DOM/DOMAbstractView.h
@@ -425,7 +483,6 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     mac/WebCoreSupport/WebApplicationCache.h
     mac/WebCoreSupport/WebApplicationCacheInternal.h
     mac/WebCoreSupport/WebApplicationCacheQuotaManager.h
-    mac/WebCoreSupport/WebCachedFramePlatformData.h
     mac/WebCoreSupport/WebChromeClient.h
     mac/WebCoreSupport/WebContextMenuClient.h
     mac/WebCoreSupport/WebCreateFragmentInternal.h
@@ -456,7 +513,6 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     mac/WebInspector/WebNodeHighlightView.h
     mac/WebInspector/WebNodeHighlighter.h
 
-    mac/WebView/PDFViewSPI.h
     mac/WebView/WebAllowDenyPolicyListener.h
     mac/WebView/WebArchive.h
     mac/WebView/WebArchiveInternal.h
@@ -534,17 +590,253 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     mac/WebView/WebWindowAnimation.h
 )
 
+list(APPEND WebKitLegacy_PUBLIC_FRAMEWORK_HEADERS
+    ${WEBCORE_DIR}/bridge/objc/WebScriptObject.h
+    ${WEBCORE_DIR}/platform/cocoa/WebKitAvailability.h
+    ${WEBCORE_DIR}/platform/ios/AbstractPasteboard.h
+    ${WEBCORE_DIR}/platform/ios/KeyEventCodesIOS.h
+    ${WEBCORE_DIR}/platform/ios/WebEvent.h
+    ${WEBCORE_DIR}/platform/ios/WebItemProviderPasteboard.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKAppKitStubs.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKResponder.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKView.h
+    ${WEBCORE_DIR}/platform/ios/wak/WAKWindow.h
+    ${WEBCORE_DIR}/platform/ios/wak/WKContentObservation.h
+    ${WEBCORE_DIR}/platform/ios/wak/WKGraphics.h
+    ${WEBCORE_DIR}/platform/ios/wak/WKTypes.h
+    ${WEBCORE_DIR}/platform/ios/wak/WebCoreThread.h
+    ${WEBCORE_DIR}/platform/ios/wak/WebCoreThreadMessage.h
+    ${WEBCORE_DIR}/platform/ios/wak/WebCoreThreadRun.h
+
+    ios/Misc/WebUIKitSupport.h
+
+    ios/WebCoreSupport/WebFixedPositionContent.h
+    ios/WebCoreSupport/WebFrameIOS.h
+    ios/WebCoreSupport/WebSelectionRect.h
+    ios/WebCoreSupport/WebVisiblePosition.h
+
+    ios/WebView/WebPDFViewPlaceholder.h
+    ios/WebView/WebUIKitDelegate.h
+
+    mac/DOM/DOMInternal.h
+    mac/DOM/DOMPrivate.h
+    mac/DOM/ExceptionHandlers.h
+    mac/DOM/ObjCEventListener.h
+    mac/DOM/ObjCNodeFilterCondition.h
+    mac/DOM/WebDOMOperationsInternal.h
+
+    mac/DefaultDelegates/WebDefaultEditingDelegate.h
+    mac/DefaultDelegates/WebDefaultPolicyDelegate.h
+    mac/DefaultDelegates/WebDefaultUIDelegate.h
+
+    mac/History/BackForwardList.h
+    mac/History/WebBackForwardList.h
+    mac/History/WebBackForwardListInternal.h
+    mac/History/WebBackForwardListPrivate.h
+    mac/History/WebHistory.h
+    mac/History/WebHistoryInternal.h
+    mac/History/WebHistoryItem.h
+    mac/History/WebHistoryItemInternal.h
+    mac/History/WebHistoryItemPrivate.h
+    mac/History/WebHistoryPrivate.h
+
+    mac/Misc/WebCache.h
+    mac/Misc/WebCoreStatistics.h
+    mac/Misc/WebDownload.h
+    mac/Misc/WebElementDictionary.h
+    mac/Misc/WebKit.h
+    mac/Misc/WebKitErrors.h
+    mac/Misc/WebKitErrorsPrivate.h
+    mac/Misc/WebKitLogging.h
+    mac/Misc/WebKitNSStringExtras.h
+    mac/Misc/WebKitStatistics.h
+    mac/Misc/WebKitStatisticsPrivate.h
+    mac/Misc/WebKitVersionChecks.h
+    mac/Misc/WebLocalizableStrings.h
+    mac/Misc/WebLocalizableStringsInternal.h
+    mac/Misc/WebNSDataExtras.h
+    mac/Misc/WebNSDictionaryExtras.h
+    mac/Misc/WebNSFileManagerExtras.h
+    mac/Misc/WebNSObjectExtras.h
+    mac/Misc/WebNSURLExtras.h
+    mac/Misc/WebNSURLRequestExtras.h
+    mac/Misc/WebNSUserDefaultsExtras.h
+    mac/Misc/WebQuotaManager.h
+    mac/Misc/WebUserContentURLPattern.h
+
+    mac/Plugins/WebBasePluginPackage.h
+    mac/Plugins/WebPlugin.h
+    mac/Plugins/WebPluginContainer.h
+    mac/Plugins/WebPluginContainerPrivate.h
+    mac/Plugins/WebPluginController.h
+    mac/Plugins/WebPluginDatabase.h
+    mac/Plugins/WebPluginPackage.h
+    mac/Plugins/WebPluginViewFactory.h
+    mac/Plugins/WebPluginViewFactoryPrivate.h
+
+    mac/Storage/WebDatabaseManagerClient.h
+    mac/Storage/WebDatabaseManagerInternal.h
+    mac/Storage/WebDatabaseManagerPrivate.h
+    mac/Storage/WebDatabaseQuotaManager.h
+    mac/Storage/WebStorageManagerInternal.h
+    mac/Storage/WebStorageManagerPrivate.h
+    mac/Storage/WebStorageTrackerClient.h
+
+    mac/WebCoreSupport/WebApplicationCache.h
+    mac/WebCoreSupport/WebApplicationCacheInternal.h
+    mac/WebCoreSupport/WebApplicationCacheQuotaManager.h
+    mac/WebCoreSupport/WebCreateFragmentInternal.h
+    mac/WebCoreSupport/WebFrameLoaderClient.h
+    mac/WebCoreSupport/WebKitFullScreenListener.h
+    mac/WebCoreSupport/WebOpenPanelResultListener.h
+    mac/WebCoreSupport/WebSecurityOriginInternal.h
+    mac/WebCoreSupport/WebSecurityOriginPrivate.h
+
+    mac/WebInspector/WebInspector.h
+    mac/WebInspector/WebInspectorFrontend.h
+    mac/WebInspector/WebInspectorPrivate.h
+    mac/WebInspector/WebNodeHighlight.h
+    mac/WebInspector/WebNodeHighlightView.h
+    mac/WebInspector/WebNodeHighlighter.h
+
+    mac/WebView/WebAllowDenyPolicyListener.h
+    mac/WebView/WebArchive.h
+    mac/WebView/WebArchiveInternal.h
+    mac/WebView/WebDataSource.h
+    mac/WebView/WebDataSourceInternal.h
+    mac/WebView/WebDataSourcePrivate.h
+    mac/WebView/WebDelegateImplementationCaching.h
+    mac/WebView/WebDeviceOrientation.h
+    mac/WebView/WebDeviceOrientationInternal.h
+    mac/WebView/WebDeviceOrientationProvider.h
+    mac/WebView/WebDeviceOrientationProviderMock.h
+    mac/WebView/WebDeviceOrientationProviderMockInternal.h
+    mac/WebView/WebDocument.h
+    mac/WebView/WebDocumentInternal.h
+    mac/WebView/WebDocumentLoaderMac.h
+    mac/WebView/WebDocumentPrivate.h
+    mac/WebView/WebEditingDelegate.h
+    mac/WebView/WebEditingDelegatePrivate.h
+    mac/WebView/WebFeature.h
+    mac/WebView/WebFormDelegate.h
+    mac/WebView/WebFormDelegatePrivate.h
+    mac/WebView/WebFrame.h
+    mac/WebView/WebFrameInternal.h
+    mac/WebView/WebFrameLoadDelegate.h
+    mac/WebView/WebFrameLoadDelegatePrivate.h
+    mac/WebView/WebFramePrivate.h
+    mac/WebView/WebFrameView.h
+    mac/WebView/WebFrameViewInternal.h
+    mac/WebView/WebFrameViewPrivate.h
+    mac/WebView/WebGeolocationPosition.h
+    mac/WebView/WebGeolocationPositionInternal.h
+    mac/WebView/WebHTMLRepresentation.h
+    mac/WebView/WebHTMLRepresentationPrivate.h
+    mac/WebView/WebHistoryDelegate.h
+    mac/WebView/WebIndicateLayer.h
+    mac/WebView/WebMediaPlaybackTargetPicker.h
+    mac/WebView/WebNavigationData.h
+    mac/WebView/WebNotification.h
+    mac/WebView/WebNotificationInternal.h
+    mac/WebView/WebPolicyDelegate.h
+    mac/WebView/WebPolicyDelegatePrivate.h
+    mac/WebView/WebPreferenceKeysPrivate.h
+    mac/WebView/WebPreferences.h
+    mac/WebView/WebPreferencesPrivate.h
+    mac/WebView/WebResource.h
+    mac/WebView/WebResourceInternal.h
+    mac/WebView/WebResourceLoadDelegate.h
+    mac/WebView/WebResourceLoadDelegatePrivate.h
+    mac/WebView/WebResourcePrivate.h
+    mac/WebView/WebScriptDebugDelegate.h
+    mac/WebView/WebScriptWorld.h
+    mac/WebView/WebScriptWorldInternal.h
+    mac/WebView/WebTextIterator.h
+    mac/WebView/WebUIDelegate.h
+    mac/WebView/WebUIDelegatePrivate.h
+    mac/WebView/WebView.h
+    mac/WebView/WebViewData.h
+    mac/WebView/WebViewInternal.h
+    mac/WebView/WebViewPrivate.h
+)
+
+set(C99_FILES
+    ios/DefaultDelegates/WebDefaultFormDelegate.m
+    ios/DefaultDelegates/WebDefaultFrameLoadDelegate.m
+    ios/DefaultDelegates/WebDefaultResourceLoadDelegate.m
+    ios/DefaultDelegates/WebDefaultUIKitDelegate.m
+
+    ios/Misc/WebNSStringExtrasIOS.m
+
+    ios/WebCoreSupport/WebSelectionRect.m
+
+    ios/WebView/WebFrameViewWAKCompatibility.m
+
+    mac/DefaultDelegates/WebDefaultEditingDelegate.m
+
+    mac/Misc/WebKitErrors.m
+    mac/Misc/WebKitLogging.m
+    mac/Misc/WebKitStatistics.m
+    mac/Misc/WebNSDictionaryExtras.m
+    mac/Misc/WebNSURLRequestExtras.m
+
+    mac/WebView/WebFeature.m
+    mac/WebView/WebFormDelegate.m
+)
+
+set(CPP_FILES
+    Storage/StorageThread.cpp
+
+    cf/WebCoreSupport/WebInspectorClientCF.cpp
+
+    ios/WebCoreSupport/SearchPopupMenuIOS.cpp
+
+    mac/History/BinaryPropertyList.cpp
+)
+
+foreach (_file ${WebKitLegacy_SOURCES})
+    list(FIND C99_FILES ${_file} _c99_index)
+    list(FIND CPP_FILES ${_file} _cpp_index)
+    if (NOT ${_c99_index} EQUAL -1)
+        set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS -std=c99)
+    elseif (NOT ${_cpp_index} EQUAL -1)
+        set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS -std=c++2b)
+    else ()
+        set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS "-ObjC++ -std=c++2b")
+    endif ()
+endforeach ()
+
 foreach (_file ${WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES})
     get_filename_component(_name "${_file}" NAME)
     set(_target_filename "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKitLegacy/${_name}")
     if (NOT EXISTS ${_target_filename})
-        file(WRITE ${_target_filename} "#import \"${_file}\"")
+        if (IS_ABSOLUTE "${_file}")
+            file(WRITE ${_target_filename} "#import \"${_file}\"")
+        else ()
+            file(WRITE ${_target_filename} "#import \"${CMAKE_CURRENT_SOURCE_DIR}/${_file}\"")
+        endif ()
     endif ()
 endforeach ()
 
-# WK2 code imports WebKitLegacy headers via <WebKit/...> (e.g. _WKFeature.h -> <WebKit/WebFeature.h>).
-# Symlink WebKit/ -> WebKitLegacy/ so both prefixes resolve from the same headers dir.
-file(CREATE_LINK "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKitLegacy"
-                 "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKit" SYMBOLIC)
+# Symlink WebKit/ -> WebKitLegacy/ for <WebKit/...> imports.
+if (NOT EXISTS "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKit")
+    file(CREATE_LINK "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKitLegacy"
+                     "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKit" SYMBOLIC)
+endif ()
 
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -compatibility_version 1 -current_version ${WEBKIT_MAC_VERSION} -framework SecurityInterface")
+set(_wkl_fw "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKitLegacy.framework")
+make_directory("${_wkl_fw}")
+make_directory("${_wkl_fw}/Modules")
+
+if (NOT EXISTS "${_wkl_fw}/PrivateHeaders")
+    file(CREATE_LINK "${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKitLegacy"
+                     "${_wkl_fw}/PrivateHeaders" SYMBOLIC)
+endif ()
+
+configure_file(${WEBKITLEGACY_DIR}/Modules/WebKitLegacy.modulemap
+               ${_wkl_fw}/Modules/module.modulemap COPYONLY)
+# Empty private modulemap — PrivateHeaders include macOS-only headers.
+file(WRITE "${_wkl_fw}/Modules/module.private.modulemap"
+"framework module WebKitLegacy [system] {
+}
+")
