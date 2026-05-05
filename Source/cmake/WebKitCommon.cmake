@@ -44,6 +44,7 @@ if (NOT HAS_RUN_WEBKIT_COMMON)
     # -----------------------------------------------------------------------------
     set(ALL_PORTS
         GTK
+        IOS
         JSCOnly
         Mac
         PlayStation

@@ -135,7 +135,9 @@ endmacro()
 # On ports where OBJC/OBJCXX are not enabled languages those clauses are no-ops.
 macro(ADD_WEBKIT_PREFIX_HEADERS _target _header)
     target_precompile_headers(${_target} PRIVATE
-        "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
+        "$<$<COMPILE_LANGUAGE:C,CXX,OBJC>:${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
+    target_compile_options(${_target} PRIVATE
+        "$<$<COMPILE_LANGUAGE:OBJCXX>:-include;${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
 endmacro()
 
 macro(WEBKIT_FRAMEWORK_DECLARE _target)
@@ -168,7 +170,8 @@ macro(_WEBKIT_TARGET_SETUP _target _logical_name)
     target_include_directories(${_target} PRIVATE "$<BUILD_INTERFACE:${${_logical_name}_PRIVATE_INCLUDE_DIRECTORIES}>")
 
     if (DEVELOPER_MODE_CXX_FLAGS)
-        target_compile_options(${_target} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:Swift>>:${DEVELOPER_MODE_CXX_FLAGS}>)
+        target_compile_options(${_target} PRIVATE
+            "$<$<NOT:$<COMPILE_LANGUAGE:Swift>>:${DEVELOPER_MODE_CXX_FLAGS}>")
         target_compile_options(${_target} PRIVATE
             "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Werror ExistentialAny -Werror StrictMemorySafety -Werror ForeignReferenceType>")
     endif ()
@@ -640,6 +643,23 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         endforeach ()
         target_compile_options(${_target} PRIVATE ${_swift_only_options})
 
+        if (CMAKE_SYSTEM_NAME STREQUAL "iOS" AND CMAKE_OSX_SYSROOT)
+            target_compile_options(${_target} PRIVATE
+                "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -iframework${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks>")
+            if (EXISTS "${CMAKE_OSX_SYSROOT}/usr/local/include/unicode_private.modulemap")
+                target_compile_options(${_target} PRIVATE
+                    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -isystem${CMAKE_OSX_SYSROOT}/usr/local/include>"
+                    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fmodule-map-file=${CMAKE_OSX_SYSROOT}/usr/local/include/unicode_private.modulemap>")
+            endif ()
+        endif ()
+        if (WEBKIT_ADDITIONS_COMPILE_PATH)
+            target_compile_options(${_target} PRIVATE
+                "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -isystem${WEBKIT_ADDITIONS_COMPILE_PATH}>")
+        elseif (WEBKIT_ADDITIONS_INCLUDE_PATH)
+            target_compile_options(${_target} PRIVATE
+                "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -isystem${WEBKIT_ADDITIONS_INCLUDE_PATH}>")
+        endif ()
+
         # cmake's Swift interop does not respect CMAKE_SHARED_LINKER_FLAGS, so let's pass
         # on those that we can.
         # rdar://155519819
@@ -656,9 +676,12 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             endif ()
         endforeach ()
 
-        # Generate the header required for C++ to call into Swift.
-        set(_swift_sources $<TARGET_PROPERTY:${_target},SOURCES>)
-        set(_swift_sources $<FILTER:${_swift_sources},INCLUDE,\\.swift$>)
+        if (DEFINED ${_target}_SWIFT_TYPECHECK_SOURCES)
+            set(_swift_sources ${${_target}_SWIFT_TYPECHECK_SOURCES})
+        else ()
+            set(_swift_sources $<TARGET_PROPERTY:${_target},SOURCES>)
+            set(_swift_sources $<FILTER:${_swift_sources},INCLUDE,\\.swift$>)
+        endif ()
 
         cmake_path(APPEND CMAKE_CURRENT_BINARY_DIR include OUTPUT_VARIABLE _header_base_path)
         cmake_path(APPEND _header_base_path ${_output_header} OUTPUT_VARIABLE _header_path)
@@ -679,6 +702,32 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             set(_swift_sdk_flag -sdk ${CMAKE_OSX_SYSROOT})
         endif ()
 
+        set(_swift_target_flag "")
+        if (CMAKE_Swift_COMPILER_TARGET)
+            set(_swift_target_flag -target ${CMAKE_Swift_COMPILER_TARGET})
+        endif ()
+
+        set(_swift_private_frameworks_flag "")
+        if (CMAKE_SYSTEM_NAME STREQUAL "iOS" AND CMAKE_OSX_SYSROOT)
+            set(_swift_private_frameworks_flag
+                -Xcc -iframework${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks
+                -F ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks
+            )
+            if (EXISTS "${CMAKE_OSX_SYSROOT}/usr/local/include/unicode_private.modulemap")
+                list(APPEND _swift_private_frameworks_flag
+                    -Xcc -isystem${CMAKE_OSX_SYSROOT}/usr/local/include
+                    -Xcc -fmodule-map-file=${CMAKE_OSX_SYSROOT}/usr/local/include/unicode_private.modulemap
+                )
+            endif ()
+        endif ()
+
+        set(_swift_wka_flag "")
+        if (WEBKIT_ADDITIONS_COMPILE_PATH)
+            set(_swift_wka_flag -Xcc -isystem${WEBKIT_ADDITIONS_COMPILE_PATH})
+        elseif (WEBKIT_ADDITIONS_INCLUDE_PATH)
+            set(_swift_wka_flag -Xcc -isystem${WEBKIT_ADDITIONS_INCLUDE_PATH})
+        endif ()
+
         set(_header_tmp_path "${_header_path}.tmp")
         add_custom_command(
             OUTPUT ${_header_path}
@@ -689,6 +738,9 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
                 ${_swift_options}
                 ${${_target}_SWIFT_EXTRA_OPTIONS}
                 ${_swift_sdk_flag}
+                ${_swift_target_flag}
+                ${_swift_private_frameworks_flag}
+                ${_swift_wka_flag}
                 ${_swift_include_dirs}
                 ${_swift_xcc_options}
                 ${_swift_sources}
