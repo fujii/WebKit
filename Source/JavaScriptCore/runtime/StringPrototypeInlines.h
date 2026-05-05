@@ -1592,7 +1592,7 @@ ALWAYS_INLINE JSString* replace(VM& vm, JSGlobalObject* globalObject, JSValue th
     if constexpr (replaceMode == StringReplaceMode::Single) {
         if (searchJSString && replaceJSString) {
             if (JSString* result = tryReplaceOneCharUsingString<DollarCheck::Yes>(globalObject, string, searchJSString, replaceJSString))
-                return result;
+                RELEASE_AND_RETURN(scope, result);
             RETURN_IF_EXCEPTION(scope, nullptr);
         }
     }
