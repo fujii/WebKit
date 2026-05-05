@@ -200,6 +200,7 @@ namespace WebCore {
     M(WebRTCStats) \
     M(Worker) \
     M(XR) \
+    M(Vulkan) \
     M(WheelEventTestMonitor) \
 
 #undef DECLARE_LOG_CHANNEL

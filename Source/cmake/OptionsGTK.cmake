@@ -59,6 +59,7 @@ WEBKIT_OPTION_DEFINE(USE_LIBHYPHEN "Whether to enable the default automatic hyph
 WEBKIT_OPTION_DEFINE(USE_LIBSECRET "Whether to enable the persistent credential storage using libsecret." PUBLIC ON)
 WEBKIT_OPTION_DEFINE(USE_SKIA_OPENTYPE_SVG "Whether to use the Skia built-in support for OpenType SVG fonts." PUBLIC ON)
 WEBKIT_OPTION_DEFINE(USE_SYSTEM_SYSPROF_CAPTURE "Whether to use a system-provided libsysprof-capture" PUBLIC ON)
+WEBKIT_OPTION_DEFINE(USE_VULKAN "Whether to build support to use Vulkan." PUBLIC ${DEVELOPER_MODE})
 WEBKIT_OPTION_DEFINE(ENABLE_JSC_RESTRICTED_OPTIONS_BY_DEFAULT "Whether to enable dangerous development options in JSC by default." PRIVATE OFF)
 
 WEBKIT_OPTION_DEPEND(ENABLE_DOCUMENTATION ENABLE_INTROSPECTION)
@@ -376,6 +377,13 @@ if (USE_LIBHYPHEN)
     find_package(Hyphen)
     if (NOT Hyphen_FOUND)
        message(FATAL_ERROR "libhyphen is needed for USE_LIBHYPHEN.")
+    endif ()
+endif ()
+
+if (USE_VULKAN)
+    find_package(volk CONFIG)
+    if (NOT TARGET volk::volk OR NOT TARGET volk::volk_headers)
+        message(FATAL_ERROR "Volk is required for USE_VULKAN")
     endif ()
 endif ()
 

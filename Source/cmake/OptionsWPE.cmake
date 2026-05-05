@@ -114,6 +114,7 @@ WEBKIT_OPTION_DEFINE(USE_LIBBACKTRACE "Whether to enable usage of libbacktrace."
 WEBKIT_OPTION_DEFINE(USE_LIBDRM "Whether to enable usage of libdrm." PUBLIC ON)
 WEBKIT_OPTION_DEFINE(USE_LIBHYPHEN "Whether to enable the default automatic hyphenation implementation." PUBLIC ON)
 WEBKIT_OPTION_DEFINE(USE_SKIA_OPENTYPE_SVG "Whether to use the Skia built-in support for OpenType SVG fonts." PUBLIC ON)
+WEBKIT_OPTION_DEFINE(USE_VULKAN "Whether to build support to use Vulkan." PUBLIC ${ENABLE_DEVELOPER_MODE})
 
 # Private options specific to the WPE port.
 WEBKIT_OPTION_DEFINE(USE_EXTERNAL_HOLEPUNCH "Whether to enable external holepunch" PRIVATE OFF)
@@ -247,6 +248,13 @@ if (USE_LIBHYPHEN)
     find_package(Hyphen)
     if (NOT Hyphen_FOUND)
        message(FATAL_ERROR "libhyphen is needed for USE_LIBHYPHEN.")
+    endif ()
+endif ()
+
+if (USE_VULKAN)
+    find_package(volk CONFIG)
+    if (NOT TARGET volk::volk OR NOT TARGET volk::volk_headers)
+        message(FATAL_ERROR "Volk is required for USE_VULKAN")
     endif ()
 endif ()
 
