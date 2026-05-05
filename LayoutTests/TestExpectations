@@ -8097,3 +8097,5 @@ webkit.org/b/310217 imported/w3c/web-platform-tests/pointerevents/pointerevent_p
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/form-submit-and-window-stop.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/grandparent_location_aboutsrcdoc.sub.window.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-load-as-html.xhtml [ Skip ] # timeout
+
+webkit.org/b/314100 imported/w3c/web-platform-tests/css/selectors/has-specificity.html [ Pass Crash ]
