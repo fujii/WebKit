@@ -221,6 +221,7 @@ private:
     HeapVersion m_edenVersion { initialVersion };
     bool m_isIterating { false };
     bool m_isMarking { false };
+    bool m_conservativeScanIsPrepared { false };
     Lock m_directoryLock;
     MarkedBlockSet m_blocks;
     

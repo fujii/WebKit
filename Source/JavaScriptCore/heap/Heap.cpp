@@ -3160,6 +3160,8 @@ void Heap::addCoreConstraints()
             if (!subspace)
                 return;
             ASSERT(worldIsStopped());
+            // ConservativeRoots gathering requires an up-to-date precise allocations snapshot.
+            m_objectSpace.prepareForConservativeScan();
             // FIXME: Add a second CellState for PinballCompletion so we can skip
             // pinballs whose conservative roots have already been gathered this cycle.
             ConservativeRoots conservativeRoots(*this);
