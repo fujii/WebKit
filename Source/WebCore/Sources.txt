@@ -4415,7 +4415,7 @@ JSHTMLObjectElement.cpp
 JSHTMLOptGroupElement.cpp
 JSHTMLOptionElement.cpp
 JSHTMLOptionsCollection.cpp
-JSHTMLOrForeignElement.cpp
+JSHTMLOrSVGOrMathMLElement.cpp
 JSHTMLOutputElement.cpp
 JSHTMLParagraphElement.cpp
 JSHTMLParamElement.cpp
