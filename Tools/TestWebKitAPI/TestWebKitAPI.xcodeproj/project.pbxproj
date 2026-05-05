@@ -1101,6 +1101,7 @@
 				WebKitLegacy/mac/CustomProtocolsTest.mm,
 				WebKitLegacy/mac/DeallocWebViewInEventListener.mm,
 				WebKitLegacy/mac/DownloadThread.mm,
+				WebKitLegacy/mac/EmbeddedPrintPagination.mm,
 				WebKitLegacy/mac/PreventImageLoadWithAutoResizing.mm,
 				WebKitLegacy/mac/URLExtras.mm,
 				WebKitLegacy/mac/UserContentTest.mm,
