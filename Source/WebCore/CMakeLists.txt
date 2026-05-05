@@ -3135,6 +3135,7 @@ if (APPLE)
         "LINKER:-allowable_client,WebKitLegacy"
         "LINKER:-allowable_client,WebKitTestRunner"
         "LINKER:-allowable_client,WebKitTestRunnerInjectedBundle"
+        "LINKER:-allowable_client,DumpRenderTree"
         "LINKER:-allowable_client,InjectedBundleTestWebKitAPI"
         "LINKER:-allowable_client,TestWebCore"
         "LINKER:-allowable_client,TestWebKitAPI"
@@ -3169,6 +3170,7 @@ list(APPEND WebCoreTestSupport_PRIVATE_INCLUDE_DIRECTORIES ${WebCore_PRIVATE_INC
 list(APPEND WebCoreTestSupport_SYSTEM_INCLUDE_DIRECTORIES ${WebCore_SYSTEM_INCLUDE_DIRECTORIES})
 
 WEBKIT_LIBRARY(WebCoreTestSupport)
+set_target_properties(WebCoreTestSupport PROPERTIES LINKER_LANGUAGE CXX)
 
 if (${WebCore_LIBRARY_TYPE} MATCHES "SHARED")
     # Unquoted empty PROJECT_VERSION_MAJOR makes CMake parse SOVERSION as VERSION's value
