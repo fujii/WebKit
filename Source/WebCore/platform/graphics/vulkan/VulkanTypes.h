@@ -31,6 +31,9 @@
 #include <wtf/Noncopyable.h>
 
 namespace WebCore {
+
+class PlatformDisplay;
+
 namespace Vulkan {
 
 template <typename Type>
@@ -146,8 +149,22 @@ struct PhysicalDeviceProperties : Structure<VkPhysicalDeviceProperties2, VK_STRU
 struct PhysicalDeviceDRMProperties : Structure<VkPhysicalDeviceDrmPropertiesEXT, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT> {
 };
 
+struct PhysicalDeviceIDProperties : Structure<VkPhysicalDeviceIDProperties, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES> {
+    std::span<const uint8_t> deviceUUID() const;
+    std::span<const uint8_t> driverUUID() const;
+};
+
 struct PhysicalDevice : BaseStruct<VkPhysicalDevice> {
     void fillProperties(PhysicalDeviceProperties&) const;
+
+    PhysicalDevice() = default;
+
+    // VkPhysicalDevice instances are owned by the VkInstance and are never destroyed,
+    // which means their handles (and therefore the PhysicalDevice wrapper) can be copied.
+    PhysicalDevice(const PhysicalDevice& other)
+        : BaseStruct(const_cast<VkPhysicalDevice>(other.m_inner))
+    {
+    }
 };
 
 struct Instance : BaseStruct<VkInstance> {
@@ -186,6 +203,7 @@ struct Instance : BaseStruct<VkInstance> {
     }
 
     [[nodiscard]] Result<Vector<PhysicalDevice>> availableDevices() const;
+    [[nodiscard]] Result<PhysicalDevice> deviceForDisplay(PlatformDisplay&);
     [[nodiscard]] VkResult installDebugMessenger();
 
 private:

@@ -28,6 +28,7 @@
 
 #if USE(VULKAN)
 #include "Logging.h"
+#include "PlatformDisplay.h"
 #include <wtf/RuntimeApplicationChecks.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/Vector.h>
@@ -248,26 +249,15 @@ void initializeIfNeeded()
     }
 #endif // VK_EXT_debug_utils
 
-    // TODO: For now we only enumerate devices, choose one that matches the OpenGL device in use.
-    auto devices = instance->availableDevices();
-    for (auto& deviceInfo : *devices) {
-        PhysicalDeviceProperties properties;
-        auto drmProperties = properties.next<PhysicalDeviceDRMProperties>();
-        deviceInfo.fillProperties(properties);
-
-        RELEASE_LOG(Vulkan, "=== Device: %s ===", properties->deviceName);
-        RELEASE_LOG(Vulkan, "API version: %d.%d.%d", VK_VERSION_MAJOR(properties->apiVersion),
-            VK_VERSION_MINOR(properties->apiVersion), VK_VERSION_PATCH(properties->apiVersion));
-        RELEASE_LOG(Vulkan, "Vendor ID: %#" PRIx32, properties->vendorID);
-        RELEASE_LOG(Vulkan, "Device ID: %#" PRIx32, properties->deviceID);
-
-        RELEASE_LOG(Vulkan, "DRM primary: %s", drmProperties->hasPrimary ? "yes" : "no");
-        if (drmProperties->hasPrimary)
-            RELEASE_LOG(Vulkan, "  - Node: major=%" PRIi64 ", minor=%" PRIi64, drmProperties->primaryMajor, drmProperties->primaryMinor);
-        RELEASE_LOG(Vulkan, "DRM render: %s", drmProperties->hasRender ? "yes" : "no");
-        if (drmProperties->hasRender)
-            RELEASE_LOG(Vulkan, "  - Node: major=%" PRIi64 ", minor=%" PRIi64, drmProperties->renderMajor, drmProperties->renderMinor);
+    auto device = instance->deviceForDisplay(PlatformDisplay::sharedDisplay());
+    if (!device) {
+        RELEASE_LOG_ERROR(Vulkan, "Cannot find device for EGL display: %s (%d)", Vulkan::resultString(device), device.error());
+        return;
     }
+
+    PhysicalDeviceProperties properties;
+    device->fillProperties(properties);
+    RELEASE_LOG(Vulkan, "Found device for EGL display: %s", properties->deviceName);
 
     Instance::setSharedInstance(WTF::move(*instance));
 }

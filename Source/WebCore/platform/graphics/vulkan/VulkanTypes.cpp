@@ -27,9 +27,33 @@
 #include "VulkanTypes.h"
 
 #if USE(VULKAN)
+#include "GLContext.h"
 #include "Logging.h"
+#include "PlatformDisplay.h"
 #include "VulkanUtilities.h"
+#include <epoxy/egl.h>
+#include <epoxy/gl.h>
+#include <sys/stat.h>
+#include <sys/sysmacros.h>
+#include <wtf/Scope.h>
 #include <wtf/text/CStringView.h>
+
+#if USE(GBM)
+#include "DRMDeviceManager.h"
+#include "GBMDevice.h"
+#include "PlatformDisplayGBM.h"
+#include <fcntl.h>
+#include <gbm.h>
+#endif
+
+#if USE(LIBDRM)
+#include <xf86drm.h>
+#endif
+
+// Epoxy does not yet define this macro as of version 1.5.10
+#ifndef EGL_DRM_RENDER_NODE_FILE_EXT
+#define EGL_DRM_RENDER_NODE_FILE_EXT 0x3377
+#endif
 
 namespace WebCore {
 namespace Vulkan {
@@ -49,6 +73,16 @@ InstanceCreateInfo::InstanceCreateInfo(const ApplicationInfo& applicationInfo, s
 
     m_inner.enabledExtensionCount = enabledExtensions.size();
     m_inner.ppEnabledExtensionNames = enabledExtensions.data();
+}
+
+std::span<const uint8_t> PhysicalDeviceIDProperties::deviceUUID() const
+{
+    return unsafeMakeSpan(m_inner.deviceUUID, VK_UUID_SIZE);
+}
+
+std::span<const uint8_t> PhysicalDeviceIDProperties::driverUUID() const
+{
+    return unsafeMakeSpan(m_inner.driverUUID, VK_UUID_SIZE);
 }
 
 void PhysicalDevice::fillProperties(PhysicalDeviceProperties& properties) const
@@ -197,6 +231,188 @@ Result<Vector<PhysicalDevice>> Instance::availableDevices() const
         return makeUnexpected(result);
 
     return devices;
+}
+
+#if USE(GBM)
+static UnixFileDescriptor drmFileDescriptorForGBMDisplay()
+{
+    auto& deviceManager = DRMDeviceManager::singleton();
+    if (!deviceManager.isInitialized())
+        return { };
+
+    // Same logic used in WebProcessGLib::initializePlatformDisplayIfNeeded() to obtain the gbm_device.
+    if (auto device = deviceManager.mainGBMDevice(DRMDeviceManager::NodeType::Render))
+        return { gbm_device_get_fd(device->device()), UnixFileDescriptor::Borrow };
+
+    const auto& device = deviceManager.mainDevice();
+    const CString& deviceNode = device.renderNode.isNull() ? device.primaryNode : device.renderNode;
+    return { open(deviceNode.data(), O_RDWR | O_CLOEXEC), UnixFileDescriptor::Adopt };
+}
+#endif // USE(GBM)
+
+#if USE(LIBDRM)
+static UnixFileDescriptor drmFileDescriptorForDisplay(const PlatformDisplay& display)
+{
+    auto eglDisplay = display.eglDisplay();
+    if (eglDisplay == EGL_NO_DISPLAY)
+        return { };
+
+    if (!GLContext::isExtensionSupported(eglQueryString(nullptr, EGL_EXTENSIONS), "EGL_EXT_device_query"))
+        return { };
+
+    EGLDeviceEXT eglDevice;
+    if (!eglQueryDisplayAttribEXT(eglDisplay, EGL_DEVICE_EXT, reinterpret_cast<EGLAttrib*>(&eglDevice)))
+        return { };
+
+    const char* deviceExtensionsString = eglQueryDeviceStringEXT(eglDevice, EGL_EXTENSIONS);
+    if (!GLContext::isExtensionSupported(deviceExtensionsString, "EGL_EXT_device_drm"))
+        return { };
+
+    // Prefer the render node path, if available; use the main device node otherwise.
+    const char* devicePath = nullptr;
+    if (GLContext::isExtensionSupported(deviceExtensionsString, "EGL_EXT_device_drm_render_node"))
+        devicePath = eglQueryDeviceStringEXT(eglDevice, EGL_DRM_RENDER_NODE_FILE_EXT);
+
+    if (!devicePath || !*devicePath)
+        devicePath = eglQueryDeviceStringEXT(eglDevice, EGL_DRM_DEVICE_FILE_EXT);
+
+    if (!devicePath || !*devicePath)
+        return { };
+
+    return { open(devicePath, O_RDWR | O_CLOEXEC), UnixFileDescriptor::Adopt };
+}
+#endif // USE(LIBDRM)
+
+Result<PhysicalDevice> Instance::deviceForDisplay(PlatformDisplay& display)
+{
+    auto devices = availableDevices();
+    if (!devices)
+        return makeUnexpected(devices.error());
+
+    //
+    // The best (exact!) match can be found by comparing the unique device and driver
+    // identifiers provided by the GL_EXT_memory_object extension, because both OpenGL
+    // and Vulkan will report the same values.
+    //
+    if (auto* context = display.sharingGLContext()) {
+        GLContext::ScopedGLContextCurrent scopedContext(*context);
+        RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: GL_EXT_memory_object = %s", context->glExtensions().EXT_memory_object ? "yes" : "no");
+        if (context->glExtensions().EXT_memory_object) {
+            GLint deviceUUIDCount = 0;
+            glGetIntegerv(GL_NUM_DEVICE_UUIDS_EXT, &deviceUUIDCount);
+            RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: found %d device UUIDs", deviceUUIDCount);
+            if (deviceUUIDCount == 1) {
+                std::array<GLubyte, GL_UUID_SIZE_EXT> deviceUUID;
+                glGetUnsignedBytei_vEXT(GL_DEVICE_UUID_EXT, 0, deviceUUID.data());
+
+                std::array<GLubyte, GL_UUID_SIZE_EXT> driverUUID;
+                glGetUnsignedBytei_vEXT(GL_DRIVER_UUID_EXT, 0, driverUUID.data());
+
+                auto index = devices->findIf([&deviceUUID, &driverUUID](const auto& deviceInfo) {
+                    PhysicalDeviceProperties properties;
+                    auto idProperties = properties.next<PhysicalDeviceIDProperties>();
+                    deviceInfo.fillProperties(properties);
+                    return equalSpans(std::span(deviceUUID), idProperties.deviceUUID())
+                        && equalSpans(std::span(driverUUID), idProperties.driverUUID());
+                });
+                if (index != notFound) {
+                    RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: matched device/driver UUIDs");
+                    return devices->at(index);
+                }
+            }
+        }
+    }
+
+    //
+    // The next best option is to obtain the PCI bus vendor and device identifiers,
+    // and match those to the identifiers reported by Vulkan.
+    //
+    UnixFileDescriptor drmFileDescriptor;
+#if USE(GBM)
+    if (is<PlatformDisplayGBM>(display))
+        drmFileDescriptor = drmFileDescriptorForGBMDisplay();
+#endif
+
+    if (!drmFileDescriptor)
+        drmFileDescriptor = drmFileDescriptorForDisplay(display);
+
+#if USE(LIBDRM)
+    if (drmFileDescriptor) {
+        drmDevice* device { nullptr };
+        auto deviceScope = makeScopeExit([&device]() {
+            if (device) {
+                drmFreeDevice(&device);
+                device = nullptr;
+            }
+        });
+        if (!drmGetDevice(drmFileDescriptor.value(), &device) && device->bustype == DRM_BUS_PCI) {
+            auto index = devices->findIf([pciInfo = device->deviceinfo.pci](const auto& deviceInfo) {
+                PhysicalDeviceProperties properties;
+                deviceInfo.fillProperties(properties);
+                return pciInfo->vendor_id == properties->vendorID && pciInfo->device_id == properties->deviceID;
+            });
+            if (index != notFound) {
+                RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: matched PCI device %04x:%04x",
+                    device->deviceinfo.pci->vendor_id, device->deviceinfo.pci->device_id);
+                return devices->at(index);
+            }
+        }
+    }
+#endif // USE(LIBDRM)
+
+    //
+    // Try to match the major+minor device numbers.
+    //
+    struct stat statBuffer;
+    if (drmFileDescriptor && !fstat(drmFileDescriptor.value(), &statBuffer)) {
+        auto index = devices->findIf([deviceID = statBuffer.st_dev](const auto& deviceInfo) {
+            PhysicalDeviceProperties properties;
+            auto drmProperties = properties.next<PhysicalDeviceDRMProperties>();
+            deviceInfo.fillProperties(properties);
+            return (major(deviceID) == drmProperties->renderMajor && minor(deviceID) == drmProperties->renderMinor)
+                || (major(deviceID) == drmProperties->primaryMajor && minor(deviceID) == drmProperties->primaryMinor);
+        });
+        if (index != notFound) {
+            RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: matched device major=%d, minor=%d", major(statBuffer.st_dev), minor(statBuffer.st_dev));
+            return devices->at(index);
+        }
+    }
+
+    //
+    // As a last resort, try to split the list of devices in software renderers (CPU based)
+    // and hardware ones (the rest). If the resulting set has only one device of the same
+    // type as the GL display, that one must be the device to use.
+    //
+    // Note that it is better to NOT pick a device (and avoid using Vulkan) if it is not
+    // possible to be completely sure that both OpenGL and Vulkan will be using the same
+    // device. Therefore, a choice is only made if there is only a single Vulkan device.
+    // Splitting the list of devices in software-based and actual GPUs increases
+    // chances of covering single-GPU setups where swrast is also installed.
+    //
+    Vector<PhysicalDevice, 2> softwareDevices;
+    Vector<PhysicalDevice, 2> hardwareDevices;
+    for (auto& deviceInfo : *devices) {
+        PhysicalDeviceProperties properties;
+        deviceInfo.fillProperties(properties);
+        if (properties->deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
+            softwareDevices.append(deviceInfo);
+        else
+            hardwareDevices.append(deviceInfo);
+    }
+
+    if (display.glDisplay().isSoftwareRendered()) {
+        if (softwareDevices.size() == 1) {
+            RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: matched single software-based device");
+            return softwareDevices[0];
+        }
+    } else {
+        if (hardwareDevices.size() == 1) {
+            RELEASE_LOG_DEBUG(Vulkan, "deviceForDisplay: matched single hardware-based device");
+            return hardwareDevices[0];
+        }
+    }
+
+    return makeUnexpected(VK_ERROR_DEVICE_LOST);
 }
 
 #ifdef VK_EXT_debug_utils
