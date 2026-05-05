@@ -211,6 +211,23 @@ set(BUILD_VARIANTS
     "normal"
 )
 
+# Offline assembler arguments shared across settings extractor, offset extractor, and asm.rb.
+set(OFFLINE_ASM_INCLUDE_DIRS "")
+set(OFFLINE_ASM_ARGS "")
+set(OFFLINE_ASM_FORMAT_ARGS "")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    list(APPEND OFFLINE_ASM_FORMAT_ARGS --binary-format=ELF)
+endif ()
+if (MSVC AND NOT ENABLE_C_LOOP)
+    list(APPEND OFFLINE_ASM_FORMAT_ARGS --platform=Windows)
+endif ()
+if (WEBKIT_ADDITIONS_INCLUDE_PATH AND EXISTS "${WEBKIT_ADDITIONS_INCLUDE_PATH}/WebKitAdditions/Additions")
+    list(APPEND OFFLINE_ASM_ARGS "--webkit-additions-path=${WEBKIT_ADDITIONS_INCLUDE_PATH}/WebKitAdditions")
+    if (EXISTS "${WEBKIT_ADDITIONS_INCLUDE_PATH}/WebKitAdditions/Additions/llint")
+        list(APPEND OFFLINE_ASM_INCLUDE_DIRS "-I${WEBKIT_ADDITIONS_INCLUDE_PATH}/WebKitAdditions/Additions/llint/")
+    endif ()
+endif ()
+
 set(LLINT_ASM
     llint/InPlaceInterpreter.asm
     llint/InPlaceInterpreter64.asm
@@ -277,7 +294,11 @@ list(APPEND JavaScriptCore_HEADERS
 if (WTF_CPU_X86_64)
     set(OFFLINE_ASM_BACKEND "X86_64")
 elseif (WTF_CPU_ARM64)
-    set(OFFLINE_ASM_BACKEND "ARM64")
+    if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64e")
+        set(OFFLINE_ASM_BACKEND "ARM64E")
+    else ()
+        set(OFFLINE_ASM_BACKEND "ARM64")
+    endif ()
 elseif (ARM_THUMB2_DETECTED)
     set(OFFLINE_ASM_BACKEND "ARMv7")
 elseif (WTF_CPU_RISCV64)
@@ -307,14 +328,14 @@ add_custom_command(
     OUTPUT ${JavaScriptCore_DERIVED_SOURCES_DIR}/LLIntDesiredSettings.h
     MAIN_DEPENDENCY ${JAVASCRIPTCORE_DIR}/offlineasm/generate_settings_extractor.rb
     DEPENDS ${LLINT_ASM} ${OFFLINE_ASM} ${JavaScriptCore_DERIVED_SOURCES_DIR}/InitBytecodes.asm
-    COMMAND ${Ruby_EXECUTABLE} ${JAVASCRIPTCORE_DIR}/offlineasm/generate_settings_extractor.rb -I${JavaScriptCore_DERIVED_SOURCES_DIR}/ ${JAVASCRIPTCORE_DIR}/llint/LowLevelInterpreter.asm ${JavaScriptCore_DERIVED_SOURCES_DIR}/LLIntDesiredSettings.h ${OFFLINE_ASM_BACKEND}
+    COMMAND ${Ruby_EXECUTABLE} ${JAVASCRIPTCORE_DIR}/offlineasm/generate_settings_extractor.rb -I${JavaScriptCore_DERIVED_SOURCES_DIR}/ ${OFFLINE_ASM_INCLUDE_DIRS} ${JAVASCRIPTCORE_DIR}/llint/LowLevelInterpreter.asm ${JavaScriptCore_DERIVED_SOURCES_DIR}/LLIntDesiredSettings.h ${OFFLINE_ASM_BACKEND} ${OFFLINE_ASM_ARGS}
     VERBATIM)
 
 add_custom_command(
     OUTPUT ${JavaScriptCore_DERIVED_SOURCES_DIR}/LLIntDesiredOffsets.h
     MAIN_DEPENDENCY ${JAVASCRIPTCORE_DIR}/offlineasm/generate_offset_extractor.rb
     DEPENDS LLIntSettingsExtractor ${LLINT_ASM} ${OFFLINE_ASM} ${JavaScriptCore_DERIVED_SOURCES_DIR}/InitBytecodes.asm ${JavaScriptCore_DERIVED_SOURCES_DIR}/AirOpcode.h ${JavaScriptCore_DERIVED_SOURCES_DIR}/WasmOps.h
-    COMMAND ${Ruby_EXECUTABLE} ${JAVASCRIPTCORE_DIR}/offlineasm/generate_offset_extractor.rb -I${JavaScriptCore_DERIVED_SOURCES_DIR}/ ${JAVASCRIPTCORE_DIR}/llint/LowLevelInterpreter.asm $<TARGET_FILE:LLIntSettingsExtractor> ${JavaScriptCore_DERIVED_SOURCES_DIR}/LLIntDesiredOffsets.h ${OFFLINE_ASM_BACKEND} ${BUILD_VARIANTS}
+    COMMAND ${Ruby_EXECUTABLE} ${JAVASCRIPTCORE_DIR}/offlineasm/generate_offset_extractor.rb -I${JavaScriptCore_DERIVED_SOURCES_DIR}/ ${OFFLINE_ASM_INCLUDE_DIRS} ${JAVASCRIPTCORE_DIR}/llint/LowLevelInterpreter.asm $<TARGET_FILE:LLIntSettingsExtractor> ${JavaScriptCore_DERIVED_SOURCES_DIR}/LLIntDesiredOffsets.h ${OFFLINE_ASM_BACKEND} ${BUILD_VARIANTS} ${OFFLINE_ASM_ARGS}
     VERBATIM)
 
 # JSCBuiltins
@@ -435,19 +456,11 @@ WEBKIT_EXECUTABLE(LLIntOffsetsExtractor)
 # after every asm.rb run.
 set(LLIntOutput LLIntAssembly.h)
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(OFFLINE_ASM_ARGS --binary-format=ELF)
-endif ()
-
-if (MSVC AND NOT ENABLE_C_LOOP)
-    set(OFFLINE_ASM_ARGS --platform=Windows)
-endif ()
-
 add_custom_command(
     OUTPUT ${JavaScriptCore_DERIVED_SOURCES_DIR}/${LLIntOutput}
     MAIN_DEPENDENCY ${JAVASCRIPTCORE_DIR}/offlineasm/asm.rb
     DEPENDS LLIntOffsetsExtractor ${LLINT_ASM} ${OFFLINE_ASM} ${JavaScriptCore_DERIVED_SOURCES_DIR}/InitBytecodes.asm
-    COMMAND ${CMAKE_COMMAND} -E env CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID} GCC_OFFLINEASM_SOURCE_MAP=${GCC_OFFLINEASM_SOURCE_MAP} ${Ruby_EXECUTABLE} ${JAVASCRIPTCORE_DIR}/offlineasm/asm.rb -I${JavaScriptCore_DERIVED_SOURCES_DIR}/ ${JAVASCRIPTCORE_DIR}/llint/LowLevelInterpreter.asm $<TARGET_FILE:LLIntOffsetsExtractor> ${JavaScriptCore_DERIVED_SOURCES_DIR}/${LLIntOutput} ${BUILD_VARIANTS} ${OFFLINE_ASM_ARGS}
+    COMMAND ${CMAKE_COMMAND} -E env CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID} GCC_OFFLINEASM_SOURCE_MAP=${GCC_OFFLINEASM_SOURCE_MAP} ${Ruby_EXECUTABLE} ${JAVASCRIPTCORE_DIR}/offlineasm/asm.rb -I${JavaScriptCore_DERIVED_SOURCES_DIR}/ ${OFFLINE_ASM_INCLUDE_DIRS} ${JAVASCRIPTCORE_DIR}/llint/LowLevelInterpreter.asm $<TARGET_FILE:LLIntOffsetsExtractor> ${JavaScriptCore_DERIVED_SOURCES_DIR}/${LLIntOutput} ${BUILD_VARIANTS} ${OFFLINE_ASM_ARGS} ${OFFLINE_ASM_FORMAT_ARGS}
     COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${JavaScriptCore_DERIVED_SOURCES_DIR}/${LLIntOutput}
     WORKING_DIRECTORY ${JavaScriptCore_DERIVED_SOURCES_DIR}
     VERBATIM)
@@ -534,6 +547,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     API/JavaScript.h
     API/JavaScriptCore.h
     API/JSCTestRunnerUtils.h
+    API/JSCallbackConstructor.h
     API/JSCallbackObject.h
     API/JSClassRef.h
     API/JSContext.h
