@@ -165,6 +165,9 @@ endmacro()
 
 # Private macro for setting the properties of a target.
 macro(_WEBKIT_TARGET_SETUP _target _logical_name)
+    if (USE_HEADER_MAPS AND ${_logical_name}_PRIVATE_INCLUDE_DIRECTORIES)
+        WEBKIT_MAKE_HEADER_MAP(${_target} "${CMAKE_CURRENT_SOURCE_DIR}" ${_logical_name}_PRIVATE_INCLUDE_DIRECTORIES)
+    endif ()
     target_include_directories(${_target} PUBLIC "$<BUILD_INTERFACE:${${_logical_name}_INCLUDE_DIRECTORIES}>")
     target_include_directories(${_target} SYSTEM PRIVATE "$<BUILD_INTERFACE:${${_logical_name}_SYSTEM_INCLUDE_DIRECTORIES}>")
     target_include_directories(${_target} PRIVATE "$<BUILD_INTERFACE:${${_logical_name}_PRIVATE_INCLUDE_DIRECTORIES}>")

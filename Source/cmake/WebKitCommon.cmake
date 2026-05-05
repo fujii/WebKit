@@ -240,6 +240,7 @@ if (NOT HAS_RUN_WEBKIT_COMMON)
     include(ProcessorCount)
 
     include(WebKitPackaging)
+    include(WebKitHeaderMap)
     include(WebKitMacros)
     include(WebKitFS)
     include(WebKitCCache)

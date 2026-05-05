@@ -30,8 +30,8 @@
 #include "FontTaggedSettings.h"
 #include "HbUniquePtr.h"
 #include "SurrogatePairAwareTextIterator.h"
+#include "TextFlags.h"
 #include "TextRun.h"
-#include "text/TextFlags.h"
 #include <hb-icu.h>
 #include <hb-ot.h>
 #include <hb.h>
