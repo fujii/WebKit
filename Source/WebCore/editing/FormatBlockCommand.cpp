@@ -70,7 +70,7 @@ void FormatBlockCommand::formatRange(const Position& start, const Position& end,
 {
     RefPtr nodeToSplitTo = enclosingBlockToSplitTreeTo(start.deprecatedNode());
     ASSERT(nodeToSplitTo);
-    RefPtr<Node> outerBlock = (start.deprecatedNode() == nodeToSplitTo) ? RefPtr { start.deprecatedNode() } : splitTreeToNode(*start.deprecatedNode(), *nodeToSplitTo);
+    RefPtr<Node> outerBlock = (start.deprecatedNode() == nodeToSplitTo) ? protect(start.deprecatedNode()) : splitTreeToNode(*start.deprecatedNode(), *nodeToSplitTo);
     if (!outerBlock)
         return;
 
