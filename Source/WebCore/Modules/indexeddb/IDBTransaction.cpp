@@ -347,8 +347,16 @@ void IDBTransaction::stop()
 
     m_openRequests.clear();
 
-    if (isFinishedOrFinishing())
+    if (isFinishedOrFinishing()) {
+        if (m_currentlyCompletingRequest) {
+            // The request event will never be dispatched after context is stopped.
+            // Reset m_currentlyCompletingRequest so handleOperationsCompletedOnServer can drain remaining operations.
+            ++m_handledRequestResultsCount;
+            m_currentlyCompletingRequest = nullptr;
+            handleOperationsCompletedOnServer();
+        }
         return;
+    }
 
     abortInternal();
 }
