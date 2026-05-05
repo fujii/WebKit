@@ -1,10 +1,12 @@
 set_property(DIRECTORY . PROPERTY FOLDER "ANGLE")
 
 if (APPLE)
-    set(is_mac TRUE)
-    # GLESv2.cmake:131 (converted from ANGLE's gn) gates system_utils_{apple,posix,mac}.cpp on
-    # is_apple (gn's naming), but this shim only set is_mac. 25 undefined angle::* at link.
     set(is_apple TRUE)
+    if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set(is_ios TRUE)
+    else ()
+        set(is_mac TRUE)
+    endif ()
 elseif (WIN32)
     set(is_win TRUE)
     set(angle_enable_d3d9 TRUE)
