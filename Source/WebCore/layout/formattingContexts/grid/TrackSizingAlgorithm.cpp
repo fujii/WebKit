@@ -89,26 +89,31 @@ static PlacedGridItemSpanList spannedLinesList(const TrackSizingItemList& trackS
     });
 }
 
-static ComputedSizesList computedSizesList(const TrackSizingItemList& trackSizingItems)
-{
-    return trackSizingItems.map([](const TrackSizingItem& item) {
-        return item.computedSizes;
-    });
-}
-
-static UsedBorderAndPaddingList borderAndPaddingList(const TrackSizingItemList& trackSizingItems)
-{
-    return trackSizingItems.map([](const TrackSizingItem& item) {
-        return item.borderAndPadding;
-    });
-}
-
 static TrackSizingGridItemConstraintList oppositeAxisConstraintList(const TrackSizingItemList& trackSizingItems)
 {
     return trackSizingItems.map([](const TrackSizingItem& item) {
         return item.oppositeAxisConstraint;
     });
 }
+
+struct ResolveIntrinsicTrackSizesContext {
+    ResolveIntrinsicTrackSizesContext(const TrackSizingItemList& trackSizingItems, const GridItemSizingFunctions& gridItemSizingFunctions, const TrackSizingFunctionsList& trackSizingFunctionsList)
+        : trackSizingItems(trackSizingItems)
+        , gridItemSizingFunctions(gridItemSizingFunctions)
+        , trackSizingFunctionsList(trackSizingFunctionsList)
+        , gridItemSpanList(trackSizingItems.map([](auto& gridItem) { return gridItem.spannedLines; }))
+        , computedSizesList(trackSizingItems.map([](auto& gridItem) { return gridItem.computedSizes; }))
+        , borderAndPaddingList(trackSizingItems.map([](auto& gridItem) { return gridItem.borderAndPadding; }))
+        , oppositeAxisConstraints(trackSizingItems.map([](auto& gridItem) { return gridItem.oppositeAxisConstraint; })) { }
+
+    const TrackSizingItemList& trackSizingItems;
+    const GridItemSizingFunctions& gridItemSizingFunctions;
+    const TrackSizingFunctionsList& trackSizingFunctionsList;
+    const PlacedGridItemSpanList gridItemSpanList;
+    const ComputedSizesList computedSizesList;
+    const UsedBorderAndPaddingList borderAndPaddingList;
+    const TrackSizingGridItemConstraintList oppositeAxisConstraints;
+};
 
 // https://drafts.csswg.org/css-grid-1/#algo-find-fr-size
 // Step 1-3: Compute Hypothetical fr Size
@@ -223,14 +228,17 @@ static Vector<LayoutUnit> minimumContributions(const TrackSizingItemList& trackS
 }
 
 // https://drafts.csswg.org/css-grid-1/#algo-single-span-items
-static void sizeTracksToFitNonSpanningItems(UnsizedTracks& unsizedTracks, const TrackSizingItemList& trackSizingItems,
-    const ComputedSizesList& gridItemComputedSizesList, const UsedBorderAndPaddingList& borderAndPaddingList, const PlacedGridItemSpanList& gridItemSpanList,
-    const TrackSizingGridItemConstraintList& oppositeAxisConstraints, const GridItemSizingFunctions& gridItemSizingFunctions, const TrackSizingFunctionsList& trackSizingFunctionsList)
+static void sizeTracksToFitNonSpanningItems(const ResolveIntrinsicTrackSizesContext& resolveIntrinsicTrackSizesContext,
+    UnsizedTracks& unsizedTracks)
 {
+    auto& trackSizingItems = resolveIntrinsicTrackSizesContext.trackSizingItems;
+    auto& gridItemSizingFunctions = resolveIntrinsicTrackSizesContext.gridItemSizingFunctions;
+    auto& oppositeAxisConstraints = resolveIntrinsicTrackSizesContext.oppositeAxisConstraints;
+
     // For each track with an intrinsic track sizing function and not a flexible sizing function, consider the items in it with a span of 1:
     for (auto trackIndex : tracksWithIntrinsicSizingFunction(unsizedTracks)) {
         auto& track = unsizedTracks[trackIndex];
-        auto singleSpanningItemsIndexes = singleSpanningItemsWithinTrack(trackIndex, gridItemSpanList);
+        auto singleSpanningItemsIndexes = singleSpanningItemsWithinTrack(trackIndex, resolveIntrinsicTrackSizesContext.gridItemSpanList);
 
         auto& minimumTrackSizingFunction = track.trackSizingFunction.min;
         track.baseSize = WTF::switchOn(minimumTrackSizingFunction,
@@ -267,7 +275,7 @@ static void sizeTracksToFitNonSpanningItems(UnsizedTracks& unsizedTracks, const 
                 }
                 // Otherwise, set the track’s base size to the maximum of its items’ minimum
                 // contributions, floored at zero.
-                auto contributions = minimumContributions(trackSizingItems, gridItemComputedSizesList, borderAndPaddingList, singleSpanningItemsIndexes, oppositeAxisConstraints, gridItemSizingFunctions, trackSizingFunctionsList);
+                auto contributions = minimumContributions(trackSizingItems, resolveIntrinsicTrackSizesContext.computedSizesList, resolveIntrinsicTrackSizesContext.borderAndPaddingList, singleSpanningItemsIndexes, oppositeAxisConstraints, gridItemSizingFunctions, resolveIntrinsicTrackSizesContext.trackSizingFunctionsList);
                 if (contributions.isEmpty())
                     return { };
                 return std::max({ }, std::ranges::max(contributions));
@@ -313,9 +321,8 @@ static void sizeTracksToFitNonSpanningItems(UnsizedTracks& unsizedTracks, const 
 }
 
 // https://drafts.csswg.org/css-grid-1/#algo-content
-static void resolveIntrinsicTrackSizes(UnsizedTracks& unsizedTracks, const TrackSizingItemList& trackSizingItems,
-    const ComputedSizesList& gridItemComputedSizesList, const UsedBorderAndPaddingList& borderAndPaddingList, const PlacedGridItemSpanList& gridItemSpanList,
-    const TrackSizingGridItemConstraintList& oppositeAxisConstraints, const GridItemSizingFunctions& gridItemSizingFunctions, const TrackSizingFunctionsList& trackSizingFunctionsList)
+static void resolveIntrinsicTrackSizes(const ResolveIntrinsicTrackSizesContext& resolveIntrinsicTrackSizesContext,
+    UnsizedTracks& unsizedTracks)
 {
     // 1. Shim baseline-aligned items so their intrinsic size contributions reflect their
     // baseline alignment.
@@ -325,8 +332,7 @@ static void resolveIntrinsicTrackSizes(UnsizedTracks& unsizedTracks, const Track
     UNUSED_VARIABLE(shimBaselineAlignedItems);
 
     // 2. Size tracks to fit non-spanning items.
-    sizeTracksToFitNonSpanningItems(unsizedTracks, trackSizingItems, gridItemComputedSizesList, borderAndPaddingList,
-        gridItemSpanList, oppositeAxisConstraints, gridItemSizingFunctions, trackSizingFunctionsList);
+    sizeTracksToFitNonSpanningItems(resolveIntrinsicTrackSizesContext, unsizedTracks);
 
     // 3. Increase sizes to accommodate spanning items crossing content-sized tracks:
     // Next, consider the items with a span of 2 that do not span a track with a flexible
@@ -459,11 +465,7 @@ TrackSizes TrackSizingAlgorithm::sizeTracks(const TrackSizingItemList& trackSizi
     auto unsizedTracks = initializeTrackSizes(trackSizingFunctions, availableGridSpace.value_or(0_lu));
 
     // 2. Resolve Intrinsic Track Sizes
-    auto gridItemSpanList = spannedLinesList(trackSizingItems);
-    auto gridItemComputedSizesList = computedSizesList(trackSizingItems);
-    auto usedBorderAndPaddingList = borderAndPaddingList(trackSizingItems);
-    auto oppositeAxisConstraints = oppositeAxisConstraintList(trackSizingItems);
-    resolveIntrinsicTrackSizes(unsizedTracks, trackSizingItems, gridItemComputedSizesList, usedBorderAndPaddingList, gridItemSpanList, oppositeAxisConstraints, gridItemSizingFunctions, trackSizingFunctions);
+    resolveIntrinsicTrackSizes(ResolveIntrinsicTrackSizesContext(trackSizingItems, gridItemSizingFunctions, trackSizingFunctions), unsizedTracks);
 
     // 3. Maximize Tracks
     maximizeTracks(unsizedTracks, axisConstraint, gapSize);
