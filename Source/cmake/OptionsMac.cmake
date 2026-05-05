@@ -131,8 +131,22 @@ WEBKIT_OPTION_DEFAULT_PORT_VALUE(ENABLE_WRITING_TOOLS PRIVATE ON)
 WEBKIT_OPTION_END()
 
 # -----------------------------------------------------------------------------
-# SDK resolution
+# Toolchain / SDK resolution
 # -----------------------------------------------------------------------------
+# Resolve the real clang once and pin it for the lifetime of this build tree.
+# This is a build speed optimization, and also a defense against tearing between
+# resolved toolchain and resolved SDK path / version.
+execute_process(COMMAND xcrun -f clang
+    OUTPUT_VARIABLE _clang
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if (EXISTS "${_clang}")
+    set(CMAKE_C_COMPILER "${_clang}")
+    set(CMAKE_CXX_COMPILER "${_clang}++")
+    set(CMAKE_OBJC_COMPILER "${_clang}")
+    set(CMAKE_OBJCXX_COMPILER "${_clang}++")
+endif ()
+
 # Ask xcrun directly; CMake's default sysroot discovery can lag Xcode versions.
 if (NOT CMAKE_OSX_SYSROOT)
     execute_process(COMMAND xcrun --show-sdk-path
