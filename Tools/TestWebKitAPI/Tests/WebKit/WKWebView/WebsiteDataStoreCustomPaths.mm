@@ -89,6 +89,7 @@ static void runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming shouldE
     RetainPtr localStoragePath = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/CustomWebsiteData/LocalStorage/" stringByExpandingTildeInPath] isDirectory:YES];
     RetainPtr cookieStorageFile = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/CustomWebsiteData/CookieStorage/Cookie.File" stringByExpandingTildeInPath] isDirectory:NO];
     RetainPtr resourceLoadStatisticsPath = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/CustomWebsiteData/ResourceLoadStatistics/" stringByExpandingTildeInPath] isDirectory:YES];
+    RetainPtr generalStoragePath = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/CustomWebsiteData/Storage/" stringByExpandingTildeInPath] isDirectory:YES];
     RetainPtr defaultIDBPath = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/WebsiteData/IndexedDB/" stringByExpandingTildeInPath] isDirectory:YES];
     RetainPtr defaultLocalStoragePath = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/WebsiteData/LocalStorage/" stringByExpandingTildeInPath] isDirectory:YES];
     RetainPtr defaultResourceLoadStatisticsPath = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/WebsiteData/ResourceLoadStatistics/" stringByExpandingTildeInPath] isDirectory:YES];
@@ -97,6 +98,7 @@ static void runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming shouldE
     [[NSFileManager defaultManager] removeItemAtURL:localStoragePath.get() error:nil];
     [[NSFileManager defaultManager] removeItemAtURL:cookieStorageFile.get() error:nil];
     [[NSFileManager defaultManager] removeItemAtURL:resourceLoadStatisticsPath.get() error:nil];
+    [[NSFileManager defaultManager] removeItemAtURL:generalStoragePath.get() error:nil];
     [[NSFileManager defaultManager] removeItemAtURL:defaultIDBPath.get() error:nil];
     [[NSFileManager defaultManager] removeItemAtURL:defaultLocalStoragePath.get() error:nil];
     [[NSFileManager defaultManager] removeItemAtURL:defaultResourceLoadStatisticsPath.get() error:nil];
@@ -105,6 +107,7 @@ static void runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming shouldE
     EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:localStoragePath.get().path]);
     EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:cookieStorageFile.get().path]);
     EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:resourceLoadStatisticsPath.get().path]);
+    EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:generalStoragePath.get().path]);
     EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:defaultIDBPath.get().path]);
     EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:defaultLocalStoragePath.get().path]);
     EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:defaultResourceLoadStatisticsPath.get().path]);
@@ -115,6 +118,7 @@ static void runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming shouldE
     websiteDataStoreConfiguration.get()._webStorageDirectory = localStoragePath.get();
     websiteDataStoreConfiguration.get()._cookieStorageFile = cookieStorageFile.get();
     websiteDataStoreConfiguration.get()._resourceLoadStatisticsDirectory = resourceLoadStatisticsPath.get();
+    websiteDataStoreConfiguration.get().generalStorageDirectory = generalStoragePath.get();
 
     configuration.get().websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]).get();
     configuration.get().processPool = processPool.get();
@@ -270,22 +274,12 @@ static void runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming shouldE
     EXPECT_FALSE([WKWebsiteDataStore _defaultDataStoreExists]);
 }
 
-// FIXME when webkit.org/b/313786 is resolved.
-#if PLATFORM(MAC) && !defined(NDEBUG)
-TEST(WebKit, DISABLED_WebsiteDataStoreCustomPathsWithoutPrewarming)
-#else
 TEST(WebKit, WebsiteDataStoreCustomPathsWithoutPrewarming)
-#endif
 {
     runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming::No);
 }
 
-// FIXME when webkit.org/b/313786 is resolved.
-#if PLATFORM(MAC) && !defined(NDEBUG)
-TEST(WebKit, DISABLED_WebsiteDataStoreCustomPathsWithPrewarming)
-#else
 TEST(WebKit, WebsiteDataStoreCustomPathsWithPrewarming)
-#endif
 {
     runWebsiteDataStoreCustomPaths(ShouldEnableProcessPrewarming::Yes);
 }
