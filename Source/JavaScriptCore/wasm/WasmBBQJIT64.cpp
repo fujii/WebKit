@@ -47,6 +47,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include "JSWebAssemblyStruct.h"
 #include "MacroAssembler.h"
 #include "RegisterSet.h"
+#include "SIMDShuffle.h"
 #include "WasmBBQDisassembler.h"
 #include "WasmCallingConvention.h"
 #include "WasmCompilationMode.h"
@@ -3674,15 +3675,17 @@ void NODELETE BBQJIT::notifyFunctionUsesSIMD()
                 leftImm.u8x16[i] = 0xFF; // Force OOB
             if (rightImm.u8x16[i] < 16 || rightImm.u8x16[i] > 31)
                 rightImm.u8x16[i] = 0xFF; // Force OOB
+            else
+                rightImm.u8x16[i] -= 16; // Canonicalize to 0..15
         }
         // Store each byte (w/ index < 16) of `a` to result
         // and zero clear each byte (w/ index > 15) in result.
-        materializeVectorConstant(leftImm, Location::fromFPR(scratches.fpr(0)));
+        materializeVectorConstant(SIMDShuffle::toCanonicalUnaryPattern(leftImm), Location::fromFPR(scratches.fpr(0)));
         m_jit.vectorSwizzle(aLocation.asFPR(), scratches.fpr(0), scratches.fpr(0));
 
         // Store each byte (w/ index - 16 >= 0) of `b` to result2
         // and zero clear each byte (w/ index - 16 < 0) in result2.
-        materializeVectorConstant(rightImm, Location::fromFPR(wasmScratchFPR));
+        materializeVectorConstant(SIMDShuffle::toCanonicalUnaryPattern(rightImm), Location::fromFPR(wasmScratchFPR));
         m_jit.vectorSwizzle(bLocation.asFPR(), wasmScratchFPR, wasmScratchFPR);
         m_jit.vectorOr(SIMDInfo { SIMDLane::v128, SIMDSignMode::None }, scratches.fpr(0), wasmScratchFPR, resultLocation.asFPR());
         return { };

@@ -66,6 +66,7 @@
 #include "JSWebAssemblyStruct.h"
 #include "ProbeContext.h"
 #include "ProfilerSupport.h"
+#include "SIMDShuffle.h"
 #include "ScratchRegisterAllocator.h"
 #include "WasmBaselineData.h"
 #include "WasmBranchHints.h"
@@ -4227,16 +4228,18 @@ auto OMGIRGenerator::addSIMDShuffle(v128_t imm, ExpressionType a, ExpressionType
                 leftImm.u8x16[i] = 0xFF; // Force OOB
             if (rightImm.u8x16[i] < 16 || rightImm.u8x16[i] > 31)
                 rightImm.u8x16[i] = 0xFF; // Force OOB
+            else
+                rightImm.u8x16[i] -= 16; // Canonicalize to 0..15
         }
         // Store each byte (w/ index < 16) of `a` to result
         // and zero clear each byte (w/ index > 15) in result.
-        Value* leftImmConst = m_currentBlock->appendNew<Const128Value>(m_proc, origin(), leftImm);
+        Value* leftImmConst = m_currentBlock->appendNew<Const128Value>(m_proc, origin(), SIMDShuffle::toCanonicalUnaryPattern(leftImm));
         Value* leftResult = m_currentBlock->appendNew<SIMDValue>(m_proc, origin(),
             VectorSwizzle, B3::V128, SIMDLane::i8x16, SIMDSignMode::None, get(a), leftImmConst);
 
-        // Store each byte (w/ index - 16 >= 0) of `b` to result2
-        // and zero clear each byte (w/ index - 16 < 0) in result2.
-        Value* rightImmConst = m_currentBlock->appendNew<Const128Value>(m_proc, origin(), rightImm);
+        // Store each byte (w/ original index in [16, 32)) of `b` to result2
+        // and zero clear each byte that did not refer to `b` in result2.
+        Value* rightImmConst = m_currentBlock->appendNew<Const128Value>(m_proc, origin(), SIMDShuffle::toCanonicalUnaryPattern(rightImm));
         Value* rightResult = m_currentBlock->appendNew<SIMDValue>(m_proc, origin(),
             VectorSwizzle, B3::V128, SIMDLane::i8x16, SIMDSignMode::None, get(b), rightImmConst);
 
