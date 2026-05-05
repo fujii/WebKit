@@ -7995,6 +7995,7 @@ headers: <JavaScriptCore/WasmModule.h> <WebCore/ImageBitmap.h> <WebCore/MessageP
     Vector<Ref<WebCore::WebCodecsEncodedAudioChunkStorage>> serializedAudioChunks;
 #endif
     uint64_t exposedMessagePortCount;
+    [NotSerialized] Vector<WebCore::FileSystemHandleTransferToken> fileSystemHandleTransferTokens;
 #if ENABLE(WEB_CODECS)
     [NotSerialized] Vector<WebCore::WebCodecsVideoFrameData> serializedVideoFrames;
     [NotSerialized] Vector<WebCore::WebCodecsAudioInternalData> serializedAudioData;

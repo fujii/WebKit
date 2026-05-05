@@ -3028,6 +3028,22 @@ FileSystemEnabled:
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
 
+FileSystemHandleSerializationEnabled:
+  type: bool
+  status: preview
+  category: dom
+  humanReadableName: "File System Handle Serialization"
+  humanReadableDescription: "Enable FileSystemHandle for postMessage() and structuredClone()"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
+
 FileSystemWritableStreamEnabled:
   type: bool
   status: stable

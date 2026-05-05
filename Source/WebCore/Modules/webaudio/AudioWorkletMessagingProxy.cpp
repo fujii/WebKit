@@ -37,6 +37,7 @@
 #include "CacheStorageConnection.h"
 #include "DocumentPage.h"
 #include "DocumentSettingsValues.h"
+#include "FileSystemStorageConnection.h"
 #include "LocalFrame.h"
 #include "WebRTCProvider.h"
 #include "WorkletParameters.h"
@@ -120,6 +121,11 @@ void AudioWorkletMessagingProxy::postTaskToAudioWorklet(Function<void(AudioWorkl
         if (protectedThis->m_worklet)
             task(*protectedThis->m_worklet);
     });
+}
+
+RefPtr<FileSystemStorageConnection> AudioWorkletMessagingProxy::createFileSystemStorageConnection()
+{
+    return nullptr;
 }
 
 } // namespace WebCore

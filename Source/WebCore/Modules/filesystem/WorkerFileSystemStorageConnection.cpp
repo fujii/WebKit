@@ -26,6 +26,7 @@
 #include "config.h"
 #include "WorkerFileSystemStorageConnection.h"
 
+#include "ClientOrigin.h"
 #include "ExceptionOr.h"
 #include "FileSystemHandleCloseScope.h"
 #include "FileSystemSyncAccessHandle.h"
@@ -81,6 +82,10 @@ void WorkerFileSystemStorageConnection::scopeClosed()
 
     auto stringCallbacks = std::exchange(m_stringCallbacks, { });
     for (auto& callback : stringCallbacks.values())
+        callback(Exception { ExceptionCode::InvalidStateError });
+
+    auto cloneHandleCallbacks = std::exchange(m_cloneHandleCallbacks, { });
+    for (auto& callback : cloneHandleCallbacks.values())
         callback(Exception { ExceptionCode::InvalidStateError });
 
     auto streamCallbacks = std::exchange(m_streamCallbacks, { });
@@ -245,6 +250,12 @@ void WorkerFileSystemStorageConnection::getFile(FileSystemHandleIdentifier ident
 void WorkerFileSystemStorageConnection::completeStringCallback(CallbackIdentifier callbackIdentifier, ExceptionOr<String>&& result)
 {
     if (auto callback = m_stringCallbacks.take(callbackIdentifier))
+        callback(WTF::move(result));
+}
+
+void WorkerFileSystemStorageConnection::didCloneHandle(CallbackIdentifier callbackIdentifier, ExceptionOr<std::pair<FileSystemHandleIdentifier, String>>&& result)
+{
+    if (auto callback = m_cloneHandleCallbacks.take(callbackIdentifier))
         callback(WTF::move(result));
 }
 
@@ -486,6 +497,41 @@ void WorkerFileSystemStorageConnection::requestNewCapacityForSyncAccessHandle(Fi
 {
     ASSERT_NOT_REACHED();
     return callback(std::nullopt);
+}
+
+void WorkerFileSystemStorageConnection::cloneHandle(ClientOrigin&& origin, FileSystemHandleIdentifier identifier, CloneHandleCallback&& callback)
+{
+    RefPtr scope = m_scope.get();
+    if (!scope)
+        return callback(Exception { ExceptionCode::InvalidStateError });
+
+    auto callbackIdentifier = CallbackIdentifier::generate();
+    m_cloneHandleCallbacks.add(callbackIdentifier, WTF::move(callback));
+
+    callOnMainThread([callbackIdentifier, workerThread = Ref { scope->thread() }, mainThreadConnection = m_mainThreadConnection, origin = crossThreadCopy(WTF::move(origin)), identifier]() mutable {
+        auto mainThreadCallback = [callbackIdentifier, workerThread = WTF::move(workerThread)](auto&& result) mutable {
+            workerThread->runLoop().postTaskForMode([callbackIdentifier, result = crossThreadCopy(WTF::move(result))](auto& scope) mutable {
+                if (auto connection = downcast<WorkerGlobalScope>(scope).fileSystemStorageConnection())
+                    connection->didCloneHandle(callbackIdentifier, WTF::move(result));
+            }, WorkerRunLoop::defaultMode());
+        };
+
+        mainThreadConnection->cloneHandle(WTF::move(origin), identifier, WTF::move(mainThreadCallback));
+    });
+}
+
+void WorkerFileSystemStorageConnection::addTransferReference(FileSystemHandleIdentifier identifier)
+{
+    callOnMainThread([mainThreadConnection = m_mainThreadConnection, identifier] {
+        mainThreadConnection->addTransferReference(identifier);
+    });
+}
+
+void WorkerFileSystemStorageConnection::removeTransferReference(FileSystemHandleIdentifier identifier)
+{
+    callOnMainThread([mainThreadConnection = m_mainThreadConnection, identifier] {
+        mainThreadConnection->removeTransferReference(identifier);
+    });
 }
 
 } // namespace WebCore

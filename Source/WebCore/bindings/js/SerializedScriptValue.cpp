@@ -29,6 +29,8 @@
 
 #include "BlobRegistry.h"
 #include "ByteArrayPixelBuffer.h"
+#include "ClientOrigin.h"
+#include "ContextDestructionObserverInlines.h"
 #include "CrossOriginMode.h"
 #include "CryptoKeyAES.h"
 #include "CryptoKeyEC.h"
@@ -37,7 +39,10 @@
 #include "CryptoKeyRSA.h"
 #include "CryptoKeyRSAComponents.h"
 #include "CryptoKeyRaw.h"
+#include "Document.h"
 #include "DocumentQuirks.h"
+#include "FileSystemDirectoryHandle.h"
+#include "FileSystemFileHandle.h"
 #include "IDBValue.h"
 #include "ImageBuffer.h"
 #include "JSAudioWorkletGlobalScope.h"
@@ -54,6 +59,8 @@
 #include "JSExecState.h"
 #include "JSFile.h"
 #include "JSFileList.h"
+#include "JSFileSystemDirectoryHandle.h"
+#include "JSFileSystemFileHandle.h"
 #include "JSIDBSerializationGlobalObject.h"
 #include "JSImageBitmap.h"
 #include "JSImageData.h"
@@ -74,6 +81,7 @@
 #include "JSWebCodecsVideoFrame.h"
 #include "JSWritableStream.h"
 #include "ScriptExecutionContext.h"
+#include "SecurityOrigin.h"
 #include "SharedBuffer.h"
 #include "WebCodecsEncodedAudioChunk.h"
 #include "WebCodecsEncodedVideoChunk.h"
@@ -273,6 +281,7 @@ enum SerializationTag {
     ReadableStreamTag = 65,
     WritableStreamTag = 66,
     TransformStreamTag = 67,
+    FileSystemHandleTag = 68,
     ErrorTag = 255
 };
 
@@ -384,6 +393,7 @@ static ASCIILiteral name(SerializationTag tag)
     case ReadableStreamTag: return "ReadableStreamTag"_s;
     case WritableStreamTag: return "WritableStreamTag"_s;
     case TransformStreamTag : return "TransformStreamTag"_s;
+    case FileSystemHandleTag: return "FileSystemHandleTag"_s;
     case ErrorTag: return "ErrorTag"_s;
     }
     return "<unknown tag>"_s;
@@ -537,6 +547,7 @@ static bool NODELETE isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObje
     case ReadableStreamTag:
     case WritableStreamTag:
     case TransformStreamTag:
+    case FileSystemHandleTag:
         break;
     }
     return false;
@@ -1198,7 +1209,8 @@ public:
             WasmMemoryHandleArray& wasmMemoryHandles,
 #endif
         Vector<URLKeepingBlobAlive>& blobHandles, Vector<uint8_t>& out, SerializationContext context, ArrayBufferContentsArray& sharedBuffers,
-        SerializationForStorage forStorage)
+        SerializationForStorage forStorage,
+        Vector<FileSystemHandleTransferToken>& fileSystemHandleTransferTokens)
     {
 #if ASSERT_ENABLED
         auto& vm = lexicalGlobalObject->vm();
@@ -1238,6 +1250,7 @@ public:
 #endif
             blobHandles, out, context, sharedBuffers, forStorage);
         auto code = serializer.serialize(value);
+        fileSystemHandleTransferTokens = WTF::move(serializer.m_fileSystemHandleTransferTokens);
 #if ENABLE(MEDIA_STREAM)
         for (auto& track : std::exchange(serializer.m_serializedMediaStreamTracks , { }))
             detachedMediaStreamTracks.append(track.releaseNonNull());
@@ -2391,6 +2404,34 @@ private:
             }
 #endif
 
+            auto serializeFileSystemHandle = [&](FileSystemHandle& handle) {
+                // FIXME: Add support for storage.
+                if (m_forStorage == SerializationForStorage::Yes || handle.isClosed()) {
+                    code = SerializationReturnCode::DataCloneError;
+                    return true;
+                }
+                RefPtr context = handle.scriptExecutionContext();
+                if (!context || !context->settingsValues().fileSystemHandleSerializationEnabled) {
+                    code = SerializationReturnCode::DataCloneError;
+                    return true;
+                }
+                write(FileSystemHandleTag);
+                write(std::to_underlying(handle.kind()));
+                write(handle.name());
+                write(handle.identifier().toUInt64());
+                ASSERT(!context->securityOrigin()->isOpaque());
+                write(context->securityOrigin()->toString());
+                if (RefPtr connection = fileSystemStorageConnectionForContext(*context)) {
+                    connection->addTransferReference(handle.identifier());
+                    m_fileSystemHandleTransferTokens.append({ handle.identifier(), connection.releaseNonNull() });
+                }
+                return true;
+            };
+            if (auto* fileHandle = dynamicDowncast<JSFileSystemFileHandle>(obj))
+                return serializeFileSystemHandle(fileHandle->wrapped());
+            if (auto* dirHandle = dynamicDowncast<JSFileSystemDirectoryHandle>(obj))
+                return serializeFileSystemHandle(dirHandle->wrapped());
+
             return false;
         }
         // Any other types are expected to serialize as null.
@@ -2932,6 +2973,7 @@ private:
     ObjectPoolMap m_transferredMediaStreamTrackHandles;
 #endif
     SerializationForStorage m_forStorage;
+    Vector<FileSystemHandleTransferToken> m_fileSystemHandleTransferTokens;
 
 #if ASSERT_ENABLED
     bool m_didSeeComplexCases { false };
@@ -5141,6 +5183,64 @@ private:
         return getJSValue(exception);
     }
 
+    JSValue readFileSystemHandle()
+    {
+        uint8_t kindByte;
+        if (!read(kindByte) || (kindByte != std::to_underlying(FileSystemHandleKind::File) && kindByte != std::to_underlying(FileSystemHandleKind::Directory))) {
+            SERIALIZE_TRACE("FAIL readFileSystemHandle: invalid kind");
+            fail();
+            return JSValue();
+        }
+        auto kind = static_cast<FileSystemHandleKind>(kindByte);
+
+        CachedStringRef name;
+        if (!readStringData(name)) {
+            SERIALIZE_TRACE("FAIL readFileSystemHandle: cannot read name");
+            fail();
+            return JSValue();
+        }
+
+        uint64_t identifierValue;
+        if (!read(identifierValue) || !identifierValue) {
+            SERIALIZE_TRACE("FAIL readFileSystemHandle: invalid identifier");
+            fail();
+            return JSValue();
+        }
+
+        CachedStringRef origin;
+        if (!readStringData(origin)) {
+            fail();
+            return JSValue();
+        }
+
+        RefPtr context = executionContext(m_lexicalGlobalObject);
+        if (!context) {
+            fail();
+            return JSValue();
+        }
+
+        if (context->securityOrigin()->toString() != origin->string()) {
+            fail();
+            return JSValue();
+        }
+
+        RefPtr<FileSystemStorageConnection> connection = fileSystemStorageConnectionForContext(*context);
+        if (!connection) {
+            fail();
+            return JSValue();
+        }
+
+        auto identifier = FileSystemHandleIdentifier(identifierValue);
+        if (kind == FileSystemHandleKind::File) {
+            auto handle = FileSystemFileHandle::create(*context, String { name->string() }, identifier, Ref { *connection });
+            handle->markAsBorrowed();
+            return getJSValue(handle);
+        }
+        auto handle = FileSystemDirectoryHandle::create(*context, String { name->string() }, identifier, Ref { *connection });
+        handle->markAsBorrowed();
+        return getJSValue(handle);
+    }
+
     JSValue readBigInt()
     {
         bool sign;
@@ -5738,6 +5838,9 @@ private:
 #endif
         case DOMExceptionTag:
             return readDOMException();
+
+        case FileSystemHandleTag:
+            return readFileSystemHandle();
 
         default:
             SERIALIZE_TRACE("push back ", tag);
@@ -6703,6 +6806,7 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
     Vector<RefPtr<WebCodecsAudioData>> serializedAudioData;
 #endif
 
+    Vector<FileSystemHandleTransferToken> fileSystemHandleTransferTokens;
     auto exposedMessagePortsCount = messagePorts.size();
     auto code = CloneSerializer::serialize(&lexicalGlobalObject, value, messagePorts, arrayBuffers, imageBitmaps,
 #if ENABLE(OFFSCREEN_CANVAS_IN_WORKERS)
@@ -6735,7 +6839,8 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
         wasmModules,
         wasmMemoryHandles,
 #endif
-        blobHandles, buffer, context, *sharedBuffers, forStorage);
+        blobHandles, buffer, context, *sharedBuffers, forStorage,
+        fileSystemHandleTransferTokens);
 
     // Serialization may throw an exception. If we see one, we should exit early. To satisfy
     // exception checks, we need to check the exception here. When we throw an exception, we
@@ -6886,7 +6991,7 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
     });
 #endif
 
-    return adoptRef(*new SerializedScriptValue(WTF::move(buffer), WTF::move(blobHandles), arrayBufferContentsArray.releaseReturnValue(), context == SerializationContext::WorkerPostMessage ? WTF::move(sharedBuffers) : nullptr, WTF::move(detachedImageBitmaps)
+    Ref result = adoptRef(*new SerializedScriptValue(WTF::move(buffer), WTF::move(blobHandles), arrayBufferContentsArray.releaseReturnValue(), context == SerializationContext::WorkerPostMessage ? WTF::move(sharedBuffers) : nullptr, WTF::move(detachedImageBitmaps)
 #if ENABLE(OFFSCREEN_CANVAS_IN_WORKERS)
                 , WTF::move(detachedCanvases)
                 , WTF::move(inMemoryOffscreenCanvases)
@@ -6916,6 +7021,8 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
 #endif
                 , exposedMessagePortsCount
                 ));
+    result->m_internals.fileSystemHandleTransferTokens = WTF::move(fileSystemHandleTransferTokens);
+    return result;
 }
 
 RefPtr<SerializedScriptValue> SerializedScriptValue::create(StringView string)

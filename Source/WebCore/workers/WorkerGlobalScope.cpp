@@ -38,6 +38,7 @@
 #include "Crypto.h"
 #include "CryptoKeyData.h"
 #include "DOMTimer.h"
+#include "Document.h"
 #include "FontCustomPlatformData.h"
 #include "FontFaceSet.h"
 #include "FrameConsoleClient.h"
@@ -310,6 +311,17 @@ WorkerFileSystemStorageConnection& WorkerGlobalScope::getFileSystemStorageConnec
 
 WorkerFileSystemStorageConnection* WorkerGlobalScope::fileSystemStorageConnection()
 {
+    if (!m_fileSystemStorageConnection) {
+        RefPtr<FileSystemStorageConnection> mainThreadConnection;
+        callOnMainThreadAndWait([workerThread = Ref { thread() }, &mainThreadConnection]() mutable {
+            if (workerThread->runLoop().terminated())
+                return;
+            if (CheckedPtr workerLoaderProxy = workerThread->workerLoaderProxy())
+                mainThreadConnection = workerLoaderProxy->createFileSystemStorageConnection();
+        });
+        if (mainThreadConnection)
+            m_fileSystemStorageConnection = WorkerFileSystemStorageConnection::create(*this, mainThreadConnection.releaseNonNull());
+    }
     return m_fileSystemStorageConnection.get();
 }
 

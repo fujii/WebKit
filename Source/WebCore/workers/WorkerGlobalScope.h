@@ -109,7 +109,7 @@ public:
     WorkerStorageConnection& storageConnection();
     static void postFileSystemStorageTask(Function<void()>&&);
     WorkerFileSystemStorageConnection& getFileSystemStorageConnection(Ref<FileSystemStorageConnection>&&);
-    WEBCORE_EXPORT WorkerFileSystemStorageConnection* NODELETE fileSystemStorageConnection();
+    WEBCORE_EXPORT WorkerFileSystemStorageConnection* fileSystemStorageConnection();
     CacheStorageConnection& cacheStorageConnection();
     MessagePortChannelProvider& messagePortChannelProvider();
 

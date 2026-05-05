@@ -31,6 +31,7 @@
 #include <JavaScriptCore/Strong.h>
 #include <WebCore/Blob.h>
 #include <WebCore/DetachedRTCDataChannel.h>
+#include <WebCore/FileSystemStorageConnection.h>
 #include <wtf/FastMalloc.h>
 #include <wtf/Forward.h>
 #include <wtf/Function.h>
@@ -137,6 +138,7 @@ public:
     Vector<URLKeepingBlobAlive> blobHandles() const { return crossThreadCopy(m_internals.blobHandles); }
     void writeBlobsToDiskForIndexedDB(bool isEphemeral, CompletionHandler<void(IDBValue&&)>&&);
     IDBValue writeBlobsToDiskForIndexedDBSynchronously(bool isEphemeral);
+
     WEBCORE_EXPORT static Ref<SerializedScriptValue> createFromWireBytes(Vector<uint8_t>&&);
     const Vector<uint8_t>& wireBytes() const LIFETIME_BOUND { return m_internals.data; }
 
@@ -222,6 +224,7 @@ private:
         Vector<Ref<WebCodecsEncodedAudioChunkStorage>> serializedAudioChunks;
 #endif
         uint64_t exposedMessagePortCount;
+        Vector<FileSystemHandleTransferToken> fileSystemHandleTransferTokens { };
 #if ENABLE(WEB_CODECS)
         Vector<WebCodecsVideoFrameData> serializedVideoFrames { };
         Vector<WebCodecsAudioInternalData> serializedAudioData { };

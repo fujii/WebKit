@@ -925,7 +925,7 @@ void NetworkStorageManager::closeHandle(WebCore::FileSystemHandleIdentifier iden
     ASSERT(!RunLoop::isMain());
 
     if (RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier))
-        handle->close();
+        handle->requestClose();
 }
 
 void NetworkStorageManager::isSameEntry(WebCore::FileSystemHandleIdentifier identifier, WebCore::FileSystemHandleIdentifier targetIdentifier, CompletionHandler<void(bool)>&& completionHandler)
@@ -1097,6 +1097,29 @@ void NetworkStorageManager::getHandle(IPC::Connection& connection, WebCore::File
         completionHandler(std::optional { result.value() });
     else
         completionHandler(makeUnexpected(result.error()));
+}
+
+void NetworkStorageManager::cloneHandle(IPC::Connection& connection, WebCore::ClientOrigin&& origin, WebCore::FileSystemHandleIdentifier identifier, CompletionHandler<void(Expected<std::pair<WebCore::FileSystemHandleIdentifier, String>, FileSystemStorageError>)>&& completionHandler)
+{
+    ASSERT(!RunLoop::isMain());
+    MESSAGE_CHECK_COMPLETION(isSiteAllowedForConnection(connection.uniqueID(), WebCore::RegistrableDomain { origin.topOrigin }), connection, completionHandler(makeUnexpected(FileSystemStorageError::Unknown)));
+
+    Ref fileSystemStorageManager = originStorageManager(origin)->fileSystemStorageManager(*protect(m_fileSystemStorageHandleRegistry));
+    completionHandler(fileSystemStorageManager->cloneHandle(connection.uniqueID(), identifier));
+}
+
+void NetworkStorageManager::addTransferReference(WebCore::FileSystemHandleIdentifier identifier)
+{
+    ASSERT(!RunLoop::isMain());
+    if (RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier))
+        handle->addTransferReference();
+}
+
+void NetworkStorageManager::removeTransferReference(WebCore::FileSystemHandleIdentifier identifier)
+{
+    ASSERT(!RunLoop::isMain());
+    if (RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier))
+        handle->removeTransferReference();
 }
 
 void NetworkStorageManager::forEachClientOriginDirectoryUnderTopOrigin(const String& encodedTopOrigin, NOESCAPE const Function<void(const String&)>& apply)

@@ -47,6 +47,7 @@ public:
     virtual void fileSystemGetDirectory(ClientOrigin&&, GetDirectoryCallback&&) = 0;
     using GetEstimateCallback = CompletionHandler<void(ExceptionOr<StorageEstimate>&&)>;
     virtual void getEstimate(ClientOrigin&&, GetEstimateCallback&&) = 0;
+    virtual RefPtr<FileSystemStorageConnection> fileSystemStorageConnection() { return nullptr; }
 };
 
 } // namespace WebCore
