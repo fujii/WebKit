@@ -938,6 +938,7 @@ LibWebRTCCodecsMessageReceiver.cpp
 LibWebRTCCodecsProxyMessageReceiver.cpp
 LibWebRTCNetworkMessageReceiver.cpp
 LogStreamMessageReceiver.cpp
+Shared/LogStream.mm @no-unify
 ModelConnectionToWebProcessMessageReceiver.cpp
 MediaPlayerPrivateRemoteMessageReceiver.cpp
 MediaSourcePrivateRemoteMessageReceiverMessageReceiver.cpp

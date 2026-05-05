@@ -512,6 +512,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/NavigationActionData.serialization.in
     Shared/NetworkProcessConnectionParameters.serialization.in
     Shared/NodeHitTestResult.serialization.in
+    Shared/PDFDisplayMode.serialization.in
     Shared/Pasteboard.serialization.in
     Shared/PlatformPopupMenuData.serialization.in
     Shared/PolicyDecision.serialization.in
@@ -533,6 +534,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/SerializedNode.serialization.in
     Shared/ServiceWorkerTimingInfo.serialization.in
     Shared/SessionState.serialization.in
+    Shared/ShareableSpatialImage.serialization.in
     Shared/SyntheticEditingCommandType.serialization.in
     Shared/TextFlags.serialization.in
     Shared/TextManipulationParameters.serialization.in
@@ -786,7 +788,9 @@ if (USE_LIBWEBRTC)
     list(APPEND WebKit_SYSTEM_INCLUDE_DIRECTORIES "${THIRDPARTY_DIR}/libwebrtc/Source/"
         "${THIRDPARTY_DIR}/libwebrtc/Source/webrtc"
         "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/abseil-cpp")
-    list(APPEND WebKit_LIBRARIES webrtc)
+    if (NOT APPLE)
+        list(APPEND WebKit_LIBRARIES webrtc)
+    endif ()
 endif ()
 
 if (USE_GSTREAMER_WEBRTC AND USE_LIBRICE)
@@ -1164,7 +1168,7 @@ if (APPLE)
     WEBKIT_ADD_TARGET_CXX_FLAGS(WebKit -fobjc-weak)
 endif ()
 
-if ("${PORT}" STREQUAL "Mac")
+if ("${PORT}" STREQUAL "Mac" OR "${PORT}" STREQUAL "IOS")
     WEBKIT_DEFINE_XPC_SERVICES()
 else ()
     if (NOT ANDROID)
@@ -1175,11 +1179,14 @@ else ()
     install(TARGETS WebKit WebProcess NetworkProcess
         LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
         RUNTIME DESTINATION "${LIBEXEC_INSTALL_DIR}"
+        FRAMEWORK DESTINATION "${LIB_INSTALL_DIR}"
+        BUNDLE DESTINATION "${LIBEXEC_INSTALL_DIR}"
     )
     if (ENABLE_GPU_PROCESS)
         install(TARGETS GPUProcess
             LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
             RUNTIME DESTINATION "${LIBEXEC_INSTALL_DIR}"
+            BUNDLE DESTINATION "${LIBEXEC_INSTALL_DIR}"
         )
     endif ()
 endif ()
