@@ -391,7 +391,14 @@ extension WKRKEntity {
             return
         }
 
-        let defaultEnvironmentResource = EnvironmentResource.defaultObject()
+        guard
+            let defaultEnvironmentResource = try? EnvironmentResource.load(
+                named: "studio_lighting_objectmode_v3",
+                in: Bundle(identifier: "com.apple.WebKit")
+            )
+        else {
+            fatalError("Could not open studio_lighting_objectmode_v3")
+        }
         WKRKEntity.defaultEnvironmentResource = defaultEnvironmentResource
         applyIBL(defaultEnvironmentResource)
         #else

@@ -260,6 +260,12 @@
 		0D653B3D2F3459340022454D /* ModelTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D653B382F3453C40022454D /* ModelTypes.h */; };
 		0D9649182E7489AF000F9CDA /* ModelDowncastConvertToBackingContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D9649122E748610000F9CDA /* ModelDowncastConvertToBackingContext.h */; };
 		0DD656D42C8F0A4400278C3B /* DigitalCredentialsCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D20EA1C2C59E2F900CA61BD /* DigitalCredentialsCoordinator.h */; };
+		0DF0187C2FA847F70077DA6B /* studio_lighting_objectmode_v3.reibl in Resources */ = {isa = PBXBuildFile; fileRef = 0DF0187B2FA847BD0077DA6B /* studio_lighting_objectmode_v3.reibl */; };
+		0DF0187D2FA847F70077DA6B /* studio_lighting_objectmode_v3_specmap.ktx in Resources */ = {isa = PBXBuildFile; fileRef = 0DF0187A2FA847BD0077DA6B /* studio_lighting_objectmode_v3_specmap.ktx */; };
+		0DF0187E2FA847F70077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx in Resources */ = {isa = PBXBuildFile; fileRef = 0DF018792FA847BD0077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx */; };
+		0DF018802FA848080077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx in Resources */ = {isa = PBXBuildFile; fileRef = 0DF018792FA847BD0077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx */; };
+		0DF018812FA848080077DA6B /* studio_lighting_objectmode_v3_specmap.ktx in Resources */ = {isa = PBXBuildFile; fileRef = 0DF0187A2FA847BD0077DA6B /* studio_lighting_objectmode_v3_specmap.ktx */; };
+		0DF018822FA848080077DA6B /* studio_lighting_objectmode_v3.reibl in Resources */ = {isa = PBXBuildFile; fileRef = 0DF0187B2FA847BD0077DA6B /* studio_lighting_objectmode_v3.reibl */; };
 		0E97D74D200E900400BF6643 /* SafeBrowsingSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 0E97D74C200E8FF300BF6643 /* SafeBrowsingSPI.h */; };
 		0EDE85032004E75D00030560 /* WebsitePopUpPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 0EDE85022004E74900030560 /* WebsitePopUpPolicy.h */; };
 		0F08CF521D63C13A00B48DF1 /* WKFormSelectPicker.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F08CF511D63C13A00B48DF1 /* WKFormSelectPicker.h */; };
@@ -3487,7 +3493,7 @@
 		079A4DAF2D73EA4A00CA387F /* WKURLSchemeHandlerAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKURLSchemeHandlerAdapter.swift; sourceTree = "<group>"; };
 		079D1D9926960CD300883577 /* SystemStatusSPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SystemStatusSPI.h; sourceTree = "<group>"; };
 		079D1D9C2698DBD000883577 /* cocoa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = cocoa; sourceTree = "<group>"; };
-		07A1B2C32F900D010000ABCD /* TestWebKitAPILibraryAdditions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TestWebKitAPILibraryAdditions.swift"; path = "$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/TestWebKitAPILibraryAdditions.swift"; sourceTree = "<group>"; };
+		07A1B2C32F900D010000ABCD /* TestWebKitAPILibraryAdditions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestWebKitAPILibraryAdditions.swift; path = "$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/TestWebKitAPILibraryAdditions.swift"; sourceTree = "<group>"; };
 		07A33C992D67BE2200F30A05 /* WKScrollGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKScrollGeometry.h; sourceTree = "<group>"; };
 		07A33C9B2D67BF3000F30A05 /* WKScrollGeometry.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKScrollGeometry.mm; sourceTree = "<group>"; };
 		07A33C9E2D67EEF600F30A05 /* ViewModifierContexts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifierContexts.swift; sourceTree = "<group>"; };
@@ -3624,6 +3630,9 @@
 		0D9D28E72C81473B002CB4C7 /* WKDigitalCredentialsPicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKDigitalCredentialsPicker.h; sourceTree = "<group>"; };
 		0D9D28E82C814F79002CB4C7 /* WKDigitalCredentialsPicker.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKDigitalCredentialsPicker.mm; sourceTree = "<group>"; };
 		0DCBF4D926E2ED3200EA0E07 /* WebAuthenticatorCoordinatorProxy.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebAuthenticatorCoordinatorProxy.mm; sourceTree = "<group>"; };
+		0DF018792FA847BD0077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx */ = {isa = PBXFileReference; lastKnownFileType = file; path = studio_lighting_objectmode_v3_diffmap.ktx; sourceTree = "<group>"; };
+		0DF0187A2FA847BD0077DA6B /* studio_lighting_objectmode_v3_specmap.ktx */ = {isa = PBXFileReference; lastKnownFileType = file; path = studio_lighting_objectmode_v3_specmap.ktx; sourceTree = "<group>"; };
+		0DF0187B2FA847BD0077DA6B /* studio_lighting_objectmode_v3.reibl */ = {isa = PBXFileReference; lastKnownFileType = text; path = studio_lighting_objectmode_v3.reibl; sourceTree = "<group>"; };
 		0E97D74C200E8FF300BF6643 /* SafeBrowsingSPI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SafeBrowsingSPI.h; sourceTree = "<group>"; };
 		0EDE85022004E74900030560 /* WebsitePopUpPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebsitePopUpPolicy.h; sourceTree = "<group>"; };
 		0F08CF511D63C13A00B48DF1 /* WKFormSelectPicker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WKFormSelectPicker.h; sourceTree = "<group>"; };
@@ -14391,6 +14400,9 @@
 		5260053F2C707686005D813A /* RealityKit */ = {
 			isa = PBXGroup;
 			children = (
+				0DF0187B2FA847BD0077DA6B /* studio_lighting_objectmode_v3.reibl */,
+				0DF018792FA847BD0077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx */,
+				0DF0187A2FA847BD0077DA6B /* studio_lighting_objectmode_v3_specmap.ktx */,
 				5289527E2C7077B000D0357E /* WKRKEntity.h */,
 				528952802C70797900D0357E /* WKRKEntity.swift */,
 			);
@@ -20122,6 +20134,7 @@
 				CD95493226159004008372D9 /* Sources */,
 				CD95493326159004008372D9 /* Frameworks */,
 				6577FFBA2769C64A0011AEC8 /* Create Symlink to Cryptex Path */,
+				0DF0187F2FA848010077DA6B /* Resources */,
 			);
 			buildRules = (
 			);
@@ -20238,6 +20251,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0DF0187F2FA848010077DA6B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0DF018822FA848080077DA6B /* studio_lighting_objectmode_v3.reibl in Resources */,
+				0DF018802FA848080077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx in Resources */,
+				0DF018812FA848080077DA6B /* studio_lighting_objectmode_v3_specmap.ktx in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2D56C1C728A367A00081BD25 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -20326,6 +20349,9 @@
 				8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */,
 				3FB08E431F60B240005E5312 /* iOS.xcassets in Resources */,
 				5C8BC797218CBB4800813886 /* SafeBrowsing.xcassets in Resources */,
+				0DF0187C2FA847F70077DA6B /* studio_lighting_objectmode_v3.reibl in Resources */,
+				0DF0187E2FA847F70077DA6B /* studio_lighting_objectmode_v3_diffmap.ktx in Resources */,
+				0DF0187D2FA847F70077DA6B /* studio_lighting_objectmode_v3_specmap.ktx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
