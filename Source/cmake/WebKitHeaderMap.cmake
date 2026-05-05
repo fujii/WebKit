@@ -1,4 +1,5 @@
-if (COMPILER_IS_CLANG AND NOT COMPILER_IS_CLANG_CL)
+# FIXME: re-enable for WPE/GTK once forwarded headers land. https://bugs.webkit.org/show_bug.cgi?id=180063
+if (COMPILER_IS_CLANG AND NOT COMPILER_IS_CLANG_CL AND NOT PORT STREQUAL "WPE" AND NOT PORT STREQUAL "GTK")
     set(_USE_HEADER_MAPS_DEFAULT ON)
 else ()
     set(_USE_HEADER_MAPS_DEFAULT OFF)
