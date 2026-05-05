@@ -319,7 +319,6 @@ imported/w3c/web-platform-tests/websockets/back-forward-cache-with-open-websocke
 imported/w3c/web-platform-tests/websockets/back-forward-cache-with-open-websocket-connection.window.html [ Failure ]
 js/ShadowRealm-iframe-detach.html [ Failure ]
 js/ShadowRealm-worker.html [ Failure ]
-js/dom/modules/import-from-handler.html [ Failure ]
 js/dom/modules/import-from-javascript-url.html [ Failure ]
 media/audio-play-with-video-element-interrupted.html [ Failure ]
 storage/indexeddb/IDBRequest-page-cache.html [ Failure ]
