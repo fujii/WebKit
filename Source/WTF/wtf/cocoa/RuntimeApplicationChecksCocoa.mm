@@ -429,6 +429,8 @@ bool CocoaApplication::shouldOSFaultLogForAppleApplicationUsingWebKit1()
             return false;
         if (applicationBundleIsEqualTo("com.apple.WebKit.TestWebKitAPI"_s))
             return false;
+        if (applicationBundleIsEqualTo("com.apple.dt.Xcode"_s))
+            return false;
         if (applicationBundleIsEqualTo("com.apple.ibtool"_s))
             return false;
         if (CocoaApplication::isDumpRenderTree())
