@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,30 +25,42 @@
 
 #pragma once
 
-#include <JavaScriptCore/JSObject.h>
+// JSC Temporal Core — Shared types and error handling
+// temporal_rs reference: src/error.rs
+
+#include <wtf/Expected.h>
+#include <wtf/text/ASCIILiteral.h>
 
 namespace JSC {
 
-class TemporalCalendarPrototype final : public JSNonFinalObject {
-public:
-    using Base = JSNonFinalObject;
-    static constexpr unsigned StructureFlags = Base::StructureFlags | HasStaticPropertyTable;
+// TemporalErrorKind — temporal_rs: TemporalErrorKind enum
+// https://tc39.es/proposal-temporal/#sec-temporal-totemporalerror
+enum class TemporalErrorKind : uint8_t {
+    RangeError,
+    TypeError,
+};
 
-    template<typename CellType, SubspaceAccess>
-    static GCClient::IsoSubspace* subspaceFor(VM& vm)
-    {
-        STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(TemporalCalendarPrototype, Base);
-        return &vm.plainObjectSpace();
-    }
+// TemporalError — temporal_rs: TemporalError { kind, message }
+struct TemporalError {
+    TemporalErrorKind kind;
+    ASCIILiteral message;
+};
 
-    static TemporalCalendarPrototype* create(VM&, JSGlobalObject*, Structure*);
-    static Structure* createStructure(VM&, JSGlobalObject*, JSValue);
+// TemporalResult<T> — temporal_rs: TemporalResult<T> = Result<T, TemporalError>
+template<typename T>
+using TemporalResult = Expected<T, TemporalError>;
 
-    DECLARE_INFO;
+// Convenience constructors — temporal_rs: TemporalError::range() / TemporalError::type_()
+namespace TemporalCore {
+inline TemporalError rangeError(ASCIILiteral msg) { return { TemporalErrorKind::RangeError, msg }; }
+inline TemporalError typeError(ASCIILiteral msg) { return { TemporalErrorKind::TypeError, msg }; }
+} // namespace TemporalCore
 
-private:
-    TemporalCalendarPrototype(VM&, Structure*);
-    void finishCreation(VM&, JSGlobalObject*);
+// TransitionDirection — temporal_rs: TransitionDirection enum (Next/Previous)
+// Used by getTimeZoneTransition to indicate search direction.
+enum class TransitionDirection : bool {
+    Next,
+    Previous,
 };
 
 } // namespace JSC

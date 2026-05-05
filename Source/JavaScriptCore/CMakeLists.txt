@@ -1148,6 +1148,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/GlobalObjectMethodTable.h
     runtime/HashMapHelper.h
     runtime/HasOwnPropertyCache.h
+    runtime/ISO8601.h
     runtime/Identifier.h
     runtime/IdentifierInlines.h
     runtime/ImplementationVisibility.h
@@ -1412,6 +1413,35 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/SymbolTableOrScopeDepth.h
     runtime/SyntheticModuleRecord.h
     runtime/TemplateObjectDescriptor.h
+    runtime/TemporalCalendar.h
+    runtime/TemporalCalendarConstructor.h
+    runtime/TemporalCalendarPrototype.h
+    runtime/TemporalDuration.h
+    runtime/TemporalDurationConstructor.h
+    runtime/TemporalDurationPrototype.h
+    runtime/TemporalInstant.h
+    runtime/TemporalInstantConstructor.h
+    runtime/TemporalInstantPrototype.h
+    runtime/TemporalNow.h
+    runtime/TemporalObject.h
+    runtime/TemporalPlainDate.h
+    runtime/TemporalPlainDateConstructor.h
+    runtime/TemporalPlainDatePrototype.h
+    runtime/TemporalPlainDateTime.h
+    runtime/TemporalPlainDateTimeConstructor.h
+    runtime/TemporalPlainDateTimePrototype.h
+    runtime/TemporalPlainMonthDay.h
+    runtime/TemporalPlainMonthDayConstructor.h
+    runtime/TemporalPlainMonthDayPrototype.h
+    runtime/TemporalPlainTime.h
+    runtime/TemporalPlainTimeConstructor.h
+    runtime/TemporalPlainTimePrototype.h
+    runtime/TemporalPlainYearMonth.h
+    runtime/TemporalPlainYearMonthConstructor.h
+    runtime/TemporalPlainYearMonthPrototype.h
+    runtime/TemporalTimeZone.h
+    runtime/TemporalTimeZoneConstructor.h
+    runtime/TemporalTimeZonePrototype.h
     runtime/TestRunnerUtils.h
     runtime/ThrowScope.h
     runtime/ToNativeFromValue.h
@@ -1453,6 +1483,9 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/WeakSetPrototype.h
     runtime/WriteBarrier.h
     runtime/WriteBarrierInlines.h
+
+    runtime/temporal/core/TemporalCoreTypes.h
+    runtime/temporal/core/TemporalEnums.h
 
     tools/Integrity.h
     tools/IntegrityInlines.h

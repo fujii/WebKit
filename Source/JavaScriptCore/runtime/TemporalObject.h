@@ -21,7 +21,8 @@
 
 #pragma once
 
-#include "JSObject.h"
+#include <JavaScriptCore/JSObject.h>
+#include <JavaScriptCore/TemporalEnums.h>
 #include <wtf/Int128.h>
 
 namespace JSC {
@@ -246,13 +247,6 @@ enum class TemporalOverflow : bool {
 TemporalOverflow toTemporalOverflow(JSGlobalObject*, JSObject*);
 TemporalOverflow toTemporalOverflow(JSGlobalObject*, JSValue);
 String toTemporalCalendarName(JSGlobalObject*, JSObject*);
-
-enum class TemporalDisambiguation : uint8_t {
-    Compatible,
-    Earlier,
-    Later,
-    Reject,
-};
 
 enum class TemporalDateFormat : uint8_t {
     Date,

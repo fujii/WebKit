@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "IntlObject.h"
-#include "TemporalObject.h"
+#include <JavaScriptCore/IntlObject.h>
+#include <JavaScriptCore/TemporalObject.h>
 #include <wtf/Int128.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/text/StringBuilder.h>
