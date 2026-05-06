@@ -2474,8 +2474,12 @@ static WebCore::FloatQuad inflateQuad(const WebCore::FloatQuad& quad, float infl
     if (!preventsNativeGesture)
         return;
 
-    _preventsPanningInXAxis = YES;
-    _preventsPanningInYAxis = YES;
+    if (touchEvent.allTouchPointsAreReleased())
+        [self _resetPanningPreventionFlags];
+    else {
+        _preventsPanningInXAxis = YES;
+        _preventsPanningInYAxis = YES;
+    }
 
     if (![_touchEventGestureRecognizer isDispatchingTouchEvents])
         return;
