@@ -114,7 +114,7 @@ WEBKIT_OPTION_DEFINE(USE_LIBBACKTRACE "Whether to enable usage of libbacktrace."
 WEBKIT_OPTION_DEFINE(USE_LIBDRM "Whether to enable usage of libdrm." PUBLIC ON)
 WEBKIT_OPTION_DEFINE(USE_LIBHYPHEN "Whether to enable the default automatic hyphenation implementation." PUBLIC ON)
 WEBKIT_OPTION_DEFINE(USE_SKIA_OPENTYPE_SVG "Whether to use the Skia built-in support for OpenType SVG fonts." PUBLIC ON)
-WEBKIT_OPTION_DEFINE(USE_VULKAN "Whether to build support to use Vulkan." PUBLIC OFF)
+WEBKIT_OPTION_DEFINE(USE_VULKAN "Whether to build support to use Vulkan." PUBLIC ${ENABLE_EXPERIMENTAL_FEATURES})
 
 # Private options specific to the WPE port.
 WEBKIT_OPTION_DEFINE(USE_EXTERNAL_HOLEPUNCH "Whether to enable external holepunch" PRIVATE OFF)
