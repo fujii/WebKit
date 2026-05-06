@@ -296,6 +296,14 @@ static WebCore::FloatSize toRawPlatformDelta(WebCore::FloatSize delta)
     [gesture setEnabled:gestureEnabled];
 }
 
+- (void)cancelClick
+{
+    [self _handleClickCancelled];
+
+    if (RefPtr page = _page.get())
+        page->cancelPotentialClick();
+}
+
 #pragma mark - Gesture Recognition
 
 - (void)panGestureRecognized:(NSGestureRecognizer *)gesture

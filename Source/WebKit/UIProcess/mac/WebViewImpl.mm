@@ -7646,6 +7646,11 @@ bool WebViewImpl::isTextSelectedAtPoint(NSPoint point)
 {
     return [m_textSelectionController isTextSelectedAtPoint:point];
 }
+
+void WebViewImpl::cancelClick()
+{
+    [m_appKitGestureController cancelClick];
+}
 #endif // HAVE(APPKIT_GESTURES_SUPPORT)
 
 } // namespace WebKit
