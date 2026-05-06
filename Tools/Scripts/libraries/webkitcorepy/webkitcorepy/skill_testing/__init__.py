@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Apple Inc. All rights reserved.
+# Copyright (C) 2026 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -20,7 +20,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from webkitcorepy.testing.llm_test_runner import LLMTestRunner
-from webkitcorepy.testing.path_test_case import PathTestCase, TestCase
-from webkitcorepy.testing.python_test_runner import PythonTestRunner
-from webkitcorepy.testing.test_runner import TestRunner
+from webkitcorepy.skill_testing.skill_file import SkillFile
+from webkitcorepy.skill_testing.skill_test import SkillTest
+from webkitcorepy.skill_testing.validators import DirectoryValidator, SkillValidator, ValidationResult
