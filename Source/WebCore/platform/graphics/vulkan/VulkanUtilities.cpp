@@ -249,17 +249,42 @@ void initializeIfNeeded()
     }
 #endif // VK_EXT_debug_utils
 
-    auto device = instance->deviceForDisplay(PlatformDisplay::sharedDisplay());
-    if (!device) {
-        RELEASE_LOG_ERROR(Vulkan, "Cannot find device for EGL display: %s (%d)", Vulkan::resultString(device), device.error());
+    auto deviceInfo = instance->deviceForDisplay(PlatformDisplay::sharedDisplay());
+    if (!deviceInfo) {
+        RELEASE_LOG_ERROR(Vulkan, "Cannot find device for EGL display: %s (%d)", Vulkan::resultString(deviceInfo), deviceInfo.error());
         return;
     }
 
     PhysicalDeviceProperties properties;
-    device->fillProperties(properties);
+    deviceInfo->fillProperties(properties);
     RELEASE_LOG(Vulkan, "Found device for EGL display: %s", properties->deviceName);
 
+    const auto queueFamilies = deviceInfo->queueFamilies();
+    auto queueIndex = queueFamilies.findIf([](const auto& queueProperties) {
+        return queueProperties->queueFlags & VK_QUEUE_GRAPHICS_BIT;
+    });
+    if (queueIndex == notFound) {
+        RELEASE_LOG_ERROR(Vulkan, "Cannot find graphics queue family");
+        return;
+    }
+
+    RELEASE_ASSERT(queueIndex <= std::numeric_limits<uint32_t>::max());
+    static constexpr float queuePriorities[] = { 0.0f };
+    DeviceQueueCreateInfo queueCreateInfo { static_cast<uint32_t>(queueIndex), std::span(queuePriorities) };
+
+    Vector<const char*, 2> deviceExtensions = {
+        VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+    };
+    auto device = Device::create(*deviceInfo, { queueCreateInfo, deviceExtensions.span() });
+    if (!device) {
+        RELEASE_LOG_ERROR(Vulkan, "Cannot instantiate device: %s (%d)", Vulkan::resultString(device), device.error());
+        return;
+    }
+
+    RELEASE_LOG(Vulkan, "Instantiated device %p", *device->ptr());
+
     Instance::setSharedInstance(WTF::move(*instance));
+    Device::setSharedDevice(WTF::move(*device));
 }
 
 } // namespace Vulkan

@@ -26,6 +26,11 @@
 #pragma once
 
 #if USE(VULKAN)
+// The Volk header can leave device functions undefined to prevent accidental
+// usage. Instead, use the per-device functions table to avoid the dispatch
+// overhead (up to 7%), see https://github.com/zeux/volk#optimizing-device-calls
+#define VOLK_NO_DEVICE_PROTOTYPES
+
 #include <expected>
 #include <volk.h>
 #include <wtf/Noncopyable.h>
@@ -141,6 +146,15 @@ struct InstanceCreateInfo : Structure<VkInstanceCreateInfo, VK_STRUCTURE_TYPE_IN
     InstanceCreateInfo(const ApplicationInfo& applicationInfo LIFETIME_BOUND, std::span<const char* const> enabledLayers LIFETIME_BOUND = { }, std::span<const char* const> enabledExtensions LIFETIME_BOUND = { });
 };
 
+struct QueueFamilyProperties : BaseStruct<VkQueueFamilyProperties> {
+    const VkQueueFamilyProperties* LIFETIME_BOUND operator->() const { return &m_inner; }
+    VkQueueFamilyProperties* LIFETIME_BOUND operator->() { return &m_inner; }
+};
+
+struct DeviceQueueCreateInfo : Structure<VkDeviceQueueCreateInfo, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO> {
+    DeviceQueueCreateInfo(uint32_t familyIndex, std::span<const float> queuePriorities);
+};
+
 struct PhysicalDeviceProperties : Structure<VkPhysicalDeviceProperties2, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2> {
     const VkPhysicalDeviceProperties* LIFETIME_BOUND operator->() const { return &m_inner.properties; }
     VkPhysicalDeviceProperties* LIFETIME_BOUND operator->() { return &m_inner.properties; }
@@ -156,6 +170,7 @@ struct PhysicalDeviceIDProperties : Structure<VkPhysicalDeviceIDProperties, VK_S
 
 struct PhysicalDevice : BaseStruct<VkPhysicalDevice> {
     void fillProperties(PhysicalDeviceProperties&) const;
+    Vector<QueueFamilyProperties> queueFamilies() const;
 
     PhysicalDevice() = default;
 
@@ -165,6 +180,47 @@ struct PhysicalDevice : BaseStruct<VkPhysicalDevice> {
         : BaseStruct(const_cast<VkPhysicalDevice>(other.m_inner))
     {
     }
+};
+
+struct DeviceCreateInfo : Structure<VkDeviceCreateInfo, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO> {
+    DeviceCreateInfo(const DeviceQueueCreateInfo&, std::span<const char* const> enabledExtensions = { });
+};
+
+struct Device : BaseStruct<VkDevice> {
+    [[nodiscard]] static Result<Device> create(PhysicalDevice&, const DeviceCreateInfo&);
+    ~Device();
+
+    Device(Device&& other)
+    {
+        *this = WTF::move(other);
+    }
+
+    Device& operator=(Device&& other)
+    {
+        if (this != &other) {
+            std::swap(m_inner, other.m_inner);
+            std::swap(m_table, other.m_table);
+        }
+        return *this;
+    }
+
+    static void setSharedDevice(Device&&);
+    [[nodiscard]] static Device* sharedDeviceIfExists();
+    [[nodiscard]] static Device& sharedDevice();
+
+private:
+    Device(VkDevice);
+
+    // Needed to avoid calling volkLoadDeviceTable() on a null pointer.
+    enum StaticAllocationTag { StaticAllocation };
+    Device(StaticAllocationTag)
+        : Base(nullptr)
+    {
+    }
+
+    VolkDeviceTable m_table;
+
+    static Device s_sharedDevice;
 };
 
 struct Instance : BaseStruct<VkInstance> {

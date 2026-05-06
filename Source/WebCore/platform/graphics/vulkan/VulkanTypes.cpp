@@ -90,6 +90,80 @@ void PhysicalDevice::fillProperties(PhysicalDeviceProperties& properties) const
     vkGetPhysicalDeviceProperties2(m_inner, properties.ptr());
 }
 
+Vector<QueueFamilyProperties> PhysicalDevice::queueFamilies() const
+{
+    uint32_t queueFamilyCount;
+    vkGetPhysicalDeviceQueueFamilyProperties(m_inner, &queueFamilyCount, nullptr);
+
+    Vector<QueueFamilyProperties> queueFamilies(queueFamilyCount);
+    static_assert(sizeof(QueueFamilyProperties) == sizeof(VkQueueFamilyProperties));
+    auto queueFamiliesSpan = spanReinterpretCast<VkQueueFamilyProperties>(queueFamilies.mutableSpan());
+    ASSERT(queueFamiliesSpan.size() == queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(m_inner, &queueFamilyCount, queueFamiliesSpan.data());
+
+    return queueFamilies;
+}
+
+DeviceQueueCreateInfo::DeviceQueueCreateInfo(uint32_t familyIndex, std::span<const float> queuePriorities)
+{
+    m_inner.queueFamilyIndex = familyIndex;
+    m_inner.queueCount = queuePriorities.size();
+    m_inner.pQueuePriorities = queuePriorities.data();
+}
+
+DeviceCreateInfo::DeviceCreateInfo(const DeviceQueueCreateInfo& queueCreateInfo, std::span<const char* const> enabledExtensions)
+{
+    m_inner.queueCreateInfoCount = 1;
+    m_inner.pQueueCreateInfos = queueCreateInfo.ptr();
+
+    m_inner.enabledExtensionCount = enabledExtensions.size();
+    m_inner.ppEnabledExtensionNames = enabledExtensions.data();
+}
+
+Device::Device(VkDevice inner)
+    : Base(WTF::move(inner))
+{
+    volkLoadDeviceTable(&m_table, m_inner);
+}
+
+Device::~Device()
+{
+    if (m_inner) {
+        ASSERT(m_table.vkDestroyDevice);
+        m_table.vkDestroyDevice(m_inner, nullptr);
+    }
+}
+
+Result<Device> Device::create(PhysicalDevice& deviceInfo, const DeviceCreateInfo& creationInfo)
+{
+    VkDevice device;
+    if (auto result = vkCreateDevice(*deviceInfo.ptr(), creationInfo.ptr(), nullptr, &device); result != VK_SUCCESS)
+        return makeUnexpected(result);
+
+    return Device(device);
+}
+
+Device Device::s_sharedDevice { StaticAllocation };
+
+void Device::setSharedDevice(Device&& device)
+{
+    if (s_sharedDevice.m_inner)
+        RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("Attempted to reset already initialized Vulkan shared device");
+    s_sharedDevice = WTF::move(device);
+}
+
+Device* Device::sharedDeviceIfExists()
+{
+    return s_sharedDevice.m_inner ? &s_sharedDevice : nullptr;
+}
+
+Device& Device::sharedDevice()
+{
+    if (!s_sharedDevice.m_inner) [[unlikely]]
+        RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("Attempted to use Vulkan shared device before its initialization");
+    return s_sharedDevice;
+}
+
 const Vector<VkLayerProperties>& Instance::availableLayers()
 {
     static const auto layerProperties = ([]() -> Vector<VkLayerProperties> {
