@@ -64,8 +64,8 @@ PASS getWidth('input-image-75') is '75px'
 PASS getHeight('input-image-75') is '75px'
 PASS getWidth('input-image-100') is '100px'
 PASS getHeight('input-image-100') is '100px'
+PASS getWidth('input-radio-75') is getWidth('input-radio-100')
 PASS getHeight('input-radio-75') != '0px' is true
-PASS getHeight('input-radio-75') is 75% of getHeight('input-radio-100').
 PASS getWidth('input-reset-75') is getWidth('input-reset-100')
 PASS getHeight('input-reset-75') != '0px' is true
 PASS getHeight('input-reset-75') is getHeight('input-reset-100')
