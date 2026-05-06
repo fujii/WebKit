@@ -29,7 +29,6 @@
 
 #include "pas_large_heap_physical_page_sharing_cache.h"
 
-#include "pas_bootstrap_free_heap.h"
 #include "pas_heap_config.h"
 #include "pas_heap_lock.h"
 #include "pas_large_sharing_pool.h"

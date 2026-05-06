@@ -42,10 +42,6 @@
 #include "pas_stream.h"
 #include "pas_zero_memory.h"
 
-#if defined(PAS_BMALLOC)
-#include "BPlatform.h"
-#endif
-
 PAS_BEGIN_EXTERN_C;
 
 void jit_type_dump(const pas_heap_type* type, pas_stream* stream)

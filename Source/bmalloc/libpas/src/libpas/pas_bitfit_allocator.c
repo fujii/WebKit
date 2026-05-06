@@ -32,8 +32,6 @@
 #include "pas_bitfit_allocator_inlines.h"
 #include "pas_bitfit_directory.h"
 #include "pas_bitfit_size_class.h"
-#include "pas_bitfit_view_inlines.h"
-#include "pas_epoch.h"
 #include "pas_physical_memory_transaction.h"
 
 void pas_bitfit_allocator_construct(pas_bitfit_allocator* allocator,

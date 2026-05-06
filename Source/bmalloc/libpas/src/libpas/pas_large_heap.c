@@ -30,7 +30,6 @@
 #include "pas_large_heap.h"
 
 #include "pas_allocation_mode.h"
-#include "pas_bootstrap_free_heap.h"
 #include "pas_compute_summary_object_callbacks.h"
 #include "pas_heap.h"
 #include "pas_heap_config.h"
@@ -39,7 +38,6 @@
 #include "pas_large_sharing_pool.h"
 #include "pas_large_map.h"
 #include "pas_mte.h"
-#include "pas_page_malloc.h"
 #include "pas_probabilistic_guard_malloc_allocator.h"
 #include "pas_system_heap.h"
 #include "pas_zero_mode.h"

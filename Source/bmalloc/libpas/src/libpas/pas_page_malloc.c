@@ -30,7 +30,6 @@
 #include "pas_page_malloc.h"
 
 #include <errno.h>
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #if !PAS_OS(WINDOWS)
@@ -38,7 +37,6 @@
 #include <unistd.h>
 #endif
 #if PAS_OS(DARWIN)
-#include <mach/vm_page_size.h>
 #include <mach/vm_statistics.h>
 #endif
 #if PAS_OS(LINUX)

@@ -30,22 +30,15 @@
 #include "pas_all_heaps.h"
 
 #include "bmalloc_heap_innards.h"
-#include "hotbit_heap_innards.h"
-#include "iso_heap_innards.h"
-#include "iso_test_heap.h"
 #include "jit_heap.h"
-#include "minalign32_heap.h"
-#include "pagesize64k_heap.h"
 #include "pas_bitfit_heap.h"
 #include "pas_heap.h"
 #include "pas_heap_lock.h"
 #include "pas_large_utility_free_heap.h"
 #include "pas_ptr_hash_set.h"
-#include "pas_scavenger.h"
 #include "pas_segregated_heap.h"
 #include "pas_utility_heap.h"
 #include "pas_utility_heap_config.h"
-#include "thingy_heap.h"
 
 pas_heap* pas_all_heaps_first_heap = NULL;
 size_t pas_all_heaps_count = 0;
