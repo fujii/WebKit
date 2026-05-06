@@ -1467,7 +1467,6 @@ http/tests/webgpu/webgpu/shader/execution/expression/call/builtin/textureSampleG
 http/tests/webgpu/webgpu/shader/execution/expression/call/builtin/textureSampleLevel.html [ Skip ]
 http/tests/webgpu/webgpu/shader/execution/robust_access.html [ Skip ]
 http/tests/webgpu/webgpu/shader/execution/zero_init.html [ Skip ]
-http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/clamp.html [ Skip ]
 webkit.org/b/308252 [ Debug arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/atan2.html [ Skip ]
 http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/faceForward.html [ Skip ]
 webkit.org/b/308252 [ Debug arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/length.html [ Skip ]
