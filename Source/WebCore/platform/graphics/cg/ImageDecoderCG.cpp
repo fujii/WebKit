@@ -42,11 +42,14 @@
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/cf/TypeCastsCF.h>
 
+#include "CoreVideoSoftLink.h"
 #include "MediaAccessibilitySoftLink.h"
 
 #if ENABLE(SPATIAL_IMAGE_DETECTION)
 #include "PhotosFormatSoftLink.h"
 #endif
+
+WTF_DECLARE_CF_TYPE_TRAIT(CGImageMetadata)
 
 namespace WebCore {
 
@@ -630,6 +633,37 @@ bool ImageDecoderCG::fetchFrameMetaDataAtIndex(size_t index, SubsamplingLevel su
     frame.m_orientation = orientationFromProperties(properties.get());
     frame.m_decodingStatus = frameIsComplete ? DecodingStatus::Complete : DecodingStatus::Partial;
     return true;
+}
+
+std::optional<GainMap> ImageDecoderCG::frameGainMapAtIndex(size_t index, const DecodingOptions&)
+{
+#if HAVE(SUPPORT_HDR_DISPLAY_APIS)
+    RetainPtr auxiliaryOptions = adoptCF(CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks));
+    CFDictionarySetValue(auxiliaryOptions.get(), kCGImageAuxiliaryDataRepresentation, kCGImageAuxiliaryDataRepresentationPixelBuffer);
+
+    RetainPtr auxiliaryInfo = adoptCF(CGImageSourceCopyAuxiliaryDataInfoAtIndexWithOptions(m_nativeDecoder.get(), index, kCGImageAuxiliaryDataTypeISOGainMap, auxiliaryOptions.get()));
+    if (!auxiliaryInfo)
+        auxiliaryInfo = adoptCF(CGImageSourceCopyAuxiliaryDataInfoAtIndexWithOptions(m_nativeDecoder.get(), index, kCGImageAuxiliaryDataTypeHDRGainMap, auxiliaryOptions.get()));
+
+    if (!auxiliaryInfo)
+        return std::nullopt;
+
+    RetainPtr metadata = dynamic_cf_cast<CGImageMetadataRef>(CFDictionaryGetValue(auxiliaryInfo.get(), kCGImageAuxiliaryDataInfoMetadata));
+    RetainPtr gainMapPixelBuffer = dynamic_cf_cast<CVPixelBufferRef>(CFDictionaryGetValue(auxiliaryInfo.get(), kCGImageAuxiliaryDataInfoPixelBuffer));
+    RetainPtr colorSpace = dynamic_cf_cast<CGColorSpaceRef>(CFDictionaryGetValue(auxiliaryInfo.get(), kCGImageAuxiliaryDataInfoColorSpace));
+
+    if (!metadata || !gainMapPixelBuffer)
+        return std::nullopt;
+
+    return GainMap {
+        WTF::move(metadata),
+        WTF::move(gainMapPixelBuffer),
+        colorSpace ? std::optional<DestinationColorSpace> { DestinationColorSpace(WTF::move(colorSpace)) } : std::nullopt
+    };
+#else
+    UNUSED_PARAM(index);
+    return std::nullopt;
+#endif
 }
 
 PlatformImagePtr ImageDecoderCG::createFrameImageAtIndex(size_t index, SubsamplingLevel subsamplingLevel, const DecodingOptions& decodingOptions)

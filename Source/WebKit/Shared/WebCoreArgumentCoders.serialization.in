@@ -8580,7 +8580,7 @@ header: <WebCore/ShareableGainMap.h>
 [CreateUsing=create] class WebCore::ShareableGainMap {
     RetainPtr<CFDataRef> m_metadata;
     Ref<WebCore::ShareableCVPixelBuffer> m_gainMapShareablePixelBuffer;
-    WebCore::DestinationColorSpace m_colorSpace;
+    std::optional<WebCore::DestinationColorSpace> m_colorSpace;
 }
 
 #endif
