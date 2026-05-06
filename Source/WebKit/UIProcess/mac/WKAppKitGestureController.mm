@@ -273,7 +273,8 @@ static WebCore::FloatSize toRawPlatformDelta(WebCore::FloatSize delta)
     [webView addGestureRecognizer:_singleClickGestureRecognizer.get()];
     [webView addGestureRecognizer:_doubleClickGestureRecognizer.get()];
     [webView addGestureRecognizer:_secondaryClickGestureRecognizer.get()];
-    [webView addGestureRecognizer:_dragPressGestureRecognizer.get()];
+
+    // FIXME: Add drag press gesture after rdar://problem/176383341 is resolved.
 }
 
 - (void)enableGesturesIfNeeded
@@ -283,7 +284,8 @@ static WebCore::FloatSize toRawPlatformDelta(WebCore::FloatSize delta)
     [self enableGestureIfNeeded:_singleClickGestureRecognizer.get()];
     [self enableGestureIfNeeded:_doubleClickGestureRecognizer.get()];
     [self enableGestureIfNeeded:_secondaryClickGestureRecognizer.get()];
-    [self enableGestureIfNeeded:_dragPressGestureRecognizer.get()];
+
+    // FIXME: Enable drag press gesture after rdar://problem/176383341 is resolved.
 }
 
 - (void)enableGestureIfNeeded:(NSGestureRecognizer *)gesture
