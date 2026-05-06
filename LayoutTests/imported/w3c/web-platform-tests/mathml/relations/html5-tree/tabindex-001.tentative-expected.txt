@@ -1,6 +1,6 @@
 
-FAIL default and invalid values for a without href assert_equals: no attribute expected 0 but got -1
-FAIL default and invalid values for a with href assert_equals: no attribute expected 0 but got -1
+PASS default and invalid values for a without href
+PASS default and invalid values for a with href
 PASS default and invalid values for annotation without href
 PASS default and invalid values for annotation with href
 PASS default and invalid values for annotation-xml without href
