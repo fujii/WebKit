@@ -31,7 +31,6 @@
 #include "BackForwardController.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
-#include "CookieStorage.h"
 #include "DOMTimer.h"
 #include "Database.h"
 #include "DocumentResourceLoader.h"
