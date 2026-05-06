@@ -10141,6 +10141,20 @@ WorkerInSharedWorkerEnabled:
     WebKit:
       default: false
 
+WorkerParseErrorReportingEnabled:
+  type: bool
+  status: preview
+  category: dom
+  humanReadableName: "Worker parse error reporting"
+  humanReadableDescription: "Report worker script parse errors on the Worker object"
+  defaultValue:
+    WebCore:
+      default: false
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+
 WriteRichTextDataWhenCopyingOrDragging:
   type: bool
   status: internal

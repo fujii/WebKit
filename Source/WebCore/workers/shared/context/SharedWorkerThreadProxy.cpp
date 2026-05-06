@@ -158,6 +158,9 @@ void SharedWorkerThreadProxy::postExceptionToWorkerObject(const String& errorMes
     if (!m_workerThread->isInStaticScriptEvaluation())
         return;
 
+    if (protect(m_workerThread->WorkerOrWorkletThread::globalScope())->settingsValues().workerParseErrorReportingEnabled)
+        return;
+
     callOnMainThread([sharedWorkerIdentifier = m_workerThread->identifier(), errorMessage = errorMessage.isolatedCopy(), lineNumber, columnNumber, sourceURL = sourceURL.isolatedCopy()] {
         bool isErrorEvent = true;
         if (RefPtr connection = SharedWorkerContextManager::singleton().connection())
