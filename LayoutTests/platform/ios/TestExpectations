@@ -3184,6 +3184,7 @@ fast/block/basic/quirk-mode-percent-height.html [ Failure ]
 # Datalist
 webkit.org/b/186714 fast/forms/datalist/datalist-textinput-keydown.html [ Skip ]
 webkit.org/b/190613 fast/forms/datalist/update-range-with-datalist.html [ Skip ]
+webkit.org/b/312010 fast/forms/datalist/datalist-textinput-type-custom-value.html [ Skip ]
 
 # Audio session does not have a "none" category on iOS [ Skip ]
 webkit.org/b/188285 platform/mac/media/audio-session-category-video-paused.html [ Skip ]
