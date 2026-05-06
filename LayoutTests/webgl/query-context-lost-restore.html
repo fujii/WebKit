@@ -56,10 +56,30 @@ async function testWebGL1TimerQuery() {
     ext.beginQueryEXT(ext.TIME_ELAPSED_EXT, query);
     wtu.glErrorShouldBe(gl, gl.NO_ERROR, "beginQueryEXT should succeed");
 
+    const weakQuery = new WeakRef(query);
+    query = null;
+
     const contextLostPromise = waitForEvent(canvas, "webglcontextlost", (e) => e.preventDefault());
     WEBGL_lose_context.loseContext();
     await contextLostPromise;
     shouldBeTrue("gl.isContextLost()");
+
+    ext = null;
+    if (window.GCController)
+        GCController.collect();
+    else if (window.gc)
+        gc();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (window.GCController)
+        GCController.collect();
+    else if (window.gc)
+        gc();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    if (weakQuery.deref() === undefined)
+        testPassed("Active query was collected after context loss");
+    else
+        testFailed("Active query should have been collected after context loss but is still alive");
 
     const contextRestoredPromise = waitForEvent(canvas, "webglcontextrestored");
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -111,10 +131,29 @@ async function testWebGL2Query(queryTarget, queryTargetName, requiresExtension) 
     gl.beginQuery(queryTarget, query);
     wtu.glErrorShouldBe(gl, gl.NO_ERROR, `beginQuery(${queryTargetName}) should succeed`);
 
+    const weakQuery = new WeakRef(query);
+    query = null;
+
     const contextLostPromise = waitForEvent(canvas, "webglcontextlost", (e) => e.preventDefault());
     WEBGL_lose_context.loseContext();
     await contextLostPromise;
     shouldBeTrue("gl.isContextLost()");
+
+    if (window.GCController)
+        GCController.collect();
+    else if (window.gc)
+        gc();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (window.GCController)
+        GCController.collect();
+    else if (window.gc)
+        gc();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    if (weakQuery.deref() === undefined)
+        testPassed(`Active ${queryTargetName} query was collected after context loss`);
+    else
+        testFailed(`Active ${queryTargetName} query should have been collected after context loss but is still alive`);
 
     const contextRestoredPromise = waitForEvent(canvas, "webglcontextrestored");
     await new Promise(resolve => setTimeout(resolve, 0));
