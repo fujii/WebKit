@@ -1734,7 +1734,7 @@ public:
     std::optional<double> cpuLimit() const { return m_cpuLimit; }
 
 #if ENABLE(PDF_PLUGIN)
-    static PluginView* NODELETE focusedPluginViewForFrame(WebCore::LocalFrame&);
+    static PluginView* focusedPluginViewForFrame(WebCore::LocalFrame&);
     static PluginView* NODELETE pluginViewForFrame(WebCore::LocalFrame*);
     PluginView* mainFramePlugIn() const;
 #endif
