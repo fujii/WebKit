@@ -343,6 +343,9 @@ editing/spelling/text-replacement-first-word-second-line.html [ Skip ]
 
 # Grammar correction panel is Mac-only (USE(AUTOCORRECTION_PANEL))
 editing/spelling/grammar-correction-shown-clicking-middle-of-word.html [ Skip ]
+editing/spelling/grammar-correction-shown-clicking-multiword-phrase.html [ Skip ]
+editing/spelling/grammar-arrow-upstream-into-multiword-phrase.html [ Skip ]
+editing/spelling/grammar-arrow-downstream-into-multiword-phrase.html [ Skip ]
 
 # UIKit draws selection on iOS
 fast/selectors/input-with-selection-pseudo-element.html [ WontFix ]

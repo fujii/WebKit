@@ -451,10 +451,30 @@ void AlternativeTextController::respondToChangedSelection(const VisibleSelection
         return;
 
     ASSERT(node);
+    bool handled = false;
     for (auto& marker : markers->markersFor(*node)) {
         ASSERT(marker);
-        if (respondToMarkerAtEndOfWord(*marker, position))
+        if (respondToMarkerAtEndOfWord(*marker, position)) {
+            handled = true;
             break;
+        }
+    }
+
+    // For multi-word grammar markers, the endOfWord position only matches the
+    // last word of the phrase. If the selection is within a grammar marker that
+    // wasn't matched above, use the marker's end position so the UI can trigger
+    // from any word in the phrase.
+    if (!handled) {
+        Position selectionDeepPosition = selectionPosition.deepEquivalent();
+        if (selectionDeepPosition.anchorType() == Position::PositionIsOffsetInAnchor && selectionDeepPosition.containerNode() == node.get()) {
+            for (auto& marker : markers->markersFor(*node, DocumentMarkerType::Grammar)) {
+                if (static_cast<int>(marker->startOffset()) < selectionDeepPosition.offsetInContainerNode()
+                    && selectionDeepPosition.offsetInContainerNode() < static_cast<int>(marker->endOffset())) {
+                    respondToMarkerAtEndOfWord(*marker, makeContainerOffsetPosition(node.copyRef(), marker->endOffset()));
+                    break;
+                }
+            }
+        }
     }
 }
 
