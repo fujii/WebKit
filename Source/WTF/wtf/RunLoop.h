@@ -146,6 +146,8 @@ public:
 #endif
 
 #if USE(WINDOWS_EVENT_LOOP)
+    using WindowsMessageHandler = Function<bool(MSG&)>;
+    WTF_EXPORT_PRIVATE static void setWindowsMessageHandler(WindowsMessageHandler&&);
     static void registerRunLoopMessageWindowClass();
 #endif
 
@@ -319,10 +321,14 @@ private:
 #if USE(WINDOWS_EVENT_LOOP)
     static LRESULT CALLBACK RunLoopWndProc(HWND, UINT, WPARAM, LPARAM);
     LRESULT wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+    void dispatchMessage(MSG&);
+    DWORD msTillNextTimer();
+    void fireTimers();
     HWND m_runLoopMessageWindow;
-    UncheckedKeyHashSet<UINT_PTR> m_liveTimers;
+    Deque<TimerBase*> m_timers;
 
     Lock m_loopLock;
+    WindowsMessageHandler m_windowsMessageHandler;
 #elif USE(COCOA_EVENT_LOOP)
     static void performWork(void*);
     const RetainPtr<CFRunLoopRef> m_runLoop;
