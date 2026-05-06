@@ -24,10 +24,12 @@
 #include <WebCore/JSDOMGlobalObject.h>
 #include <wtf/Compiler.h>
 #include <wtf/Forward.h>
+#include <wtf/WeakHashSet.h>
 #include <wtf/WeakPtr.h>
 
 namespace WebCore {
 
+class JSEventListener;
 class WindowProxy;
 
 typedef HashMap<void*, JSC::Weak<JSC::JSObject>> DOMObjectWrapperMap;
@@ -91,6 +93,9 @@ public:
 
     JSC::VM& vm() const { return m_vm; }
 
+    void addEventListener(JSEventListener&);
+    void removeEventListener(JSEventListener&);
+
 protected:
     DOMWrapperWorld(JSC::VM&, Type, const String& name);
 
@@ -98,6 +103,8 @@ private:
     JSC::VM& m_vm;
     HashSet<WindowProxy*> m_jsWindowProxies;
     DOMObjectWrapperMap m_wrappers;
+
+    WeakHashSet<JSEventListener> m_eventListeners;
 
     String m_name;
     Type m_type { Type::Internal };
