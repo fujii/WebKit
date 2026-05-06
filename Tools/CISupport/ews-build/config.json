@@ -439,7 +439,7 @@
       "workernames": ["igalia16-wpe-ews", "igalia17-wpe-ews", "igalia18-wpe-ews", "igalia19-wpe-ews"]
     },
     {
-      "name": "JSC-Tests-EWS", "shortname": "jsc", "icon": "buildAndTest",
+      "name": "JSC-Tests-EWS", "shortname": "jsc-x86-64", "icon": "buildAndTest",
       "factory": "JSCBuildAndTestsFactory", "platform": "mac-sequoia",
       "configuration": "release", "runTests": "true",
       "workernames": ["ews127", "ews128", "ews205", "ews206", "ews251", "ews252"]
