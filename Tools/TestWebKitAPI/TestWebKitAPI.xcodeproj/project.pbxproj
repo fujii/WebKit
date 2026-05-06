@@ -704,6 +704,7 @@
 				WebCore/CBORWriterTest.cpp,
 				WebCore/cocoa/AudioStreamDescriptionCocoa.mm,
 				WebCore/cocoa/AudioVideoRendererAVFObjCTests.mm,
+				WebCore/cocoa/WebCoreDecompressionSessionTests.mm,
 				WebCore/cocoa/AVFoundationSoftLinkTest.mm,
 				WebCore/cocoa/BifurcatedGraphicsContextTestsCG.cpp,
 				WebCore/cocoa/CaptionPreferencesTests.mm,
