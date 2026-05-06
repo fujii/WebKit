@@ -45,7 +45,11 @@ DECLARE_SYSTEM_HEADER
 IGNORE_WARNINGS_BEGIN("undef")
 #import <VisionKitCore/VKImageAnalysis_WebKit.h>
 IGNORE_WARNINGS_END
+
+// FIXME: Remove this after rdar://150529276 is resolved.
+IGNORE_WARNINGS_BEGIN("objc-property-no-attribute")
 #import <VisionKitCore/VisionKitCore.h>
+IGNORE_WARNINGS_END
 
 #else
 
