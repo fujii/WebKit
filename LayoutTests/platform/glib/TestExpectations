@@ -2892,7 +2892,7 @@ webkit.org/b/235885 webrtc/video-addTransceiver.html [ Timeout Failure ]
 
 # Transceiver direction change support is incomplete.
 webkit.org/b/193641 webkit.org/b/235885 webrtc/video-setDirection.html [ Skip ]
-webkit.org/b/235885 webrtc/direction-change.html [ Failure ]
+webkit.org/b/235885 webkit.org/b/314219 webrtc/direction-change.html [ Crash Failure Timeout ]
 webkit.org/b/235885 webrtc/remove-track.html [ Crash Failure ]
 
 # Stopping a transceiver is unsupported in GstWebRTC.
