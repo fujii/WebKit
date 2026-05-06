@@ -4589,7 +4589,11 @@ bool WebViewImpl::performDragOperation(id<NSDraggingInfo> draggingInfo)
     SandboxExtension::Handle sandboxExtensionHandle;
     Vector<SandboxExtension::Handle> sandboxExtensionForUpload;
 
-    if (![types containsObject:PasteboardTypes::WebArchivePboardType] && [types containsObject:WebCore::legacyFilesPromisePasteboardTypeSingleton()])
+    // https://bugs.webkit.org/show_bug.cgi?id=307601
+    bool hasWebArchive = [types containsObject:PasteboardTypes::WebArchivePboardType];
+    bool hasFilePromises = [types containsObject:WebCore::legacyFilesPromisePasteboardTypeSingleton()];
+    bool isDragFromSelf = dragData->flags().contains(WebCore::DragApplicationFlags::IsSource);
+    if (hasFilePromises && !(hasWebArchive && isDragFromSelf))
         return handleLegacyFilesPromisePasteboard(draggingInfo, WTF::move(dragData), page(), m_view.get());
 
     if ([types containsObject:WebCore::legacyFilenamesPasteboardTypeSingleton()])
