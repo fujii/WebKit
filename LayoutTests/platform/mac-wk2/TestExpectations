@@ -2292,8 +2292,6 @@ webkit.org/b/308856 [ Debug ] http/tests/websocket/tests/hybi/handshake-ok-with-
 # webkit.org/b/308169 Skip until after macOS 26.4, where AXIntersectionWithSelectionRange returns AXTextMarkerRangeRef.
 [ Tahoe ] accessibility/mac/intersection-with-selection-range.html [ Skip ]
 
-webkit.org/b/314141 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/white-space_pre.html [ ImageOnlyFailure ]
-
 webkit.org/b/309850 [ Debug ] imported/w3c/web-platform-tests/uievents/mouse/mouse_boundary_events_after_removing_last_over_element.html [ Pass Failure ]
 
 webkit.org/b/314136 accessibility/mac/client/div-bounds.html [ Pass Failure ]
