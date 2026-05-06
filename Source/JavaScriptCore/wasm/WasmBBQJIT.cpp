@@ -1262,9 +1262,12 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
 
 // Atomics
 
-[[nodiscard]] PartialResult BBQJIT::atomicLoad(ExtAtomicOpType loadOp, Type valueType, ExpressionType pointer, ExpressionType& result, uint32_t uoffset, uint8_t memoryIndex)
+[[nodiscard]] PartialResult BBQJIT::atomicLoad(ExtAtomicOpType loadOp, Type valueType, ExpressionType pointer, ExpressionType& result, uint64_t uoffset, uint8_t memoryIndex)
 {
-    if (sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(loadOp))) [[unlikely]] {
+    const bool overflow = m_info.memory(memoryIndex).isMemory64()
+        ? sumOverflows<uint64_t>(uoffset, sizeOfAtomicOpMemoryAccess(loadOp))
+        : sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(loadOp));
+    if (overflow) [[unlikely]] {
         // FIXME: Same issue as in AirIRGenerator::load(): https://bugs.webkit.org/show_bug.cgi?id=166435
         emitThrowException(ExceptionType::OutOfBoundsMemoryAccess);
         consume(pointer);
@@ -1277,10 +1280,13 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     return { };
 }
 
-[[nodiscard]] PartialResult BBQJIT::atomicStore(ExtAtomicOpType storeOp, Type valueType, ExpressionType pointer, ExpressionType value, uint32_t uoffset, uint8_t memoryIndex)
+[[nodiscard]] PartialResult BBQJIT::atomicStore(ExtAtomicOpType storeOp, Type valueType, ExpressionType pointer, ExpressionType value, uint64_t uoffset, uint8_t memoryIndex)
 {
+    const bool overflow = m_info.memory(memoryIndex).isMemory64()
+        ? sumOverflows<uint64_t>(uoffset, sizeOfAtomicOpMemoryAccess(storeOp))
+        : sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(storeOp));
     Location valueLocation = locationOf(value);
-    if (sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(storeOp))) [[unlikely]] {
+    if (overflow) [[unlikely]] {
         // FIXME: Same issue as in AirIRGenerator::load(): https://bugs.webkit.org/show_bug.cgi?id=166435
         emitThrowException(ExceptionType::OutOfBoundsMemoryAccess);
         consume(pointer);
@@ -1293,10 +1299,13 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     return { };
 }
 
-[[nodiscard]] PartialResult BBQJIT::atomicBinaryRMW(ExtAtomicOpType op, Type valueType, ExpressionType pointer, ExpressionType value, ExpressionType& result, uint32_t uoffset, uint8_t memoryIndex)
+[[nodiscard]] PartialResult BBQJIT::atomicBinaryRMW(ExtAtomicOpType op, Type valueType, ExpressionType pointer, ExpressionType value, ExpressionType& result, uint64_t uoffset, uint8_t memoryIndex)
 {
+    const bool overflow = m_info.memory(memoryIndex).isMemory64()
+        ? sumOverflows<uint64_t>(uoffset, sizeOfAtomicOpMemoryAccess(op))
+        : sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(op));
     Location valueLocation = locationOf(value);
-    if (sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(op))) [[unlikely]] {
+    if (overflow) [[unlikely]] {
         // FIXME: Even though this is provably out of bounds, it's not a validation error, so we have to handle it
         // as a runtime exception. However, this may change: https://bugs.webkit.org/show_bug.cgi?id=166435
         emitThrowException(ExceptionType::OutOfBoundsMemoryAccess);
@@ -1311,10 +1320,13 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     return { };
 }
 
-[[nodiscard]] PartialResult BBQJIT::atomicCompareExchange(ExtAtomicOpType op, Type valueType, ExpressionType pointer, ExpressionType expected, ExpressionType value, ExpressionType& result, uint32_t uoffset, uint8_t memoryIndex)
+[[nodiscard]] PartialResult BBQJIT::atomicCompareExchange(ExtAtomicOpType op, Type valueType, ExpressionType pointer, ExpressionType expected, ExpressionType value, ExpressionType& result, uint64_t uoffset, uint8_t memoryIndex)
 {
+    const bool overflow = m_info.memory(memoryIndex).isMemory64()
+        ? sumOverflows<uint64_t>(uoffset, sizeOfAtomicOpMemoryAccess(op))
+        : sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(op));
     Location valueLocation = locationOf(value);
-    if (sumOverflows<uint32_t>(uoffset, sizeOfAtomicOpMemoryAccess(op))) [[unlikely]] {
+    if (overflow) [[unlikely]] {
         // FIXME: Even though this is provably out of bounds, it's not a validation error, so we have to handle it
         // as a runtime exception. However, this may change: https://bugs.webkit.org/show_bug.cgi?id=166435
         emitThrowException(ExceptionType::OutOfBoundsMemoryAccess);
@@ -1330,12 +1342,12 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     return { };
 }
 
-[[nodiscard]] PartialResult BBQJIT::atomicWait(ExtAtomicOpType op, ExpressionType pointer, ExpressionType value, ExpressionType timeout, ExpressionType& result, uint32_t uoffset, uint8_t memoryIndex)
+[[nodiscard]] PartialResult BBQJIT::atomicWait(ExtAtomicOpType op, ExpressionType pointer, ExpressionType value, ExpressionType timeout, ExpressionType& result, uint64_t uoffset, uint8_t memoryIndex)
 {
     Vector<Value, 8> arguments = {
         instanceValue(),
         pointer,
-        Value::fromI32(uoffset),
+        Value::fromI64(uoffset),
         value,
         timeout,
         Value::fromI32(memoryIndex)
@@ -1354,12 +1366,12 @@ Address BBQJIT::materializePointer(Location pointerLocation, uint32_t uoffset)
     return { };
 }
 
-[[nodiscard]] PartialResult BBQJIT::atomicNotify(ExtAtomicOpType op, ExpressionType pointer, ExpressionType count, ExpressionType& result, uint32_t uoffset, uint8_t memoryIndex)
+[[nodiscard]] PartialResult BBQJIT::atomicNotify(ExtAtomicOpType op, ExpressionType pointer, ExpressionType count, ExpressionType& result, uint64_t uoffset, uint8_t memoryIndex)
 {
     Vector<Value, 8> arguments = {
         instanceValue(),
         pointer,
-        Value::fromI32(uoffset),
+        Value::fromI64(uoffset),
         count,
         Value::fromI32(memoryIndex)
     };
