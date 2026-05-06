@@ -28,14 +28,11 @@
 #ifdef __cplusplus
 
 #include "BAssert.h"
-#include <algorithm>
 #include <climits>
 #include <cstdint>
 #include <cstddef>
-#include <limits>
 #include <string.h>
 #include <type_traits>
-#include <chrono>
 
 namespace bmalloc {
 
