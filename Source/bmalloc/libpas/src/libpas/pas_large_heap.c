@@ -147,7 +147,7 @@ static pas_allocation_result allocate_impl(pas_large_heap* heap,
             pas_range_create(result.begin, result.begin + *size),
             transaction,
             pas_physical_memory_is_locked_by_virtual_range_common_lock,
-            heap_config->mmap_capability)) {
+            heap_config->page_flags)) {
         pas_fast_large_free_heap_deallocate(
             &heap->free_heap, result.begin, result.begin + *size,
             result.zero_mode, &config);
@@ -285,7 +285,7 @@ bool pas_large_heap_try_deallocate(uintptr_t begin,
         pas_large_sharing_pool_free(
             pas_range_create(map_entry.begin, map_entry.end),
             pas_physical_memory_is_locked_by_virtual_range_common_lock,
-            heap_config->mmap_capability);
+            heap_config->page_flags);
     }
 
     initialize_config(&config, NULL, map_entry.heap, heap_config);
@@ -344,7 +344,7 @@ bool pas_large_heap_try_shrink(uintptr_t begin,
         pas_large_sharing_pool_free(
             pas_range_create(map_entry.begin + new_size, map_entry.end),
             pas_physical_memory_is_locked_by_virtual_range_common_lock,
-            heap_config->mmap_capability);
+            heap_config->page_flags);
     }
 
     initialize_config(&config, NULL, heap, heap_config);

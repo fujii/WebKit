@@ -134,7 +134,7 @@ static pas_aligned_allocation_result large_aligned_allocator(size_t size,
     pas_large_sharing_pool_boot_free(
         pas_range_create(allocation_result.begin, allocation_result.begin + aligned_size),
         pas_physical_memory_is_locked_by_virtual_range_common_lock,
-        data->config->mmap_capability);
+        data->config->page_flags);
     
     result.result = (void*)allocation_result.begin;
     result.result_size = size;
