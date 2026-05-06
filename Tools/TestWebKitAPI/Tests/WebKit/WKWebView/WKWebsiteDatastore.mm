@@ -1513,4 +1513,413 @@ TEST(StorageSiteValidation, StorageBlockingPolicyAllowAll)
     EXPECT_FALSE(webContentProcessTerminated);
 }
 
+TEST(TimeBasedEviction, Basic)
+{
+    RetainPtr uuid = adoptNS([[NSUUID alloc] initWithUUIDString:@"68753a44-4d6f-1226-9c60-0050e4c00068"]);
+    done = false;
+    [WKWebsiteDataStore _removeDataStoreWithIdentifier:uuid.get() completionHandler:^(NSError *error) {
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
+    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
+    [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
+
+    NSString *idbHTML = @"<script> \
+        var request = indexedDB.open('testDB'); \
+        request.onupgradeneeded = function(event) { \
+            event.target.result.createObjectStore('store'); \
+        }; \
+        request.onsuccess = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('done'); \
+        }; \
+        request.onerror = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('error'); \
+        }; \
+    </script>";
+
+    @autoreleasepool {
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        RetainPtr handler = adoptNS([[WKWebsiteDataStoreMessageHandler alloc] init]);
+        RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+        [[configuration userContentController] addScriptMessageHandler:handler.get() name:@"testHandler"];
+        [configuration setWebsiteDataStore:websiteDataStore.get()];
+        RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+        receivedScriptMessage = false;
+        [webView loadHTMLString:idbHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        // Wait so example1.com data becomes stale.
+        TestWebKitAPI::Util::runFor(2_s);
+
+        // Load example2.com — its data will be fresh.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:idbHTML baseURL:[NSURL URLWithString:@"https://example2.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(2u, records.count);
+            NSArray *sortedRecords = [records sortedArrayUsingComparator:^(WKWebsiteDataRecord *a, WKWebsiteDataRecord *b) {
+                return [a.displayName compare:b.displayName];
+            }];
+            EXPECT_WK_STREQ(@"example1.com", [sortedRecords[0] displayName]);
+            EXPECT_WK_STREQ(@"example2.com", [sortedRecords[1] displayName]);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
+
+    // Create a new data store — eviction runs on session initialization.
+    // example1.com should be evicted (stale), example2.com should remain (fresh).
+    RetainPtr websiteDataStore2 = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+    done = false;
+    [websiteDataStore2 fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+        EXPECT_EQ(1u, records.count);
+        EXPECT_WK_STREQ(@"example2.com", [[records firstObject] displayName]);
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+}
+
+TEST(TimeBasedEviction, IndexedDBReadUpdatesTimestamp)
+{
+    RetainPtr uuid = adoptNS([[NSUUID alloc] initWithUUIDString:@"68753a44-4d6f-1226-9c60-0050e4c00069"]);
+    done = false;
+    [WKWebsiteDataStore _removeDataStoreWithIdentifier:uuid.get() completionHandler:^(NSError *error) {
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
+    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
+    [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
+    [websiteDataStoreConfiguration setLastModificationTimeUpdateIntervalOverride:@0];
+
+    NSString *idbWriteHTML = @"<script> \
+        var request = indexedDB.open('testDB'); \
+        request.onupgradeneeded = function(event) { \
+            var store = event.target.result.createObjectStore('store'); \
+            store.put('value', 'key'); \
+        }; \
+        request.onsuccess = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('done'); \
+        }; \
+        request.onerror = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('error'); \
+        }; \
+    </script>";
+
+    NSString *idbReadHTML = @"<script> \
+        var request = indexedDB.open('testDB'); \
+        request.onsuccess = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('done'); \
+        }; \
+        request.onerror = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('error'); \
+        }; \
+    </script>";
+
+    @autoreleasepool {
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        RetainPtr handler = adoptNS([[WKWebsiteDataStoreMessageHandler alloc] init]);
+        RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+        [[configuration userContentController] addScriptMessageHandler:handler.get() name:@"testHandler"];
+        [configuration setWebsiteDataStore:websiteDataStore.get()];
+        RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+        // Write data for both origins.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:idbWriteHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        receivedScriptMessage = false;
+        [webView loadHTMLString:idbWriteHTML baseURL:[NSURL URLWithString:@"https://example2.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        // Wait so both origins' data becomes stale.
+        TestWebKitAPI::Util::runFor(2_s);
+
+        // Read from example1.com — this should update its modification timestamp.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:idbReadHTML baseURL:[NSURL URLWithString:@"https://example1.com"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(2u, records.count);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
+
+    // Create a new data store — eviction runs on session initialization.
+    // example2.com should be evicted (stale), example1.com should remain (read refreshed its timestamp).
+    RetainPtr websiteDataStore2 = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+    done = false;
+    [websiteDataStore2 fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+        EXPECT_EQ(1u, records.count);
+        EXPECT_WK_STREQ(@"example1.com", [[records firstObject] displayName]);
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+}
+
+TEST(TimeBasedEviction, LocalStorageReadUpdatesTimestamp)
+{
+    RetainPtr uuid = adoptNS([[NSUUID alloc] initWithUUIDString:@"68753a44-4d6f-1226-9c60-0050e4c0006a"]);
+    done = false;
+    [WKWebsiteDataStore _removeDataStoreWithIdentifier:uuid.get() completionHandler:^(NSError *error) {
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
+    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
+    [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
+    [websiteDataStoreConfiguration setLastModificationTimeUpdateIntervalOverride:@0];
+
+    NSString *localStorageWriteHTML = @"<script> \
+        localStorage.setItem('key', 'value'); \
+        window.webkit.messageHandlers.testHandler.postMessage('done'); \
+    </script>";
+
+    NSString *localStorageReadHTML = @"<script> \
+        var result = localStorage.getItem('key'); \
+        window.webkit.messageHandlers.testHandler.postMessage(result); \
+    </script>";
+
+    @autoreleasepool {
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        RetainPtr handler = adoptNS([[WKWebsiteDataStoreMessageHandler alloc] init]);
+        RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+        [[configuration userContentController] addScriptMessageHandler:handler.get() name:@"testHandler"];
+        [configuration setWebsiteDataStore:websiteDataStore.get()];
+        RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+        // Write data for both origins.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:localStorageWriteHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        receivedScriptMessage = false;
+        [webView loadHTMLString:localStorageWriteHTML baseURL:[NSURL URLWithString:@"https://example2.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        // Wait so both origins' data becomes stale.
+        TestWebKitAPI::Util::runFor(2_s);
+
+        // Read from example1.com — this should update its modification timestamp.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:localStorageReadHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"value", [lastScriptMessage body]);
+
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(2u, records.count);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
+
+    // Create a new data store — eviction runs on session initialization.
+    // example2.com should be evicted (stale), example1.com should remain (read refreshed its timestamp).
+    RetainPtr websiteDataStore2 = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+    done = false;
+    [websiteDataStore2 fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+        EXPECT_EQ(1u, records.count);
+        EXPECT_WK_STREQ(@"example1.com", [[records firstObject] displayName]);
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+}
+
+TEST(TimeBasedEviction, CacheStorageReadUpdatesTimestamp)
+{
+    RetainPtr uuid = adoptNS([[NSUUID alloc] initWithUUIDString:@"68753a44-4d6f-1226-9c60-0050e4c0006b"]);
+    done = false;
+    [WKWebsiteDataStore _removeDataStoreWithIdentifier:uuid.get() completionHandler:^(NSError *error) {
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
+    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
+    [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
+    [websiteDataStoreConfiguration setLastModificationTimeUpdateIntervalOverride:@0];
+
+    NSString *cacheWriteHTML = @"<script> \
+        window.caches.open('test').then((cache) => { \
+            return cache.put('https://webkit.org/test', new Response('hello')); \
+        }).then(() => { \
+            window.webkit.messageHandlers.testHandler.postMessage('done'); \
+        }).catch(() => { \
+            window.webkit.messageHandlers.testHandler.postMessage('error'); \
+        }); \
+    </script>";
+
+    NSString *cacheReadHTML = @"<script> \
+        window.caches.open('test').then((cache) => { \
+            return cache.match('https://webkit.org/test'); \
+        }).then((response) => { \
+            window.webkit.messageHandlers.testHandler.postMessage(response ? 'done' : 'miss'); \
+        }).catch(() => { \
+            window.webkit.messageHandlers.testHandler.postMessage('error'); \
+        }); \
+    </script>";
+
+    @autoreleasepool {
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        RetainPtr handler = adoptNS([[WKWebsiteDataStoreMessageHandler alloc] init]);
+        RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+        [[configuration userContentController] addScriptMessageHandler:handler.get() name:@"testHandler"];
+        [configuration setWebsiteDataStore:websiteDataStore.get()];
+        RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+        // Write data for both origins.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:cacheWriteHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        receivedScriptMessage = false;
+        [webView loadHTMLString:cacheWriteHTML baseURL:[NSURL URLWithString:@"https://example2.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        // Wait so both origins' data becomes stale.
+        TestWebKitAPI::Util::runFor(2_s);
+
+        // Read from example1.com — this should update its modification timestamp.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:cacheReadHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(2u, records.count);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
+
+    // Create a new data store — eviction runs on session initialization.
+    // example2.com should be evicted (stale), example1.com should remain (read refreshed its timestamp).
+    RetainPtr websiteDataStore2 = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+    done = false;
+    [websiteDataStore2 fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+        EXPECT_EQ(1u, records.count);
+        EXPECT_WK_STREQ(@"example1.com", [[records firstObject] displayName]);
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+}
+
+TEST(TimeBasedEviction, FileSystemAPIReadUpdatesTimestamp)
+{
+    RetainPtr uuid = adoptNS([[NSUUID alloc] initWithUUIDString:@"68753a44-4d6f-1226-9c60-0050e4c0006c"]);
+    done = false;
+    [WKWebsiteDataStore _removeDataStoreWithIdentifier:uuid.get() completionHandler:^(NSError *error) {
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
+    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
+    [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
+    [websiteDataStoreConfiguration setLastModificationTimeUpdateIntervalOverride:@0];
+
+    NSString *fsWriteHTML = @"<script> \
+        async function write() { \
+            try { \
+                var root = await navigator.storage.getDirectory(); \
+                await root.getFileHandle('test.txt', { 'create' : true }); \
+                window.webkit.messageHandlers.testHandler.postMessage('done'); \
+            } catch(err) { \
+                window.webkit.messageHandlers.testHandler.postMessage('error: ' + err.message); \
+            } \
+        } \
+        write(); \
+    </script>";
+
+    NSString *fsReadHTML = @"<script> \
+        async function read() { \
+            try { \
+                var root = await navigator.storage.getDirectory(); \
+                await root.getFileHandle('test.txt', { 'create' : false }); \
+                window.webkit.messageHandlers.testHandler.postMessage('done'); \
+            } catch(err) { \
+                window.webkit.messageHandlers.testHandler.postMessage('error: ' + err.message); \
+            } \
+        } \
+        read(); \
+    </script>";
+
+    @autoreleasepool {
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        RetainPtr handler = adoptNS([[WKWebsiteDataStoreMessageHandler alloc] init]);
+        RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+        [[configuration userContentController] addScriptMessageHandler:handler.get() name:@"testHandler"];
+        [configuration setWebsiteDataStore:websiteDataStore.get()];
+        auto preferences = [configuration preferences];
+        preferences._fileSystemAccessEnabled = YES;
+        preferences._storageAPIEnabled = YES;
+        RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+        // Write data for both origins.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:fsWriteHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        receivedScriptMessage = false;
+        [webView loadHTMLString:fsWriteHTML baseURL:[NSURL URLWithString:@"https://example2.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        // Wait so both origins' data becomes stale.
+        TestWebKitAPI::Util::runFor(2_s);
+
+        // Read from example1.com — this should update its modification timestamp.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:fsReadHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(2u, records.count);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
+
+    // Create a new data store — eviction runs on session initialization.
+    // example2.com should be evicted (stale), example1.com should remain (read refreshed its timestamp).
+    RetainPtr websiteDataStore2 = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+    done = false;
+    [websiteDataStore2 fetchDataRecordsOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+        EXPECT_EQ(1u, records.count);
+        EXPECT_WK_STREQ(@"example1.com", [[records firstObject] displayName]);
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+}
+
 } // namespace TestWebKitAPI
