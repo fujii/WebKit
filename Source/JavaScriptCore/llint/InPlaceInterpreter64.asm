@@ -10093,7 +10093,7 @@ ipintAtomicOp(_memory_atomic_wait32, macro()
     pushInt32(t0)
     loadq (StackValueSize * 3)[sp], t0
     loadq IPInt::AtomicMemoryAccessMetadata::offset[MC], t1
-    addq t1, t0
+    baddpc(t1, t0, _ipint_throw_OutOfBoundsMemoryAccess)
     storeq t0, (StackValueSize * 3)[sp] # replace pointer with pointer + offset
 
     # Push callee/cfr/PC/MC for debugger; operands shift to args[4..7].
@@ -10123,7 +10123,7 @@ ipintAtomicOp(_memory_atomic_wait64, macro()
     pushInt32(t0)
     loadq (StackValueSize * 3)[sp], t0
     loadq IPInt::AtomicMemoryAccessMetadata::offset[MC], t1
-    addq t1, t0
+    baddpc(t1, t0, _ipint_throw_OutOfBoundsMemoryAccess)
     storeq t0, (StackValueSize * 3)[sp] # replace pointer with pointer + offset
 
     # Push callee/cfr/PC/MC for debugger; operands shift to args[4..7].
