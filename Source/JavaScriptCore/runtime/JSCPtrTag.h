@@ -26,6 +26,7 @@
 #pragma once
 
 #include <JavaScriptCore/JITOperationList.h>
+#include <JavaScriptCore/JITOperationValidation.h>
 #include <wtf/PtrTag.h>
 
 #if ENABLE(JIT_CAGE)
