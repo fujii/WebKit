@@ -1357,8 +1357,11 @@ end)
 
 if WEBASSEMBLY and (ARM64 or ARM64E or X86_64 or ARMv7)
 .ipint_entry_end_local:
+    loadp UnboxedWasmCalleeStackSlot[cfr], MC
+    loadp Wasm::IPIntCallee::m_localInitBytecode + VectorBufferOffset[MC], MC
+.ipint_entry_end_local_loop:
     argumINTInitializeDefaultLocals()
-    jmp .ipint_entry_end_local
+    jmp .ipint_entry_end_local_loop
 
 .ipint_entry_finish_zero:
     argumINTFinish()

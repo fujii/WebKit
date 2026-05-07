@@ -114,7 +114,7 @@ void IPIntPlan::compileFunction(FunctionCodeIndex functionIndex)
 
     IPIntCallee* ipintCallee = nullptr;
     {
-        auto callee = IPIntCallee::create(*m_wasmInternalFunctions[functionIndex], functionIndexSpace, m_moduleInformation->nameSection->get(functionIndexSpace));
+        auto callee = IPIntCallee::create(*m_wasmInternalFunctions[functionIndex], functionIndexSpace, signature, m_moduleInformation->nameSection->get(functionIndexSpace));
         ASSERT(!callee->entrypoint());
         bool usesSIMD = m_moduleInformation->usesSIMD(functionIndex);
         // Immediately tier up to BBQ for SIMD, if necesary.

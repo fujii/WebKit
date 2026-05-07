@@ -471,9 +471,9 @@ class IPIntCallee final : public Callee {
     friend class JSC::LLIntOffsetsExtractor;
     friend class Callee;
 public:
-    static Ref<IPIntCallee> create(FunctionIPIntMetadataGenerator& generator, FunctionSpaceIndex index, std::pair<const Name*, RefPtr<NameSection>>&& name)
+    static Ref<IPIntCallee> create(FunctionIPIntMetadataGenerator& generator, FunctionSpaceIndex index, const RTT& signatureRTT, std::pair<const Name*, RefPtr<NameSection>>&& name)
     {
-        return adoptRef(*new IPIntCallee(generator, index, WTF::move(name)));
+        return adoptRef(*new IPIntCallee(generator, index, signatureRTT, WTF::move(name)));
     }
 
     FunctionCodeIndex functionIndex() const { return m_functionIndex; }
@@ -497,12 +497,14 @@ public:
 
     FunctionSpaceIndex callTarget(unsigned callProfileIndex) const { return m_callTargets[callProfileIndex]; }
 
+    const RTT& signatureRTT() const LIFETIME_BOUND { return *m_signatureRTT; }
+
     using OutOfLineJumpTargets = UncheckedKeyHashMap<unsigned, int>;
 
     unsigned computeCodeHashImpl() const;
 
 private:
-    IPIntCallee(FunctionIPIntMetadataGenerator&, FunctionSpaceIndex index, std::pair<const Name*, RefPtr<NameSection>>&&);
+    IPIntCallee(FunctionIPIntMetadataGenerator&, FunctionSpaceIndex, const RTT& signatureRTT, std::pair<const Name*, RefPtr<NameSection>>&&);
 
     CodePtr<WasmEntryPtrTag> entrypointImpl() const { return m_entrypoint; }
     std::tuple<void*, void*> rangeImpl() const { return { nullptr, nullptr }; };
@@ -514,11 +516,9 @@ private:
     const uint8_t* m_bytecode;
     const uint8_t* m_bytecodeEnd;
     Vector<uint8_t> m_metadata;
-    Vector<uint8_t> m_argumINTBytecode;
-    Vector<uint8_t> m_uINTBytecode;
+    Vector<uint8_t> m_localInitBytecode;
+    RefPtr<const RTT> m_signatureRTT;
     Vector<FunctionSpaceIndex> m_callTargets;
-
-    unsigned m_topOfReturnStackFPOffset;
 
     unsigned m_localSizeToAlloc;
     unsigned m_numRethrowSlotsToAlloc;

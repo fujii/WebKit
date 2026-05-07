@@ -42,6 +42,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <JavaScriptCore/WasmIPIntGenerator.h>
 #include <JavaScriptCore/WasmIPIntTierUpCounter.h>
 #include <wtf/HashMap.h>
+#include <wtf/RefCountedFixedVector.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/Vector.h>
 
@@ -119,14 +120,11 @@ private:
     void addMemoryFill(uint8_t memoryIndex, size_t length);
     void addMemoryCopy(uint8_t dstMemoryIndex, uint8_t srcMemoryIndex, size_t length);
     void addAtomicMemoryAccess(uint8_t memoryIndex, uint64_t offset, size_t length);
-    void addReturnData(const RTT&, const CallInformation&);
 
     FunctionCodeIndex m_functionIndex;
 
     std::span<const uint8_t> m_bytecode;
     MetadataBuffer m_metadata { };
-    Vector<uint8_t, 8> m_uINTBytecode { };
-    unsigned m_topOfReturnStackFPOffset;
 
     uint32_t m_bytecodeOffset { 0 };
     unsigned m_maxFrameSizeInV128 { 0 };
@@ -137,7 +135,7 @@ private:
     unsigned m_numArgumentsOnStack { 0 };
     unsigned m_nonArgLocalOffset { 0 };
     Vector<FunctionSpaceIndex> m_callTargets { };
-    Vector<uint8_t, 16> m_argumINTBytecode { };
+    Vector<uint8_t, 8> m_localInitBytecode { };
 
     UncheckedKeyHashMap<IPIntPC, IPIntTierUpCounter::OSREntryData> m_tierUpCounter;
     Vector<UnlinkedHandlerInfo> m_exceptionHandlers;

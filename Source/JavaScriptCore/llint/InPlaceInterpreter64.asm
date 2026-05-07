@@ -189,7 +189,9 @@ macro ipintEntry()
     # so after localSizeToAlloc handlers, argumINTDst = argumINTDsp - LocalSize.
     move argumINTDsp, argumINTEnd
     subp LocalSize, argumINTEnd
-    loadp Wasm::IPIntCallee::m_argumINTBytecode + VectorBufferOffset[ws0], MC
+    loadp Wasm::IPIntCallee::m_signatureRTT[ws0], MC
+    loadp Wasm::RTT::m_argumINTBytecode[MC], MC
+    addp (constexpr (Wasm::IPIntSharedBytecode::offsetOfData())), MC
 
     push argumINTTmp, argumINTDst, argumINTSrc, argumINTEnd
 
@@ -385,7 +387,7 @@ end)
 macro uintDispatch()
     loadb [MC], sc1
     addq 1, MC
-    bigteq sc1, (constexpr IPInt::UIntBytecode::NumOpcodes), _ipint_uint_dispatch_err
+    bigteq sc1, (constexpr IPInt::UINTBytecode::NumOpcodes), _ipint_uint_dispatch_err
     lshiftq (constexpr (WTF::fastLog2(JSC::IPInt::alignUInt))), sc1
     pcrtoaddr _uint_begin, PC
     addq PC, sc1
@@ -405,13 +407,18 @@ end)
 
 # This implementation is specially defined out of ipintOp scope to make end implementation tight.
 .ipint_end_ret:
-    loadp Wasm::IPIntCallee::m_uINTBytecode + VectorBufferOffset[ws0], MC
     ipintEpilogueOSR(10)
 if X86_64
     loadp UnboxedWasmCalleeStackSlot[cfr], ws0
 end
-    loadi Wasm::IPIntCallee::m_topOfReturnStackFPOffset[ws0], sc0
+    # uINT buffer lives on the signature RTT. The stack-return FP offset is
+    # embedded as a u32 at the head of the buffer.
+    loadp Wasm::IPIntCallee::m_signatureRTT[ws0], MC
+    loadp Wasm::RTT::m_uINTBytecode[MC], MC
+    addp (constexpr (Wasm::IPIntSharedBytecode::offsetOfData())), MC
+    loadi [MC], sc0
     addp cfr, sc0
+    addp 4, MC
 
     // We've already validateOpcodeConfig() in all the places that can jump to .ipint_end_ret.
     uintDispatch()
@@ -518,7 +525,6 @@ ipintOp(_call, macro()
 
     move cfr, a1
     move MC, a2
-    advanceMC(IPInt::CallMetadata::signature)
 
     subq 16, sp
     move sp, a3
@@ -529,6 +535,8 @@ ipintOp(_call, macro()
     loadq [sp], IPIntCallCallee
     loadq 8[sp], IPIntCallFunctionSlot
     addq 16, sp
+
+    advanceMC(constexpr (sizeof(IPInt::CallMetadata)))
 
     # call
     jmp .ipint_call_common
@@ -551,7 +559,7 @@ ipintOp(_call_indirect, macro()
     # Otherwise, the wrong call site index will be saved.
     loadb IPInt::CallIndirectMetadata::length[MC], t3
     advancePCByReg(t3)
-    advanceMC(IPInt::CallIndirectMetadata::signature)
+    advanceMC(constexpr (sizeof(IPInt::CallIndirectMetadata)))
 
     loadq [sp], IPIntCallCallee
     loadq 8[sp], IPIntCallFunctionSlot
@@ -574,14 +582,16 @@ ipintOp(_return_call, macro()
 
     # operation returns the entrypoint in r0 and the target instance in r1
     # this operation stores the boxed Callee into *r2
-    operationCall(macro() cCall4(_ipint_extern_prepare_call) end)
+    operationCall(macro() cCall4(_ipint_extern_prepare_tail_call) end)
 
     loadq [sp], IPIntCallCallee
     loadq 8[sp], IPIntCallFunctionSlot
     addq 16, sp
 
     loadi IPInt::TailCallMetadata::callerStackArgSize[MC], t3
-    advanceMC(IPInt::TailCallMetadata::argumentBytecode)
+    loadp IPInt::TailCallMetadata::rtt[MC], t5
+    loadp Wasm::RTT::m_tailCallBytecode[t5], MC
+    addp (constexpr (Wasm::IPIntSharedBytecode::offsetOfData())), MC
     jmp .ipint_tail_call_common
 end)
 
@@ -595,7 +605,7 @@ ipintOp(_return_call_indirect, macro()
     # Get callIndirectMetadata
     move cfr, a1
     move MC, a3
-    operationCallMayThrow(macro() cCall4(_ipint_extern_prepare_call_indirect) end)
+    operationCallMayThrow(macro() cCall4(_ipint_extern_prepare_tail_call_indirect) end)
 
     # operationCallMayThrow saves the call site index, so we have to advance the PC after.
     # Otherwise, the wrong call site index will be saved.
@@ -607,7 +617,9 @@ ipintOp(_return_call_indirect, macro()
     addq 16, sp
 
     loadi IPInt::TailCallIndirectMetadata::callerStackArgSize[MC], t3
-    advanceMC(IPInt::TailCallIndirectMetadata::argumentBytecode)
+    loadp IPInt::TailCallIndirectMetadata::rtt[MC], t5
+    loadp Wasm::RTT::m_tailCallBytecode[t5], MC
+    addp (constexpr (Wasm::IPIntSharedBytecode::offsetOfData())), MC
     jmp .ipint_tail_call_common
 end)
 
@@ -625,7 +637,7 @@ ipintOp(_call_ref, macro()
     addq 16, sp
 
     loadb IPInt::CallRefMetadata::length[MC], t3
-    advanceMC(IPInt::CallRefMetadata::signature)
+    advanceMC(constexpr (sizeof(IPInt::CallRefMetadata)))
     advancePCByReg(t3)
 
     jmp .ipint_call_common
@@ -638,7 +650,7 @@ ipintOp(_return_call_ref, macro()
     move cfr, a1
     move MC, a2
     move sp, a3
-    operationCallMayThrow(macro() cCall4(_ipint_extern_prepare_call_ref) end)
+    operationCallMayThrow(macro() cCall4(_ipint_extern_prepare_tail_call_ref) end)
 
     # operationCallMayThrow saves the call site index, so we have to advance the PC after.
     # Otherwise, the wrong call site index will be saved.
@@ -650,7 +662,9 @@ ipintOp(_return_call_ref, macro()
     addq 16, sp
 
     loadi IPInt::TailCallRefMetadata::callerStackArgSize[MC], t3
-    advanceMC(IPInt::TailCallRefMetadata::argumentBytecode)
+    loadp IPInt::TailCallRefMetadata::rtt[MC], t5
+    loadp Wasm::RTT::m_tailCallBytecode[t5], MC
+    addp (constexpr (Wasm::IPIntSharedBytecode::offsetOfData())), MC
     jmp .ipint_tail_call_common
 end)
 
@@ -11816,16 +11830,19 @@ end
     move r0, targetEntrypoint
     move r1, targetInstance
 
+    # MC points at the metadata for the next instruction. We can access to CallSignatureMetadata
+    # via negative offset as Call Metadata family is guaranteed to end with CallSignatureMetadata
+    loadp (-1 * constexpr (sizeof(IPInt::CallSignatureMetadata)) + IPInt::CallSignatureMetadata::rtt)[MC], t5
+
     const extraSpaceForReturns = t0
     const stackFrameSize = t1
     const numArguments = t2
 
-    loadi IPInt::CallSignatureMetadata::stackFrameSize[MC], stackFrameSize
-    loadh IPInt::CallSignatureMetadata::numExtraResults[MC], extraSpaceForReturns
+    loadi (-1 * constexpr (sizeof(IPInt::CallSignatureMetadata)) + IPInt::CallSignatureMetadata::stackFrameSize)[MC], stackFrameSize
+    loadh (-1 * constexpr (sizeof(IPInt::CallSignatureMetadata)) + IPInt::CallSignatureMetadata::numExtraResults)[MC], extraSpaceForReturns
     mulq StackValueSize, extraSpaceForReturns
-    loadh IPInt::CallSignatureMetadata::numArguments[MC], numArguments
+    loadh (-1 * constexpr (sizeof(IPInt::CallSignatureMetadata)) + IPInt::CallSignatureMetadata::numArguments)[MC], numArguments
     mulq StackValueSize, numArguments
-    advanceMC(constexpr (sizeof(IPInt::CallSignatureMetadata)))
 
     # calculate the SP after popping all arguments
     move sp, t3
@@ -11855,7 +11872,7 @@ end
     # t3 is not used after this
     subp cfr, t3
     push t3, PC
-    push t3, wasmInstance
+    push MC, wasmInstance
 
     # set up the call frame
     move sp, t2
@@ -11869,7 +11886,7 @@ end
     # reserved
     # reserved
     # (first_non_arg_addr - cfr), PC
-    # unused, wasmInstance <- t2 = native argument stack (pushed by mINT)
+    # MC, wasmInstance <- t2 = native argument stack (pushed by mINT)
     # call frame
     # call frame
     # call frame
@@ -11884,6 +11901,9 @@ end
     push targetEntrypoint, targetInstance
 
     move t2, sc3
+    # Use MC for shared bytecode cursor.
+    loadp Wasm::RTT::m_callBytecode[t5], MC
+    addp (constexpr (Wasm::IPIntSharedBytecode::offsetOfData())), MC
     move t4, mintSS
 
     # need a common entrypoint because of x86 PC base
@@ -12193,34 +12213,34 @@ mintAlign(_call_argument_dec_sp)
 
 # CallArgumentBytecode::CallArgStore0 (0x11)
 mintAlign(_call_argument_store_0)
-    mintPop(sc2)
-    storeq sc2, [sc3]
+    mintPop(sc0)
+    storeq sc0, [sc3]
     mintArgDispatch()
 
 # CallArgumentBytecode::CallArgDecSPStore8 (0x12)
 mintAlign(_call_argument_dec_sp_store_8)
-    mintPop(sc2)
+    mintPop(sc0)
     subp 2 * SlotSize, sc3
-    storeq sc2, 8[sc3]
+    storeq sc0, 8[sc3]
     mintArgDispatch()
 
 # CallArgumentBytecode::CallArgDecSPStoreVector0 (0x13)
 mintAlign(_call_argument_dec_sp_store_vector_0)
     subp 2 * SlotSize, sc3
-    loadq [mintSS], sc2
-    storeq sc2, [sc3]
-    loadq 8[mintSS], sc2
-    storeq sc2, 8[sc3]
+    loadq [mintSS], sc0
+    storeq sc0, [sc3]
+    loadq 8[mintSS], sc0
+    storeq sc0, 8[sc3]
     addq StackValueSize, mintSS
     mintArgDispatch()
 
 # CallArgumentBytecode::TailCallArgDecSPStoreVector8 (0x14)
 mintAlign(_call_argument_dec_sp_store_vector_8)
     subp 2 * SlotSize, sc3
-    loadq [mintSS], sc2
-    storeq sc2, 8[sc3]
-    loadq 8[mintSS], sc2
-    storeq sc2, 16[sc3]
+    loadq [mintSS], sc0
+    storeq sc0, 8[sc3]
+    loadq 8[mintSS], sc0
+    storeq sc0, 16[sc3]
     addq StackValueSize, mintSS
     mintArgDispatch()
 
@@ -12235,34 +12255,34 @@ mintAlign(_tail_call_argument_dec_sp)
 
 # CallArgumentBytecode::TailCallArgStore0 (0x16)
 mintAlign(_tail_call_argument_store_0)
-    mintPop(sc3)
-    storeq sc3, [sp]
+    mintPop(sc0)
+    storeq sc0, [sp]
     mintArgDispatch()
 
 # CallArgumentBytecode::TailCallArgDecSPStore8 (0x17)
 mintAlign(_tail_call_argument_dec_sp_store_8)
-    mintPop(sc3)
+    mintPop(sc0)
     subp 2 * SlotSize, sp
-    storeq sc3, 8[sp]
+    storeq sc0, 8[sp]
     mintArgDispatch()
 
 # CallArgumentBytecode::TailCallArgDecSPStoreVector0 (0x18)
 mintAlign(_tail_call_argument_dec_sp_store_vector_0)
     subp 2 * SlotSize, sp
-    loadq [mintSS], sc3
-    storeq sc3, [sp]
-    loadq 8[mintSS], sc3
-    storeq sc3, 8[sp]
+    loadq [mintSS], sc0
+    storeq sc0, [sp]
+    loadq 8[mintSS], sc0
+    storeq sc0, 8[sp]
     addq StackValueSize, mintSS
     mintArgDispatch()
 
 # CallArgumentBytecode::TailCallArgDecSPStoreVector8 (0x19)
 mintAlign(_tail_call_argument_dec_sp_store_vector_8)
     subp 2 * SlotSize, sp
-    loadq [mintSS], sc3
-    storeq sc3, 8[sp]
-    loadq 8[mintSS], sc3
-    storeq sc3, 16[sp]
+    loadq [mintSS], sc0
+    storeq sc0, 8[sp]
+    loadq 8[mintSS], sc0
+    storeq sc0, 16[sp]
     addq StackValueSize, mintSS
     mintArgDispatch()
 
@@ -12310,7 +12330,7 @@ _wasm_ipint_call_return_location_wide32:
 
     # mintRetSrc: read stack results from the callee's SP (current SP)
     loadi IPInt::CallReturnMetadata::firstStackResultSPOffset[MC], mintRetSrc
-    advanceMC(IPInt::CallReturnMetadata::resultBytecode)
+    advanceMC(constexpr (sizeof(IPInt::CallReturnMetadata)))
     leap [sp, mintRetSrc], mintRetSrc
 
     # load (first_non_arg_addr - cfr) from the stack and make it absolute
@@ -12458,18 +12478,17 @@ mintAlign(_end)
     # return result
     # return result     <- mintRetDst => new SP
     # (first_non_arg_addr - cfr), PC
-    # unused, wasmInstance  <- sc3
+    # MC, wasmInstance  <- sc3
     # call frame
     # call frame
     # call frame
     # call frame        <- callee's SP (not yet restored)
 
-    # note: we don't care about t3 anymore
 if ARM64 or ARM64E
-    loadpairq [sc3], t3, wasmInstance
+    loadpairq [sc3], MC, wasmInstance
 elsif X86_64
     loadq [sc3], wasmInstance
-    loadq 8[sc3], t3
+    loadq 8[sc3], MC
     loadp (2 * SlotSize)[sc3], PC
 end
     move mintRetDst, sp

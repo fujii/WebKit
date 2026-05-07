@@ -1069,6 +1069,16 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_function_body, CallFrame* callFrame)
     WASM_RETURN_TWO(callee, nullptr);
 }
 
+enum class PrepareCallKind : uint8_t { Call, TailCall };
+
+static ALWAYS_INLINE void ensureCallBytecodeForKind(const Wasm::RTT& rtt, PrepareCallKind kind)
+{
+    if (kind == PrepareCallKind::TailCall)
+        rtt.ensureTailCallBytecode();
+    else
+        rtt.ensureCallBytecode();
+}
+
 /**
  * Given a function index, determine the pointer to its executable code.
  * Return a pair of the target wasm instance and the code pointer (via WASM_CALL_RETURN).
@@ -1079,12 +1089,10 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_function_body, CallFrame* callFrame)
  *  - calleeAndWasmInstanceReturn[0] - the callee to use, goes into the 'callee' slot of the CallFrame.
  *  - calleeAndWasmInstanceReturn[1] - the wasm instance to use, goes into the 'codeBlock' slot of the CallFrame. For JS this is reused for the function info.
  */
-WASM_IPINT_EXTERN_CPP_DECL(prepare_call, CallFrame* callFrame, CallMetadata* call, Register* calleeAndWasmInstanceReturn)
+static ALWAYS_INLINE UGPRPair prepareCallImpl(JSWebAssemblyInstance* instance, CallFrame* callFrame, uint32_t callProfileIndex, Wasm::FunctionSpaceIndex functionIndex, Register* calleeAndWasmInstanceReturn)
 {
     auto* callee = IPINT_CALLEE(callFrame);
-    instance->ensureBaselineData(callee->functionIndex()).at(call->callProfileIndex).incrementCount();
-
-    Wasm::FunctionSpaceIndex functionIndex = call->functionIndex;
+    instance->ensureBaselineData(callee->functionIndex()).at(callProfileIndex).incrementCount();
 
     uint32_t importFunctionCount = instance->module().moduleInformation().importFunctionCount();
 
@@ -1106,8 +1114,8 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call, CallFrame* callFrame, CallMetadata* cal
     } else {
         // Target is a wasm function within the same instance
         codePtr = *instance->calleeGroup()->entrypointLoadLocationFromFunctionIndexSpace(functionIndex);
-        auto callee = instance->calleeGroup()->wasmCalleeFromFunctionIndexSpace(functionIndex);
-        calleeReturn = CalleeBits::encodeNativeCallee(callee.get());
+        auto nativeCallee = instance->calleeGroup()->wasmCalleeFromFunctionIndexSpace(functionIndex);
+        calleeReturn = CalleeBits::encodeNativeCallee(nativeCallee.get());
         wasmInstanceReturn = instance;
     }
 
@@ -1118,15 +1126,14 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call, CallFrame* callFrame, CallMetadata* cal
     WASM_CALL_RETURN(targetInstance, codePtr);
 }
 
-// Returns the same outputs as prepare_call: entrypoint and target instance
+// Returns the same outputs as prepareCallImpl: entrypoint and target instance
 // via result registers, callee and function-info/instance via the stack slots.
-WASM_IPINT_EXTERN_CPP_DECL(prepare_call_indirect, CallFrame* callFrame, Wasm::FunctionSpaceIndex* functionIndex, CallIndirectMetadata* call)
+static ALWAYS_INLINE UGPRPair prepareCallIndirectImpl(JSWebAssemblyInstance* instance, CallFrame* callFrame, const Wasm::RTT& rtt, uint32_t callProfileIndex, uint32_t tableIndex, Wasm::FunctionSpaceIndex* functionIndex)
 {
     auto* callee = IPINT_CALLEE(callFrame);
-    auto& callProfile = instance->ensureBaselineData(callee->functionIndex()).at(call->callProfileIndex);
+    auto& callProfile = instance->ensureBaselineData(callee->functionIndex()).at(callProfileIndex);
     callProfile.incrementCount();
 
-    unsigned tableIndex = call->tableIndex;
     const Wasm::FuncRefTable::Function* function = nullptr;
     if (!tableIndex) {
         if (*functionIndex >= instance->cachedTable0Length()) [[unlikely]]
@@ -1142,7 +1149,7 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call_indirect, CallFrame* callFrame, Wasm::Fu
     if (!function->m_function.rtt) [[unlikely]]
         IPINT_THROW(Wasm::ExceptionType::BadSignature);
 
-    if (!function->m_function.rtt->isSubRTT(*call->rtt)) [[unlikely]]
+    if (!function->m_function.rtt->isSubRTT(rtt)) [[unlikely]]
         IPINT_THROW(Wasm::ExceptionType::BadSignature);
 
     auto boxedCallee = function->m_function.boxedCallee.encodedBits();
@@ -1167,10 +1174,10 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call_indirect, CallFrame* callFrame, Wasm::Fu
     WASM_CALL_RETURN(function->m_function.targetInstance.get(), callTarget);
 }
 
-WASM_IPINT_EXTERN_CPP_DECL(prepare_call_ref, CallFrame* callFrame, CallRefMetadata* call, IPIntStackEntry* sp)
+static ALWAYS_INLINE UGPRPair prepareCallRefImpl(JSWebAssemblyInstance* instance, CallFrame* callFrame, uint32_t callProfileIndex, IPIntStackEntry* sp)
 {
     auto* callee = IPINT_CALLEE(callFrame);
-    auto& callProfile = instance->ensureBaselineData(callee->functionIndex()).at(call->callProfileIndex);
+    auto& callProfile = instance->ensureBaselineData(callee->functionIndex()).at(callProfileIndex);
     callProfile.incrementCount();
 
     JSValue targetReference = JSValue::decode(sp->ref);
@@ -1205,6 +1212,47 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call_ref, CallFrame* callFrame, CallRefMetada
     WASM_CALL_RETURN(calleeInstance, callTarget);
 }
 
+WASM_IPINT_EXTERN_CPP_DECL(prepare_call, CallFrame* callFrame, CallMetadata* call, Register* calleeAndWasmInstanceReturn)
+{
+    SUPPRESS_UNCOUNTED_LOCAL const auto& rtt = *call->signature.rtt;
+    ensureCallBytecodeForKind(rtt, PrepareCallKind::Call);
+    return prepareCallImpl(instance, callFrame, call->callProfileIndex, call->functionIndex, calleeAndWasmInstanceReturn);
+}
+
+WASM_IPINT_EXTERN_CPP_DECL(prepare_call_indirect, CallFrame* callFrame, Wasm::FunctionSpaceIndex* functionIndex, CallIndirectMetadata* call)
+{
+    SUPPRESS_UNCOUNTED_LOCAL const auto& rtt = *call->signature.rtt;
+    ensureCallBytecodeForKind(rtt, PrepareCallKind::Call);
+    return prepareCallIndirectImpl(instance, callFrame, rtt, call->callProfileIndex, call->tableIndex, functionIndex);
+}
+
+WASM_IPINT_EXTERN_CPP_DECL(prepare_call_ref, CallFrame* callFrame, CallRefMetadata* call, IPIntStackEntry* sp)
+{
+    SUPPRESS_UNCOUNTED_LOCAL const auto& rtt = *call->signature.rtt;
+    ensureCallBytecodeForKind(rtt, PrepareCallKind::Call);
+    return prepareCallRefImpl(instance, callFrame, call->callProfileIndex, sp);
+}
+
+WASM_IPINT_EXTERN_CPP_DECL(prepare_tail_call, CallFrame* callFrame, TailCallMetadata* call, Register* calleeAndWasmInstanceReturn)
+{
+    SUPPRESS_UNCOUNTED_LOCAL const auto& rtt = *call->rtt;
+    ensureCallBytecodeForKind(rtt, PrepareCallKind::TailCall);
+    return prepareCallImpl(instance, callFrame, call->callProfileIndex, call->functionIndex, calleeAndWasmInstanceReturn);
+}
+
+WASM_IPINT_EXTERN_CPP_DECL(prepare_tail_call_indirect, CallFrame* callFrame, Wasm::FunctionSpaceIndex* functionIndex, TailCallIndirectMetadata* call)
+{
+    SUPPRESS_UNCOUNTED_LOCAL const auto& rtt = *call->rtt;
+    ensureCallBytecodeForKind(rtt, PrepareCallKind::TailCall);
+    return prepareCallIndirectImpl(instance, callFrame, rtt, call->callProfileIndex, call->tableIndex, functionIndex);
+}
+
+WASM_IPINT_EXTERN_CPP_DECL(prepare_tail_call_ref, CallFrame* callFrame, TailCallRefMetadata* call, IPIntStackEntry* sp)
+{
+    SUPPRESS_UNCOUNTED_LOCAL const auto& rtt = *call->rtt;
+    ensureCallBytecodeForKind(rtt, PrepareCallKind::TailCall);
+    return prepareCallRefImpl(instance, callFrame, call->callProfileIndex, sp);
+}
 
 WASM_IPINT_EXTERN_CPP_DECL(set_global_ref, uint32_t globalIndex, JSValue value)
 {
