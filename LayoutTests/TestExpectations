@@ -1365,6 +1365,8 @@ imported/w3c/web-platform-tests/largest-contentful-paint/video-data-uri.html [ S
 imported/w3c/web-platform-tests/largest-contentful-paint/web-font-styled-text-resize-swap-subnode.html [ Skip ]
 imported/w3c/web-platform-tests/largest-contentful-paint/web-font-styled-text-resize-swap.html [ Skip ]
 
+webkit.org/b/314274 imported/w3c/web-platform-tests/largest-contentful-paint/broken-image-icon.html [ Failure Pass ]
+
 imported/w3c/web-platform-tests/mediacapture-streams/MediaStreamTrack-MediaElement-disabled-video-is-black.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/mediacapture-streams/MediaDevices-enumerateDevices-per-origin-ids.sub.https.html [ Skip ]
 imported/w3c/web-platform-tests/mediacapture-streams/BrowserCaptureMediaStreamTrack-restrictTo.https.html [ Skip ]
@@ -4284,6 +4286,8 @@ fast/dom/linkify-phone-numbers.html [ ImageOnlyFailure ]
 
 # Test is failing and is printing different values when it fails.
 fast/mediastream/captureStream/canvas2d.html [ Failure Pass ]
+
+webkit.org/b/314275 printing/print-with-media-query-destory.html [ Failure Pass ]
 
 # These tests only work on systems with the design system ui fonts installed.
 fast/text/design-system-ui-11.html [ ImageOnlyFailure ]
