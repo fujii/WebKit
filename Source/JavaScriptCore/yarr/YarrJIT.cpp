@@ -5241,6 +5241,10 @@ class YarrGenerator final : public YarrJITInfo {
                     m_backtrackingState.fallthrough();
                 }
                 m_backtrackingState.takeBacktracksToJumpList(op.m_jumps, &m_jit);
+                // Assertions are atomic to backtracking. Once assertion completes, we can do anything at backtracking: since assertion does not consume any characters,
+                // this does not change character position at this place, thus, once it completes, no backtracking exists to change the status to do the following matching again.
+                // Thus, we should just jump to corresponding ParentheticalAssertionBegin's backtracking state.
+                op.m_jumps.append(m_jit.jump());
                 break;
             }
 
