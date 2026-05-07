@@ -89,6 +89,10 @@
                 "ENABLE_EXPERIMENTAL_FEATURES": {
                     "type": "BOOL",
                     "value": "OFF"
+                },
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/Tools/Scripts/caffeinate-ninja"
                 }
             },
             "environment": {
