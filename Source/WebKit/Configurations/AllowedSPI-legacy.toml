@@ -1105,3 +1105,4 @@ swift-decls = [
     { name = "UIIntelligenceSupport.UIIntelligenceElementCollector.collect(_:)" },
     { name = "UIIntelligenceSupport.UIIntelligenceElementCollector.context" },
 ]
+allow-unused = true
