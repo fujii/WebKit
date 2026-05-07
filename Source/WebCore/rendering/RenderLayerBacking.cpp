@@ -3292,9 +3292,8 @@ bool RenderLayerBacking::isSimpleContainerCompositingLayer(PaintedContentsInfo& 
 
 // Returning true stops the traversal.
 enum class LayerTraversal { Continue, Stop };
-enum class SharedBackingInclusion { ExcludeSharedBacking, IncludeSharedBacking };
 
-static LayerTraversal traverseVisibleNonCompositedDescendantLayers(RenderLayer& parent, SharedBackingInclusion sharedBackingInclusion, NOESCAPE const Function<LayerTraversal(const RenderLayer&)>& layerFunc)
+static LayerTraversal traverseVisibleNonCompositedDescendantLayers(RenderLayer& parent, NOESCAPE const Function<LayerTraversal(const RenderLayer&)>& layerFunc)
 {
     // FIXME: We shouldn't be called with a stale z-order lists. See bug 85512.
     parent.updateLayerListsIfNeeded();
@@ -3310,20 +3309,8 @@ static LayerTraversal traverseVisibleNonCompositedDescendantLayers(RenderLayer& 
         if (layerFunc(*childLayer) == LayerTraversal::Stop)
             return LayerTraversal::Stop;
 
-        if (traverseVisibleNonCompositedDescendantLayers(*childLayer, SharedBackingInclusion::ExcludeSharedBacking, layerFunc) == LayerTraversal::Stop)
+        if (traverseVisibleNonCompositedDescendantLayers(*childLayer, layerFunc) == LayerTraversal::Stop)
             return LayerTraversal::Stop;
-    }
-
-    if (sharedBackingInclusion == SharedBackingInclusion::IncludeSharedBacking) {
-        if (parent.isComposited() && parent.backing()->hasBackingSharingLayers()) {
-            for (CheckedRef sharingLayer : parent.backing()->backingSharingLayers() | dereferenceView) {
-                if (layerFunc(sharingLayer) == LayerTraversal::Stop)
-                    return LayerTraversal::Stop;
-
-                if (traverseVisibleNonCompositedDescendantLayers(sharingLayer, SharedBackingInclusion::ExcludeSharedBacking, layerFunc) == LayerTraversal::Stop)
-                    return LayerTraversal::Stop;
-            }
-        }
     }
 
     if (parent.isStackingContext() && !parent.hasVisibleDescendant())
@@ -3337,7 +3324,7 @@ static LayerTraversal traverseVisibleNonCompositedDescendantLayers(RenderLayer& 
         if (layerFunc(*childLayer) == LayerTraversal::Stop)
             return LayerTraversal::Stop;
 
-        if (traverseVisibleNonCompositedDescendantLayers(*childLayer, SharedBackingInclusion::ExcludeSharedBacking, layerFunc) == LayerTraversal::Stop)
+        if (traverseVisibleNonCompositedDescendantLayers(*childLayer, layerFunc) == LayerTraversal::Stop)
             return LayerTraversal::Stop;
     }
 
@@ -3348,8 +3335,26 @@ static LayerTraversal traverseVisibleNonCompositedDescendantLayers(RenderLayer& 
         if (layerFunc(*childLayer) == LayerTraversal::Stop)
             return LayerTraversal::Stop;
 
-        if (traverseVisibleNonCompositedDescendantLayers(*childLayer, SharedBackingInclusion::ExcludeSharedBacking, layerFunc) == LayerTraversal::Stop)
+        if (traverseVisibleNonCompositedDescendantLayers(*childLayer, layerFunc) == LayerTraversal::Stop)
             return LayerTraversal::Stop;
+    }
+
+    return LayerTraversal::Continue;
+}
+
+static LayerTraversal traverseLayersForPaintedContentDetection(RenderLayer& backingOwnerLayer, NOESCAPE const Function<LayerTraversal(const RenderLayer&)>& layerFunc)
+{
+    if (traverseVisibleNonCompositedDescendantLayers(backingOwnerLayer, layerFunc) == LayerTraversal::Stop)
+        return LayerTraversal::Stop;
+
+    if (backingOwnerLayer.isComposited() && backingOwnerLayer.backing()->hasBackingSharingLayers()) {
+        for (CheckedRef sharingLayer : backingOwnerLayer.backing()->backingSharingLayers() | dereferenceView) {
+            if (layerFunc(sharingLayer) == LayerTraversal::Stop)
+                return LayerTraversal::Stop;
+
+            if (traverseVisibleNonCompositedDescendantLayers(sharingLayer, layerFunc) == LayerTraversal::Stop)
+                return LayerTraversal::Stop;
+        }
     }
 
     return LayerTraversal::Continue;
@@ -3369,7 +3374,7 @@ static std::optional<bool> intersectsWithAncestor(const RenderLayer& child, cons
 void RenderLayerBacking::determineNonCompositedLayerDescendantsPaintedContent(RenderLayer::PaintedContentRequest& request) const
 {
     bool hasPaintingDescendant = false;
-    traverseVisibleNonCompositedDescendantLayers(m_owningLayer, SharedBackingInclusion::IncludeSharedBacking, [&hasPaintingDescendant, &request, this](const RenderLayer& layer) {
+    traverseLayersForPaintedContentDetection(m_owningLayer, [&hasPaintingDescendant, &request, this](const RenderLayer& layer) {
         auto localRequest = RenderLayer::PaintedContentRequest { };
 #if HAVE(SUPPORT_HDR_DISPLAY)
         localRequest.setHDRRequestState(request.hasHDRContent);
@@ -3392,7 +3397,7 @@ void RenderLayerBacking::determineNonCompositedLayerDescendantsPaintedContent(Re
 bool RenderLayerBacking::hasVisibleNonCompositedDescendants() const
 {
     bool hasVisibleDescendant = false;
-    traverseVisibleNonCompositedDescendantLayers(m_owningLayer, SharedBackingInclusion::ExcludeSharedBacking, [&hasVisibleDescendant](const RenderLayer& layer) {
+    traverseVisibleNonCompositedDescendantLayers(m_owningLayer, [&hasVisibleDescendant](const RenderLayer& layer) {
         hasVisibleDescendant |= layer.hasVisibleContent();
         return hasVisibleDescendant ? LayerTraversal::Stop : LayerTraversal::Continue;
     });
