@@ -160,7 +160,6 @@ fast/loader/stateobjects/no-popstate-when-back-to-stateless-entry-with-page-cach
 fast/loader/stateobjects/popstate-does-not-fire-with-page-cache.html [ Failure ]
 fast/mediastream/RTCPeerConnection-page-cache.html [ Failure ]
 fast/overflow/horizontal-scroll-after-back.html [ Failure ]
-fast/scrolling/mac/nested-overflow-proxy-node.html [ Failure ]
 fast/workers/worker-page-cache.html [ Failure ]
 http/tests/cache-storage/page-cache-domcache-pending-promise.html [ Failure ]
 http/tests/cache-storage/page-cache-domcachestorage-pending-promise.html [ Failure ]
