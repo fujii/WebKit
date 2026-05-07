@@ -491,7 +491,7 @@ void BitmapImageSource::cacheNativeImageAtIndex(unsigned index, SubsamplingLevel
     destroyNativeImageAtIndex(index, options.shouldDecodeToHDR());
 
     // Do not cache NativeImage if adding its sizeInBytes to MemoryCache will cause numerical overflow.
-    auto sizeInBytes = nativeImage->size().unclampedArea() * sizeof(uint32_t);
+    auto sizeInBytes = nativeImage->sizeInBytes();
     if (!isInBounds<unsigned>(sizeInBytes + m_decodedSize))
         return;
 

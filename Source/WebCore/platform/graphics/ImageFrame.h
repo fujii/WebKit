@@ -52,9 +52,9 @@ public:
 
     ImageFrame& operator=(const ImageFrame&);
 
-    unsigned clearSourceImage(ShouldDecodeToHDR);
-    unsigned clearImage(std::optional<ShouldDecodeToHDR> = std::nullopt);
-    unsigned clear();
+    size_t clearSourceImage(ShouldDecodeToHDR);
+    size_t clearImage(std::optional<ShouldDecodeToHDR> = std::nullopt);
+    size_t clear();
 
     void NODELETE setDecodingStatus(DecodingStatus);
     DecodingStatus NODELETE decodingStatus() const;
@@ -66,7 +66,7 @@ public:
     void setSize(const IntSize& size) { m_size = size; }
     IntSize size() const { return m_size; }
 
-    unsigned sizeInBytes() const { return (size().area() * sizeof(uint32_t)).value(); }
+    size_t sizeInBytes() const;
 
     void setDensity(const FloatSize& density) { m_density = density; }
     FloatSize density() const { return m_density; }
@@ -111,6 +111,13 @@ private:
         bool hasDecodedNativeImageCompatibleWithOptions(const DecodingOptions& decodingOptions) const
         {
             return hasNativeImage() && this->decodingOptions.isCompatibleWith(decodingOptions);
+        }
+
+        size_t sizeInBytes() const
+        {
+            if (RefPtr nativeImage = this->nativeImage)
+                return nativeImage->sizeInBytes();
+            return 0;
         }
 
         void clear()

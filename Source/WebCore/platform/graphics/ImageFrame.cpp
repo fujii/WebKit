@@ -67,7 +67,12 @@ DecodingStatus ImageFrame::decodingStatus() const
     return m_decodingStatus;
 }
 
-unsigned ImageFrame::clearSourceImage(ShouldDecodeToHDR shouldDecodeToHDR)
+size_t ImageFrame::sizeInBytes() const
+{
+    return CheckedSize(m_source.sizeInBytes()) + m_hdrSource.sizeInBytes();
+}
+
+size_t ImageFrame::clearSourceImage(ShouldDecodeToHDR shouldDecodeToHDR)
 {
     auto& source = this->source(shouldDecodeToHDR);
     if (!source.hasNativeImage())
@@ -77,10 +82,9 @@ unsigned ImageFrame::clearSourceImage(ShouldDecodeToHDR shouldDecodeToHDR)
     return sizeInBytes();
 }
 
-unsigned ImageFrame::clearImage(std::optional<ShouldDecodeToHDR> shouldDecodeToHDR)
+size_t ImageFrame::clearImage(std::optional<ShouldDecodeToHDR> shouldDecodeToHDR)
 {
-
-    unsigned frameBytes = 0;
+    CheckedSize frameBytes = 0;
     if (!shouldDecodeToHDR || *shouldDecodeToHDR == ShouldDecodeToHDR::No)
         frameBytes += clearSourceImage(ShouldDecodeToHDR::No);
 
@@ -90,11 +94,11 @@ unsigned ImageFrame::clearImage(std::optional<ShouldDecodeToHDR> shouldDecodeToH
     return frameBytes;
 }
 
-unsigned ImageFrame::clear()
+size_t ImageFrame::clear()
 {
-    unsigned frameBytes = clearImage();
+    auto sizeInBytes = clearImage();
     *this = ImageFrame();
-    return frameBytes;
+    return sizeInBytes;
 }
 
 bool ImageFrame::hasNativeImage(ShouldDecodeToHDR shouldDecodeToHDR, SubsamplingLevel subsamplingLevel) const
