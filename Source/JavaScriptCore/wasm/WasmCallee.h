@@ -29,6 +29,7 @@
 
 #if ENABLE(WEBASSEMBLY)
 
+#include <JavaScriptCore/CallFrame.h>
 #include <JavaScriptCore/JITCompilation.h>
 #include <JavaScriptCore/NativeCallee.h>
 #include <JavaScriptCore/PCToCodeOriginMap.h>
@@ -211,6 +212,26 @@ private:
     CodePtr<WasmEntryPtrTag> entrypointImpl() const { return { }; }
     const RegisterAtOffsetList* calleeSaveRegistersImpl() { return nullptr; }
 };
+
+class RestoreFrameCallee final : public Callee {
+    WTF_MAKE_COMPACT_TZONE_ALLOCATED(RestoreFrameCallee);
+public:
+    friend class Callee;
+    friend class JSC::LLIntOffsetsExtractor;
+
+    static constexpr size_t restoreFrameSizeInBytes = (static_cast<size_t>(CallFrameSlot::callee) + 1) * sizeof(Register);
+
+    static RestoreFrameCallee& singleton();
+
+private:
+    RestoreFrameCallee();
+    std::tuple<void*, void*> rangeImpl() const { return { nullptr, nullptr }; }
+    CodePtr<WasmEntryPtrTag> entrypointImpl() const { return { }; }
+    const RegisterAtOffsetList* calleeSaveRegistersImpl() { return nullptr; }
+};
+
+extern "C" EncodedJSValue g_restoreFrameCalleeBoxed;
+extern "C" void wasm_restore_frame_return();
 
 #if ENABLE(JIT)
 
@@ -619,6 +640,13 @@ SPECIALIZE_TYPE_TRAITS_BEGIN(JSC::Wasm::WasmBuiltinCallee)
     static bool isType(const JSC::Wasm::Callee& callee)
     {
         return callee.compilationMode() == JSC::Wasm::CompilationMode::WasmBuiltinMode;
+    }
+SPECIALIZE_TYPE_TRAITS_END()
+
+SPECIALIZE_TYPE_TRAITS_BEGIN(JSC::Wasm::RestoreFrameCallee)
+    static bool isType(const JSC::Wasm::Callee& callee)
+    {
+        return callee.compilationMode() == JSC::Wasm::CompilationMode::RestoreFrameMode;
     }
 SPECIALIZE_TYPE_TRAITS_END()
 

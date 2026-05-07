@@ -41,8 +41,6 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <JavaScriptCore/WasmHandlerInfo.h>
 #include <JavaScriptCore/WasmIPIntGenerator.h>
 #include <JavaScriptCore/WasmIPIntTierUpCounter.h>
-#include <JavaScriptCore/WasmOps.h>
-#include <wtf/BitVector.h>
 #include <wtf/HashMap.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/Vector.h>
@@ -81,11 +79,6 @@ public:
     }
 
     FunctionCodeIndex functionIndex() const { return m_functionIndex; }
-    bool hasTailCallSuccessors() const { return m_hasTailCallSuccessors; }
-    const BitVector& tailCallSuccessors() const LIFETIME_BOUND { return m_tailCallSuccessors; }
-    bool tailCallClobbersInstance() const { return m_tailCallClobbersInstance ; }
-    void setTailCall(uint32_t, bool);
-    void setTailCallClobbersInstance() { m_tailCallClobbersInstance = true; }
 
     const uint8_t* getBytecode() const LIFETIME_BOUND { return m_bytecode.data(); }
     const uint8_t* getMetadata() const LIFETIME_BOUND { return m_metadata.span().data(); }
@@ -129,9 +122,6 @@ private:
     void addReturnData(const RTT&, const CallInformation&);
 
     FunctionCodeIndex m_functionIndex;
-    bool m_hasTailCallSuccessors { false };
-    bool m_tailCallClobbersInstance { false };
-    BitVector m_tailCallSuccessors;
 
     std::span<const uint8_t> m_bytecode;
     MetadataBuffer m_metadata { };

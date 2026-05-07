@@ -27,7 +27,6 @@
 #include "config.h"
 #include "WasmFunctionIPIntMetadataGenerator.h"
 
-#include <numeric>
 #include <wtf/TZoneMallocInlines.h>
 
 #if ENABLE(WEBASSEMBLY)
@@ -39,14 +38,6 @@ namespace JSC {
 namespace Wasm {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(FunctionIPIntMetadataGenerator);
-
-void FunctionIPIntMetadataGenerator::setTailCall(uint32_t functionIndex, bool isImportedFunctionFromFunctionIndexSpace)
-{
-    m_hasTailCallSuccessors = true;
-    m_tailCallSuccessors.set(functionIndex);
-    if (isImportedFunctionFromFunctionIndexSpace)
-        setTailCallClobbersInstance();
-}
 
 void FunctionIPIntMetadataGenerator::addLength(size_t length)
 {

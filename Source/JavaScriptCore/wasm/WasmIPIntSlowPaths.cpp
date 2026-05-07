@@ -1205,6 +1205,7 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call_ref, CallFrame* callFrame, CallRefMetada
     WASM_CALL_RETURN(calleeInstance, callTarget);
 }
 
+
 WASM_IPINT_EXTERN_CPP_DECL(set_global_ref, uint32_t globalIndex, JSValue value)
 {
     instance->setGlobal(globalIndex, value);

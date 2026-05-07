@@ -28,6 +28,7 @@
 
 #if ENABLE(WEBASSEMBLY)
 
+#include "CalleeBits.h"
 #include "InPlaceInterpreter.h"
 #include "JSCJSValueInlines.h"
 #include "JSToWasm.h"
@@ -56,6 +57,7 @@ WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(Callee);
 WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(JITCallee);
 WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(JSToWasmCallee);
 WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(WasmToJSCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(RestoreFrameCallee);
 WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(IPIntCallee);
 WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(WasmBuiltinCallee);
 
@@ -141,6 +143,9 @@ inline void Callee::runWithDowncast(const Func& func)
         break;
     case CompilationMode::WasmBuiltinMode:
         func(uncheckedDowncast<WasmBuiltinCallee>(this));
+        break;
+    case CompilationMode::RestoreFrameMode:
+        func(uncheckedDowncast<RestoreFrameCallee>(this));
         break;
     }
 }
@@ -266,6 +271,25 @@ WasmToJSCallee& WasmToJSCallee::singleton()
     static std::once_flag onceKey;
     std::call_once(onceKey, [&]() {
         callee.construct(adoptRef(*new WasmToJSCallee));
+    });
+    return callee.get().get();
+}
+
+EncodedJSValue g_restoreFrameCalleeBoxed { };
+
+RestoreFrameCallee::RestoreFrameCallee()
+    : Callee(Wasm::CompilationMode::RestoreFrameMode)
+{
+    NativeCalleeRegistry::singleton().registerCallee(this);
+}
+
+RestoreFrameCallee& RestoreFrameCallee::singleton()
+{
+    static LazyNeverDestroyed<Ref<RestoreFrameCallee>> callee;
+    static std::once_flag onceKey;
+    std::call_once(onceKey, [&]() {
+        callee.construct(adoptRef(*new RestoreFrameCallee));
+        g_restoreFrameCalleeBoxed = CalleeBits::encodeNativeCallee(&callee.get().get());
     });
     return callee.get().get();
 }

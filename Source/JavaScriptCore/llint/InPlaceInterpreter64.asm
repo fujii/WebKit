@@ -1271,7 +1271,7 @@ ipintOp(_memory_grow, macro()
     advanceMC(constexpr (sizeof(IPInt::MemoryGrowMetadata)))
     operationCall(macro() cCall3(_ipint_extern_memory_grow) end)
     pushInt32(r0)
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advancePC(2)
     nextIPIntInstruction()
 end)
@@ -11876,6 +11876,94 @@ end
     jmp .ipint_mint_arg_dispatch
 
 .ipint_tail_call_common:
+    # Check if we need to insert a restore frame for cross-instance tail calls.
+    # Registers on entry:
+    #   r0 = entrypoint, r1 = targetInstance, wasmInstance = current instance,
+    #   t3 = callerStackArgSize, IPIntCallCallee = callee, IPIntCallFunctionSlot = func info
+    # Scratch: t4, t5. Do not clobber anything else.
+    # On x86_64 r1==t2 (both rdx) and on ARM64 r1==t1, so neither t2 nor t1
+    # may be used freely. The ARM64 copy loop uses t2 for pair loads; that is
+    # safe because r1==t1 there (t2 is a distinct register).
+    bpeq r1, wasmInstance, .ipint_tail_call_no_restore_frame
+
+    loadp ReturnPC[cfr], t4
+    removeCodePtrTag t4
+if ARM64E
+    leap _g_config, t5
+    loadp JSCConfigGateMapOffset + (constexpr Gate::wasmRestoreFrame) * PtrSize[t5], t5
+    removeCodePtrTag t5
+else
+    pcrtoaddr _wasm_restore_frame_return, t5
+end
+    bpeq t4, t5, .ipint_tail_call_no_restore_frame
+
+    const RestoreFrameSize = constexpr Wasm::RestoreFrameCallee::restoreFrameSizeInBytes
+
+    # Step 1: Write the restore frame at cfr + 16 + t3.
+    # cfr hasn't shifted yet, so this is cfr_old + (FirstArgumentOffset - RestoreFrameSize) + t3.
+    leap (FirstArgumentOffset - RestoreFrameSize)[cfr, t3], t4   # t4 = restore_cfr
+
+    loadp [cfr], t5
+    storep t5, [t4]                         # originalCallerFrame
+if ARM64E
+    loadp ReturnPC[cfr], lr
+    addp CallerFrameAndPCSize, cfr, t5
+    untagReturnAddress t5
+    addp CallerFrameAndPCSize, t4, t5
+    tagReturnAddress t5
+    storep lr, ReturnPC[t4]                 # originalReturnPC (resigned for restore_cfr)
+else
+    loadp ReturnPC[cfr], t5
+    storep t5, ReturnPC[t4]                 # originalReturnPC
+end
+    storep wasmInstance, CodeBlock[t4]       # saved instance
+    leap _g_restoreFrameCalleeBoxed, t5
+    loadp [t5], t5
+    storep t5, Callee[t4]                   # RestoreFrameCallee
+
+    # Step 2: Copy [sp, cfr) down by RestoreFrameSize bytes.
+    move sp, t4
+
+    # Move sp down now so don't write below it in the copy loop.
+    subp RestoreFrameSize, sp
+
+.ipint_restore_frame_copy_loop:
+    bpaeq t4, cfr, .ipint_restore_frame_copy_loop_done
+if ARM64 or ARM64E
+    # t2 is safe here because r1==t1 on ARM64 (t2 is x2, a distinct register).
+    loadpairq [t4], t2, t5
+    storepairq t2, t5, -RestoreFrameSize[t4]
+elsif X86_64
+    loadp [t4], t5
+    storep t5, -RestoreFrameSize[t4]
+    loadp 8[t4], t5
+    storep t5, (8 - RestoreFrameSize)[t4]
+end
+    addp 16, t4
+    jmp .ipint_restore_frame_copy_loop
+
+.ipint_restore_frame_copy_loop_done:
+
+    # Step 3: Shift cfr down by 32, sp was handled before the copy loop.
+    subp RestoreFrameSize, cfr
+
+    # Step 4: Write redirect at cfr_new.
+    # restore_cfr = cfr_new + FirstArgumentOffset + t3
+    leap FirstArgumentOffset[cfr, t3], t4   # t4 = restore_cfr
+    storep t4, [cfr]                        # CallerFrame = restore_cfr
+
+if ARM64E
+    leap _g_config, t4
+    loadp JSCConfigGateMapOffset + (constexpr Gate::wasmRestoreFrame) * PtrSize[t4], t4
+    removeCodePtrTag t4
+    addp CallerFrameAndPCSize, cfr, t5
+    tagCodePtr t4, t5
+else
+    pcrtoaddr _wasm_restore_frame_return, t4
+end
+    storep t4, ReturnPC[cfr]                # ReturnPC = wasmRestoreFrame gate
+
+.ipint_tail_call_no_restore_frame:
     # Free up r0 to be used as argument register
 
     #  <caller frame>
@@ -12179,9 +12267,7 @@ mintAlign(_call)
     storep sc1, ThisArgumentOffset[cfr]
 
     # Set up memory
-    push t2, t3
-    ipintReloadMemory()
-    pop t3, t2
+    ipintReloadMemory(ws1)
 
     # Make the call
 if ARM64E
@@ -12380,7 +12466,7 @@ end
     storep ws0, UnboxedWasmCalleeStackSlot[cfr]
 
     # Restore memory
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     nextIPIntInstruction()
 
 .ipint_perform_tail_call:
@@ -12490,9 +12576,7 @@ end
     move targetInstance, wasmInstance
 
     # set up memory
-    push t2, t3
-    ipintReloadMemory()
-    pop t3, t2
+    ipintReloadMemory(ws1)
 
     addp CallerFrameAndPCSize, sp
 
@@ -12791,4 +12875,28 @@ if ARM64E
     _wasmTailCallTrampoline:
         untagReturnAddress ws2
         jmp ws0, WasmEntryPtrTag
+end
+
+# Restore frame return stub: only used when JIT cage is disabled.
+# When JIT cage is enabled, the wasmRestoreFrame gate thunk handles this.
+# At entry: return values in wa/wfa registers and at sp (don't change these)
+global _wasm_restore_frame_return
+_wasm_restore_frame_return:
+    loadp CodeBlock[cfr], wasmInstance
+    ipintReloadMemory(ws0)
+
+if ARM64E
+    loadp ReturnPC[cfr], lr
+    addp CallerFrameAndPCSize, cfr, ws0
+    untagReturnAddress ws0
+    loadp [cfr], cfr
+    tagReturnAddress sp
+    ret
+elsif ARM64
+    loadpairq [cfr], cfr, lr
+    ret
+elsif X86_64
+    loadp ReturnPC[cfr], ws1
+    loadp [cfr], cfr
+    jmp ws1
 end

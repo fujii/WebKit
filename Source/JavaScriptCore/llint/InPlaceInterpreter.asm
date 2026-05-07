@@ -426,7 +426,7 @@ end
 # ---------------------------------------
 
 # Memory
-macro ipintReloadMemory()
+macro ipintReloadMemory(scratch)
     if ARM64 or ARM64E
         loadpairq constexpr (JSWebAssemblyInstance::offsetOfCachedMemoryBaseSizePair(0))[wasmInstance], memoryBase, boundsCheckingSize
     elsif X86_64
@@ -434,7 +434,7 @@ macro ipintReloadMemory()
         loadp constexpr (JSWebAssemblyInstance::offsetOfCachedMemoryBaseSizePair(0) + 8)[wasmInstance], boundsCheckingSize
     end
     if not ARMv7
-        cagedPrimitiveMayBeNull(memoryBase, t2)
+        cagedPrimitiveMayBeNull(memoryBase, scratch)
     end
 end
 
@@ -533,7 +533,7 @@ if WEBASSEMBLY_BBQJIT
     preserveWasmArgumentRegisters()
 
 if not ARMv7
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     push memoryBase, boundsCheckingSize
 end
 
@@ -1379,7 +1379,7 @@ end
     loadp Wasm::IPIntCallee::m_metadata + VectorBufferOffset[ws0], MC
 
     # Load memory
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
 
     nextIPIntInstruction()
 
@@ -1450,7 +1450,7 @@ if WEBASSEMBLY and (ARM64 or ARM64E or X86_64)
     move sp, a2
     operationCall(macro() cCall3(_ipint_extern_retrieve_and_clear_exception) end)
 
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advanceMC(4)
     nextIPIntInstruction()
 else
@@ -1466,7 +1466,7 @@ if WEBASSEMBLY and (ARM64 or ARM64E or X86_64)
     move 0, a2
     operationCall(macro() cCall3(_ipint_extern_retrieve_and_clear_exception) end)
 
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advanceMC(4)
     nextIPIntInstruction()
 else
@@ -1484,7 +1484,7 @@ if WEBASSEMBLY and (ARM64 or ARM64E or X86_64 or ARMv7)
     move sp, a2
     operationCall(macro() cCall3(_ipint_extern_retrieve_and_clear_exception) end)
 
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advanceMC(4)
     jmp _ipint_block
 else
@@ -1502,7 +1502,7 @@ if WEBASSEMBLY and (ARM64 or ARM64E or X86_64 or ARMv7)
     move sp, a2
     operationCall(macro() cCall3(_ipint_extern_retrieve_clear_and_push_exception_and_arguments) end)
 
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advanceMC(4)
     jmp _ipint_block
 else
@@ -1520,7 +1520,7 @@ if WEBASSEMBLY and (ARM64 or ARM64E or X86_64 or ARMv7)
     move 0, a2
     operationCall(macro() cCall3(_ipint_extern_retrieve_and_clear_exception) end)
 
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advanceMC(4)
     jmp _ipint_block
 else
@@ -1538,7 +1538,7 @@ if WEBASSEMBLY and (ARM64 or ARM64E or X86_64 or ARMv7)
     move sp, a2
     operationCall(macro() cCall3(_ipint_extern_retrieve_clear_and_push_exception) end)
 
-    ipintReloadMemory()
+    ipintReloadMemory(t2)
     advanceMC(4)
     jmp _ipint_block
 else

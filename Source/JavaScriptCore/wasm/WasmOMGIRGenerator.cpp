@@ -1951,6 +1951,61 @@ auto OMGIRGenerator::emitIndirectCall(Value* calleeInstance, Value* calleeCode, 
     if (callType == CallType::TailCall)
         m_makesTailCalls = true;
 
+    const auto& callingConvention = wasmCallingConvention();
+    CallInformation wasmCalleeInfo = callingConvention.callInformationFor(signature, CallRole::Caller);
+    CallInformation wasmCalleeInfoAsCallee = callingConvention.callInformationFor(signature, CallRole::Callee);
+    Checked<int32_t> calleeStackSize = WTF::roundUpToMultipleOf<stackAlignmentBytes()>(wasmCalleeInfo.headerAndArgumentStackSizeInBytes);
+    if (isTailCallRootCaller)
+        calleeStackSize = WTF::roundUpToMultipleOf<stackAlignmentBytes()>(wasmCalleeInfo.headerAndArgumentStackSizeInBytes * 2 + sizeof(Register));
+
+    m_proc.requestCallArgAreaSizeInBytes(calleeStackSize);
+
+    // Tail call patchpoint is emitted before the B3-level context switch so
+    // wasmContextInstancePointer still holds the caller's instance.
+    if (isTailCallRootCaller) {
+        const TypeSignatureIndex callerTypeSignatureIndex = m_info.internalFunctionTypeSignatureIndices[m_functionIndex];
+        const RTT& callerType = m_info.rtt(callerTypeSignatureIndex);
+        CallInformation wasmCallerInfoAsCallee = callingConvention.callInformationFor(callerType, CallRole::Callee);
+
+        auto [patchpoint, _, prepareForCall] = createTailCallPatchpoint(m_currentBlock, signature, wasmCallerInfoAsCallee, wasmCalleeInfoAsCallee, args, boxedCalleeCallee);
+        unsigned patchArgsIndex = patchpoint->reps().size();
+        patchpoint->append(calleeCode, ValueRep(GPRInfo::nonPreservedNonArgumentGPR0));
+        patchpoint->append(calleeInstance, ValueRep::SomeRegister);
+        // emitRestoreInstanceFrameIfNeeded needs two scratches. wasmBaseMemoryPointer is
+        // always pinned so B3 won't allocate it. wasmBoundsCheckingSizeRegister
+        // is only pinned in BoundsChecking mode, so in Signaling mode we need B3 to give us a
+        // scratch that avoids the inputs.
+        if (m_mode == MemoryMode::Signaling)
+            patchpoint->numGPScratchRegisters = 1;
+        patchArgsIndex += m_proc.resultCount(patchpoint->type());
+        Checked<int32_t> callerStackSize = WTF::roundUpToMultipleOf<stackAlignmentBytes()>(wasmCallerInfoAsCallee.headerAndArgumentStackSizeInBytes);
+        patchpoint->setGenerator([prepareForCall = prepareForCall, patchArgsIndex, callerStackSize = static_cast<int32_t>(callerStackSize), mode = m_mode](CCallHelpers& jit, const B3::StackmapGenerationParams& params) {
+            GPRReg calleeInstanceGPR = params[patchArgsIndex + 1].gpr();
+            GPRReg scratch2 = mode == MemoryMode::Signaling ? params.gpScratch(0) : GPRInfo::wasmBoundsCheckingSizeRegister;
+            auto sameInstance = jit.branchPtr(CCallHelpers::Equal, calleeInstanceGPR, GPRInfo::wasmContextInstancePointer);
+            {
+                AllowMacroScratchRegisterUsage allowScratch(jit);
+                int32_t topSource = -static_cast<int32_t>(params.code().frameSize());
+                for (unsigned i = 0; i < params.size(); ++i) {
+                    if (params[i].isStack())
+                        topSource = std::max(topSource, params[i].offsetFromFP() + static_cast<int32_t>(sizeof(Register)));
+                }
+                for (const auto& entry : params.code().calleeSaveRegisterAtOffsetList())
+                    topSource = std::max<int32_t>(topSource, entry.offset() + entry.byteSize());
+                Checked<int32_t> topSourceOffsetFromFP = static_cast<int32_t>(roundUpToMultipleOf<stackAlignmentBytes()>(topSource));
+                emitRestoreInstanceFrameIfNeeded(jit, GPRInfo::wasmContextInstancePointer, callerStackSize, params.code().frameSize(), topSourceOffsetFromFP, GPRInfo::wasmBaseMemoryPointer, scratch2);
+                jit.move(calleeInstanceGPR, GPRInfo::wasmContextInstancePointer);
+                jit.loadPairPtr(GPRInfo::wasmContextInstancePointer, CCallHelpers::TrustedImm32(JSWebAssemblyInstance::offsetOfCachedMemoryBaseSizePair(0)), GPRInfo::wasmBaseMemoryPointer, GPRInfo::wasmBoundsCheckingSizeRegister);
+                jit.cageConditionally(Gigacage::Primitive, GPRInfo::wasmBaseMemoryPointer, GPRInfo::wasmBoundsCheckingSizeRegister, calleeInstanceGPR);
+            }
+            sameInstance.link(&jit);
+            prepareForCall->run(jit, params);
+            AllowMacroScratchRegisterUsage allowScratch(jit);
+            jit.farJump(params[patchArgsIndex].gpr(), WasmEntryPtrTag);
+        });
+        return { };
+    }
+
     // Do a context switch if needed.
     {
         BasicBlock* continuation = m_proc.addBlock();
@@ -1986,32 +2041,6 @@ auto OMGIRGenerator::emitIndirectCall(Value* calleeInstance, Value* calleeCode, 
         doContextSwitch->appendNewControlValue(m_proc, Jump, origin(), continuation);
 
         m_currentBlock = continuation;
-    }
-
-    const auto& callingConvention = wasmCallingConvention();
-    CallInformation wasmCalleeInfo = callingConvention.callInformationFor(signature, CallRole::Caller);
-    CallInformation wasmCalleeInfoAsCallee = callingConvention.callInformationFor(signature, CallRole::Callee);
-    Checked<int32_t> calleeStackSize = WTF::roundUpToMultipleOf<stackAlignmentBytes()>(wasmCalleeInfo.headerAndArgumentStackSizeInBytes);
-    if (isTailCallRootCaller)
-        calleeStackSize = WTF::roundUpToMultipleOf<stackAlignmentBytes()>(wasmCalleeInfo.headerAndArgumentStackSizeInBytes * 2 + sizeof(Register));
-
-    m_proc.requestCallArgAreaSizeInBytes(calleeStackSize);
-
-    if (isTailCallRootCaller) {
-        const TypeSignatureIndex callerTypeSignatureIndex = m_info.internalFunctionTypeSignatureIndices[m_functionIndex];
-        const RTT& callerType = m_info.rtt(callerTypeSignatureIndex);
-        CallInformation wasmCallerInfoAsCallee = callingConvention.callInformationFor(callerType, CallRole::Callee);
-
-        auto [patchpoint, _, prepareForCall] = createTailCallPatchpoint(m_currentBlock, signature, wasmCallerInfoAsCallee, wasmCalleeInfoAsCallee, args, boxedCalleeCallee);
-        unsigned patchArgsIndex = patchpoint->reps().size();
-        patchpoint->append(calleeCode, ValueRep(GPRInfo::nonPreservedNonArgumentGPR0));
-        patchArgsIndex += m_proc.resultCount(patchpoint->type());
-        patchpoint->setGenerator([prepareForCall = prepareForCall, patchArgsIndex](CCallHelpers& jit, const B3::StackmapGenerationParams& params) {
-            prepareForCall->run(jit, params);
-            AllowMacroScratchRegisterUsage allowScratch(jit);
-            jit.farJump(params[patchArgsIndex].gpr(), WasmEntryPtrTag);
-        });
-        return { };
     }
 
     auto [patchpoint, handle, prepareForCall] = createCallPatchpoint(m_currentBlock, signature, wasmCalleeInfo, args);
@@ -5363,7 +5392,7 @@ static inline void prepareForTailCallImpl(unsigned functionIndex, CCallHelpers& 
     auto tmp = jit.scratchRegister();
 
 #if ASSERT_ENABLED
-    for (unsigned i = 0; i < params.size(); ++i) {
+    for (unsigned i = firstPatchArg; i < lastPatchArg; ++i) {
         auto arg = params[i];
         ASSERT_IMPLIES(arg.isGPR(), arg.gpr() != tmp);
     }
@@ -5839,6 +5868,7 @@ static inline void prepareForTailCallImpl(unsigned functionIndex, CCallHelpers& 
 
 #if ASSERT_ENABLED
         // Everything in the old stack might be overwritten anyway. Clobber for easier debugging.
+        JIT_COMMENT(jit, "Clobbering the old frame");
         jit.move(MacroAssembler::TrustedImm32(0xBFFF), tmp);
         constexpr int stackSlotsToClobber = 50;
         constexpr int stackBytesToClobber = stackSlotsToClobber * registerSize();
@@ -6090,9 +6120,28 @@ auto OMGIRGenerator::emitDirectCall(unsigned callProfileIndex, FunctionSpaceInde
             // We pessimistically assume we could be calling to something that is bounds checking.
             // FIXME: We shouldn't have to do this: https://bugs.webkit.org/show_bug.cgi?id=172181
             patchpoint->clobberLate(RegisterSet::wasmPinnedRegisters());
+            // emitRestoreInstanceFrameIfNeeded needs two scratches. wasmBaseMemoryPointer is
+            // always pinned so B3 won't allocate it. wasmBoundsCheckingSizeRegister
+            // is only pinned in BoundsChecking mode, so in Signaling mode we need B3 to give us a
+            // scratch that avoids the inputs.
+            if (isTailCallRootCaller && m_mode == MemoryMode::Signaling)
+                patchpoint->numGPScratchRegisters = 1;
             patchArgsIndex += m_proc.resultCount(patchpoint->type());
-            patchpoint->setGenerator([this, patchArgsIndex, handle, isTailCallRootCaller, tailCallStackOffsetFromFP, prepareForCall, signature = Ref<const RTT>(signature), wasmCalleeInfo](CCallHelpers& jit, const B3::StackmapGenerationParams& params) {
+            patchpoint->setGenerator([this, patchArgsIndex, handle, isTailCallRootCaller, tailCallStackOffsetFromFP, prepareForCall, signature = Ref<const RTT>(signature), wasmCalleeInfo, callerStackSize = static_cast<int32_t>(WTF::roundUpToMultipleOf<stackAlignmentBytes()>(wasmCallerInfoAsCallee.headerAndArgumentStackSizeInBytes)), mode = m_mode](CCallHelpers& jit, const B3::StackmapGenerationParams& params) {
                 AllowMacroScratchRegisterUsage allowScratch(jit);
+                if (isTailCallRootCaller) {
+                    int32_t topSource = -static_cast<int32_t>(params.code().frameSize());
+                    for (unsigned i = 0; i < params.size(); ++i) {
+                        if (params[i].isStack())
+                            topSource = std::max(topSource, params[i].offsetFromFP() + static_cast<int32_t>(sizeof(Register)));
+                    }
+                    for (const auto& entry : params.code().calleeSaveRegisterAtOffsetList())
+                        topSource = std::max<int32_t>(topSource, entry.offset() + entry.byteSize());
+                    Checked<int32_t> topSourceOffsetFromFP = static_cast<int32_t>(roundUpToMultipleOf<stackAlignmentBytes()>(topSource));
+                    GPRReg scratch2 = mode == MemoryMode::Signaling ? params.gpScratch(0) : GPRInfo::wasmBoundsCheckingSizeRegister;
+                    emitRestoreInstanceFrameIfNeeded(jit, GPRInfo::wasmContextInstancePointer, callerStackSize, params.code().frameSize(), topSourceOffsetFromFP, GPRInfo::wasmBaseMemoryPointer, scratch2);
+                    // Import stub sets up the pinned registers for us so we don't have to do anything here.
+                }
                 if (prepareForCall)
                     prepareForCall->run(jit, params);
                 ASSERT(!isTailCallRootCaller || !handle);
@@ -6191,11 +6240,6 @@ auto OMGIRGenerator::emitDirectCall(unsigned callProfileIndex, FunctionSpaceInde
         patchpoint->clobberLate(RegisterSet { GPRInfo::wasmBoundsCheckingSizeRegister });
 
     fillCallResults(patchpoint, signature, results);
-
-    if (m_info.callCanClobberInstance(functionIndexSpace)) {
-        patchpoint->clobberLate(RegisterSet::wasmPinnedRegisters());
-        restoreWebAssemblyGlobalState(m_info.memories, instanceValue(), m_currentBlock);
-    }
 
     return { };
 }
