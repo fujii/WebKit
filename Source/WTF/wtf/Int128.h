@@ -98,7 +98,7 @@ class PrintStream;
 //     uint64_t i = v;                         // Error
 //     uint64_t i = static_cast<uint64_t>(v);  // OK
 //
-class alignas(16) UInt128Impl {
+class UInt128Impl {
  public:
   UInt128Impl() = default;
 
@@ -196,9 +196,7 @@ class alignas(16) UInt128Impl {
   constexpr UInt128Impl(uint64_t high, uint64_t low);
 
   // TODO(strel) Update implementation to use __int128 once all users of
-  // UInt128Impl are fixed to not depend on alignof(UInt128Impl) == 8. Also add
-  // alignas(16) to class definition to keep alignment consistent across
-  // platforms.
+  // UInt128Impl are fixed to not depend on alignof(UInt128Impl) == 8.
 #if CPU(LITTLE_ENDIAN)
   uint64_t lo_;
   uint64_t hi_;
@@ -294,7 +292,7 @@ namespace WTF {
 //     int64_t i = v;                        // Error
 //     int64_t i = static_cast<int64_t>(v);  // OK
 //
-class alignas(16) Int128Impl {
+class Int128Impl {
  public:
   Int128Impl() = default;
 

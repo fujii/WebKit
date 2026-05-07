@@ -93,13 +93,14 @@ ISO8601::Duration TemporalDuration::fromDurationLike(JSGlobalObject* globalObjec
             continue;
 
         hasRelevantProperty = true;
-        result[unit] = value.toNumber(globalObject) + 0.0;
+        double v = value.toNumber(globalObject) + 0.0;
         RETURN_IF_EXCEPTION(scope, { });
 
-        if (!isInteger(result[unit])) {
+        if (!isInteger(v) || !std::isfinite(v)) {
             throwRangeError(globalObject, scope, "Temporal.Duration properties must be integers"_s);
             return { };
         }
+        result.setField(unit, v);
     }
 
     if (!hasRelevantProperty) {
@@ -212,7 +213,7 @@ static double NODELETE totalSubseconds(ISO8601::Duration& duration)
 {
     auto milliseconds = duration.milliseconds();
     auto microseconds = 1000 * milliseconds + duration.microseconds();
-    return 1000 * microseconds + duration.nanoseconds();
+    return static_cast<double>(1000 * microseconds + duration.nanoseconds());
 }
 
 // https://tc39.es/proposal-temporal/#sec-temporal-add24hourdaystonormalizedtimeduration
@@ -263,7 +264,8 @@ JSValue TemporalDuration::compare(JSGlobalObject* globalObject, JSValue valueOne
 
 int TemporalDuration::sign(const ISO8601::Duration& duration)
 {
-    for (auto value : duration) {
+    for (size_t i = 0; i < numberOfTemporalUnits; ++i) {
+        auto value = duration[i];
         if (value < 0)
             return -1;
 
@@ -286,18 +288,19 @@ ISO8601::Duration TemporalDuration::with(JSGlobalObject* globalObject, JSObject*
         RETURN_IF_EXCEPTION(scope, { });
 
         if (value.isUndefined()) {
-            result[unit] = m_duration[unit];
+            result.setField(unit, m_duration[unit]);
             continue;
         }
 
         hasRelevantProperty = true;
-        result[unit] = value.toNumber(globalObject);
+        double v = value.toNumber(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
-        if (!isInteger(result[unit])) {
+        if (!isInteger(v) || !std::isfinite(v)) {
             throwRangeError(globalObject, scope, "Temporal.Duration properties must be integers"_s);
             return { };
         }
+        result.setField(unit, v);
     }
 
     if (!hasRelevantProperty) {
@@ -316,8 +319,10 @@ ISO8601::Duration TemporalDuration::negated() const
 ISO8601::Duration TemporalDuration::abs() const
 {
     ISO8601::Duration result;
-    for (size_t i = 0; i < numberOfTemporalUnits; i++)
-        result[i] = std::abs(m_duration[i]);
+    for (size_t i = 0; i < numberOfTemporalUnits; i++) {
+        double v = m_duration[i];
+        result.setField(i, v < 0 ? -v : v);
+    }
     return result;
 }
 
@@ -355,11 +360,11 @@ ISO8601::InternalDuration TemporalDuration::toInternalDurationRecordWith24HourDa
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     Int128 timeDuration = timeDurationFromComponents(d.hours(), d.minutes(), d.seconds(),
-        d.milliseconds(), d.microseconds(), d.nanoseconds());
+        d.milliseconds(), static_cast<double>(d.microseconds()), static_cast<double>(d.nanoseconds()));
     timeDuration = add24HourDaysToTimeDuration(globalObject, timeDuration, d.days());
     RETURN_IF_EXCEPTION(scope, { });
     ISO8601::Duration dateDuration = ISO8601::Duration { d.years(), d.months(), d.weeks(),
-        0, 0, 0, 0, 0, 0, 0 };
+        0LL, 0, 0, 0, 0, 0, 0 };
     return ISO8601::InternalDuration::combineDateAndTimeDuration(dateDuration,
         timeDuration);
 }
@@ -392,7 +397,7 @@ ISO8601::Duration TemporalDuration::toDateDurationRecordWithoutTime(JSGlobalObje
     auto internalDuration = toInternalDurationRecordWith24HourDays(globalObject, duration);
     RETURN_IF_EXCEPTION(scope, { });
     auto days = internalDuration.time() / ISO8601::ExactTime::nsPerDay;
-    return ISO8601::Duration { internalDuration.dateDuration().years(), internalDuration.dateDuration().months(), internalDuration.dateDuration().weeks(), static_cast<double>(days), 0, 0, 0, 0, 0, 0 };
+    return ISO8601::Duration { internalDuration.dateDuration().years(), internalDuration.dateDuration().months(), internalDuration.dateDuration().weeks(), static_cast<int64_t>(days), 0, 0, 0, 0, 0, 0 };
 }
 
 // BalanceDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit [ , relativeTo ] )
@@ -408,7 +413,7 @@ std::optional<double> TemporalDuration::balance(ISO8601::Duration& duration, Tem
     duration.clear();
 
     if (largestUnit <= TemporalUnit::Day) {
-        duration.setDays(std::trunc(seconds / secondsPerDay));
+        duration.setField(TemporalUnit::Day, std::trunc(seconds / secondsPerDay));
         seconds = std::fmod(seconds, secondsPerDay);
     }
 
@@ -416,35 +421,35 @@ std::optional<double> TemporalDuration::balance(ISO8601::Duration& duration, Tem
     double milliseconds = std::trunc(microseconds / 1000);
     double minutes = std::trunc(seconds / 60);
     if (largestUnit <= TemporalUnit::Hour) {
-        duration.setNanoseconds(std::fmod(nanoseconds, 1000));
-        duration.setMicroseconds(std::fmod(microseconds, 1000));
-        duration.setMilliseconds(std::fmod(milliseconds, 1000));
-        duration.setSeconds(std::fmod(seconds, 60));
-        duration.setMinutes(std::fmod(minutes, 60));
-        duration.setHours(std::trunc(minutes / 60));
+        duration.setField(TemporalUnit::Nanosecond, std::fmod(nanoseconds, 1000));
+        duration.setField(TemporalUnit::Microsecond, std::fmod(microseconds, 1000));
+        duration.setField(TemporalUnit::Millisecond, std::fmod(milliseconds, 1000));
+        duration.setField(TemporalUnit::Second, std::fmod(seconds, 60));
+        duration.setField(TemporalUnit::Minute, std::fmod(minutes, 60));
+        duration.setField(TemporalUnit::Hour, std::trunc(minutes / 60));
     } else if (largestUnit == TemporalUnit::Minute) {
-        duration.setNanoseconds(std::fmod(nanoseconds, 1000));
-        duration.setMicroseconds(std::fmod(microseconds, 1000));
-        duration.setMilliseconds(std::fmod(milliseconds, 1000));
-        duration.setSeconds(std::fmod(seconds, 60));
-        duration.setMinutes(minutes);
+        duration.setField(TemporalUnit::Nanosecond, std::fmod(nanoseconds, 1000));
+        duration.setField(TemporalUnit::Microsecond, std::fmod(microseconds, 1000));
+        duration.setField(TemporalUnit::Millisecond, std::fmod(milliseconds, 1000));
+        duration.setField(TemporalUnit::Second, std::fmod(seconds, 60));
+        duration.setField(TemporalUnit::Minute, minutes);
     } else if (largestUnit == TemporalUnit::Second) {
-        duration.setNanoseconds(std::fmod(nanoseconds, 1000));
-        duration.setMicroseconds(std::fmod(microseconds, 1000));
-        duration.setMilliseconds(std::fmod(milliseconds, 1000));
-        duration.setSeconds(seconds);
+        duration.setField(TemporalUnit::Nanosecond, std::fmod(nanoseconds, 1000));
+        duration.setField(TemporalUnit::Microsecond, std::fmod(microseconds, 1000));
+        duration.setField(TemporalUnit::Millisecond, std::fmod(milliseconds, 1000));
+        duration.setField(TemporalUnit::Second, seconds);
     } else if (largestUnit == TemporalUnit::Millisecond) {
-        duration.setNanoseconds(std::fmod(nanoseconds, 1000));
-        duration.setMicroseconds(std::fmod(microseconds, 1000));
+        duration.setField(TemporalUnit::Nanosecond, std::fmod(nanoseconds, 1000));
+        duration.setField(TemporalUnit::Microsecond, std::fmod(microseconds, 1000));
         milliseconds += seconds * 1000;
-        duration.setMilliseconds(milliseconds);
+        duration.setField(TemporalUnit::Millisecond, milliseconds);
     } else if (largestUnit == TemporalUnit::Microsecond) {
-        duration.setNanoseconds(std::fmod(nanoseconds, 1000));
+        duration.setField(TemporalUnit::Nanosecond, std::fmod(nanoseconds, 1000));
         microseconds += seconds * 1000 * 1000;
-        duration.setMicroseconds(microseconds);
+        duration.setField(TemporalUnit::Microsecond, microseconds);
     } else {
         nanoseconds += seconds * 1000 * 1000 * 1000;
-        duration.setNanoseconds(nanoseconds);
+        duration.setField(TemporalUnit::Nanosecond, nanoseconds);
     }
 
     return std::nullopt;
@@ -495,7 +500,7 @@ ISO8601::Duration TemporalDuration::add(JSGlobalObject* globalObject, JSValue ot
 
 ISO8601::InternalDuration TemporalDuration::toInternalDuration(ISO8601::Duration d)
 {
-    auto timeDuration = timeDurationFromComponents(d.hours(), d.minutes(), d.seconds(), d.milliseconds(), d.microseconds(), d.nanoseconds());
+    auto timeDuration = timeDurationFromComponents(d.hours(), d.minutes(), d.seconds(), d.milliseconds(), static_cast<double>(d.microseconds()), static_cast<double>(d.nanoseconds()));
     return ISO8601::InternalDuration::combineDateAndTimeDuration(d, timeDuration);
 }
 
@@ -577,11 +582,14 @@ ISO8601::Duration TemporalDuration::temporalDurationFromInternal(ISO8601::Intern
         microseconds *= sign;
     if (nanoseconds)
         nanoseconds *= sign;
+    // ℝ(𝔽(x)): round sub-millisecond fields through float64 per spec CreateTemporalDuration.
+    // Large Int128 values not exactly float64-representable round past nanosecondsLimit,
+    // which isValidDuration then rejects as required.
     return ISO8601::Duration { internalDuration.dateDuration().years(),
         internalDuration.dateDuration().months(), internalDuration.dateDuration().weeks(),
-        internalDuration.dateDuration().days() + days * sign, hours, minutes,
-        static_cast<double>(seconds), static_cast<double>(milliseconds),
-        static_cast<double>(microseconds), static_cast<double>(nanoseconds) };
+        static_cast<int64_t>(internalDuration.dateDuration().days() + days * sign), static_cast<int64_t>(hours), static_cast<int64_t>(minutes),
+        static_cast<int64_t>(seconds), ISO8601::Duration::doubleToInt64Saturating(static_cast<double>(milliseconds)),
+        Int128(static_cast<double>(microseconds)), Int128(static_cast<double>(nanoseconds)) };
 }
 
 ISO8601::Duration TemporalDuration::subtract(JSGlobalObject* globalObject, JSValue otherValue) const
@@ -616,7 +624,7 @@ static ISO8601::Duration adjustDateDurationRecord(JSGlobalObject* globalObject, 
     VM& vm = globalObject->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    auto result = ISO8601::Duration { dateDuration.years(), months ? months.value() : dateDuration.months(), weeks ? weeks.value() : dateDuration.weeks(), days, 0, 0, 0, 0, 0, 0 };
+    auto result = ISO8601::Duration { dateDuration.years(), months ? static_cast<int64_t>(months.value()) : dateDuration.months(), weeks ? static_cast<int64_t>(weeks.value()) : dateDuration.weeks(), static_cast<int64_t>(days), 0, 0, 0, 0, 0, 0 };
     if (!ISO8601::isValidDuration(result)) {
         throwRangeError(globalObject, scope, "Temporal.Duration properties must be valid and of consistent sign"_s);
         return { };
@@ -666,8 +674,8 @@ Nudged TemporalDuration::nudgeToCalendarUnit(JSGlobalObject* globalObject, int32
             (Int128) increment, RoundingMode::Trunc);
         r1 = (double) years;
         r2 = (double) years + increment * sign;
-        startDuration = ISO8601::Duration { r1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        endDuration = ISO8601::Duration { r2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        startDuration = ISO8601::Duration { static_cast<int64_t>(r1), 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        endDuration = ISO8601::Duration { static_cast<int64_t>(r2), 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         break;
     }
     case TemporalUnit::Month: {
@@ -929,7 +937,7 @@ ISO8601::InternalDuration TemporalDuration::round(JSGlobalObject* globalObject, 
         double fractionalDays = totalTimeDuration(internalDuration.time(), TemporalUnit::Day);
         double days = roundNumberToIncrementDouble(fractionalDays, increment, mode);
         return ISO8601::InternalDuration::combineDateAndTimeDuration(
-            ISO8601::Duration { 0, 0, 0, (double) days, 0, 0, 0, 0, 0, 0 },
+            ISO8601::Duration { 0, 0, 0, static_cast<int64_t>(days), 0, 0, 0, 0, 0, 0 },
             0);
     } else  {
         std::optional<Int128> timeDuration =
@@ -1203,7 +1211,7 @@ String TemporalDuration::toString(JSGlobalObject* globalObject, const ISO8601::D
         builder.append('D');
     }
 
-    auto secondsDuration = timeDurationFromComponents(0, 0, duration.seconds(), duration.milliseconds(), duration.microseconds(), duration.nanoseconds());
+    auto secondsDuration = timeDurationFromComponents(0, 0, duration.seconds(), duration.milliseconds(), static_cast<double>(duration.microseconds()), static_cast<double>(duration.nanoseconds()));
 
     if (!duration.hours() && !duration.minutes() && !secondsDuration && sign && std::get<0>(precision) == Precision::Auto)
         return builder.toString();
