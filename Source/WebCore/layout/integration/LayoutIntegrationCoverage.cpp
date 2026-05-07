@@ -352,7 +352,7 @@ bool canUseForPreferredWidthComputation(const RenderBlockFlow& blockContainer)
         if (isFullySupportedInFlowRenderer)
             continue;
 
-        if (auto* renderBlock = dynamicDowncast<RenderBlock>(renderer.get()); renderBlock && renderBlock->isAtomicInlineLevelBox() && !renderBlock->firstChild())
+        if (CheckedPtr renderBlock = dynamicDowncast<RenderBlock>(renderer.get()); renderBlock && renderBlock->isAtomicInlineLevelBox() && !renderBlock->firstChild())
             continue;
 
         CheckedRef unsupportedRenderElement = downcast<RenderElement>(renderer.get());
