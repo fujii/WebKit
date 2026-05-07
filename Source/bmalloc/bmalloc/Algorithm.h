@@ -34,6 +34,10 @@
 #include <string.h>
 #include <type_traits>
 
+#if BCOMPILER(MSVC) && !BCPU(X86)
+#include <intrin.h>
+#endif
+
 namespace bmalloc {
 
 // Versions of min and max that are compatible with compile-time constants.
