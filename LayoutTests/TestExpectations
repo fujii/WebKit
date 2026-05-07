@@ -8099,3 +8099,8 @@ imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-load-as-html.xhtml [ Skip ] # timeout
 
 webkit.org/b/314100 imported/w3c/web-platform-tests/css/selectors/has-specificity.html [ Pass Crash ]
+
+# webkit.org/b/305311 tests for the (unsupported) `animation-trigger` property
+imported/w3c/web-platform-tests/scroll-animations/animation-trigger/animation-trigger-fill-mode-both.tentative.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/scroll-animations/animation-trigger/animation-trigger-fill-mode-none.tentative.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/scroll-animations/animation-trigger/timeline-trigger-source-starts-in-trigger-range.tentative.html [ Pass Failure ]
