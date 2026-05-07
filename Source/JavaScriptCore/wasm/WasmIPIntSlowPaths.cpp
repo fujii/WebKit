@@ -1284,10 +1284,10 @@ WASM_IPINT_EXTERN_CPP_DECL(memory_atomic_wait64, IPIntStackEntry* args)
 WASM_IPINT_EXTERN_CPP_DECL(memory_atomic_notify, IPIntStackEntry* args)
 {
 #if CPU(ARM64) || CPU(X86_64)
-    unsigned offset = args[0].i32;
+    uint64_t offset = args[0].i64;
     uint8_t memoryIndex = args[1].i32;
     int32_t count = args[2].i32;
-    unsigned base = args[3].i32;
+    uint64_t base = args[3].i64;
     int32_t result = Wasm::memoryAtomicNotify(instance, base, offset, count, memoryIndex);
     WASM_RETURN_TWO(std::bit_cast<void*>(static_cast<intptr_t>(result)), nullptr);
 #else
