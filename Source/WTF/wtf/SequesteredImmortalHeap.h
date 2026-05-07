@@ -41,11 +41,11 @@
 #include <wtf/Assertions.h>
 #include <wtf/Atomics.h>
 #include <wtf/Compiler.h>
+#include <wtf/CurrentThread.h>
 #include <wtf/DataLog.h>
 #include <wtf/DoublyLinkedList.h>
 #include <wtf/Lock.h>
 #include <wtf/PageBlock.h>
-#include <wtf/Threading.h>
 
 #if OS(DARWIN)
 #include <pthread/tsd_private.h>
@@ -374,7 +374,7 @@ public:
         _pthread_setspecific_direct(key, reinterpret_cast<void*>(slot));
         pthread_key_init_np(key, nullptr);
 
-        dataLogLnIf(verbose, "SequesteredImmortalHeap: thread (", Thread::currentSingleton(), ") allocated slot ", slotIndex, " (", slot, ")");
+        dataLogLnIf(verbose, "SequesteredImmortalHeap: thread (", currentThreadID(), ") allocated slot ", slotIndex, " (", slot, ")");
         return slot;
     }
 
@@ -448,7 +448,7 @@ private:
 
         // Cannot use dataLog here as it takes a lock
         if constexpr (verbose)
-            SAFE_FPRINTF(stderr, "SequesteredImmortalHeap: initialized by thread (%u)\n", Thread::currentSingleton().uid());
+            SAFE_FPRINTF(stderr, "SequesteredImmortalHeap: initialized by thread (%u)\n", currentThreadID());
     }
 
     void installScavenger();

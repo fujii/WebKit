@@ -28,6 +28,7 @@
 #include <WebCore/GlyphPage.h>
 #include <WebCore/TextMeasurementCache.h>
 #include <WebCore/TextRun.h>
+#include <wtf/CurrentThread.h>
 #include <wtf/EnumeratedArray.h>
 #include <wtf/Forward.h>
 #include <wtf/HashFunctions.h>
@@ -198,7 +199,7 @@ private:
     bool m_isForPlatformFont { false };
     TriState m_canTakeFixedPitchFastContentMeasuring : 2 { TriState::Indeterminate };
 #if ASSERT_ENABLED
-    std::optional<Ref<Thread>> m_thread;
+    std::optional<uint32_t> m_creationThreadID;
 #endif
 };
 
@@ -218,7 +219,7 @@ inline bool FontCascadeFonts::canTakeFixedPitchFastContentMeasuring(const FontCa
 
 inline const Font& FontCascadeFonts::primaryFont(const FontCascadeDescription& description, FontSelector* fontSelector)
 {
-    ASSERT(m_thread ? m_thread->ptr() == &Thread::currentSingleton() : isMainThread());
+    ASSERT(m_creationThreadID ? *m_creationThreadID == currentThreadID() : isMainThread());
     if (!m_cachedPrimaryFont) {
         // CSS Fonts 4 §5.2: "The first available font [...] is defined to be the first font for which
         // the character U+0020 (space) is not excluded by a unicode-range [...]. Note: it does not

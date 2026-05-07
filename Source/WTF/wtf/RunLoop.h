@@ -39,8 +39,7 @@
 #include <wtf/RetainPtr.h>
 #include <wtf/Seconds.h>
 #include <wtf/ThreadSafetyAnalysis.h>
-#include <wtf/ThreadSpecific.h>
-#include <wtf/Threading.h>
+#include <wtf/ThreadingEnums.h>
 #include <wtf/ThreadingPrimitives.h>
 #include <wtf/TypeTraits.h>
 #include <wtf/WeakHashSet.h>
@@ -60,6 +59,8 @@
 #endif
 
 namespace WTF {
+
+template<typename, CanBeGCThread> class ThreadSpecific;
 
 #if USE(GLIB_EVENT_LOOP)
 class ActivityObserver;
@@ -99,7 +100,7 @@ public:
     WTF_EXPORT_PRIVATE static RunLoop& webSingleton();
     WTF_EXPORT_PRIVATE static RunLoop* webIfExists();
 #endif
-    WTF_EXPORT_PRIVATE static Ref<RunLoop> create(ASCIILiteral threadName, ThreadType = ThreadType::Unknown, Thread::QOS = Thread::QOS::UserInitiated);
+    WTF_EXPORT_PRIVATE static Ref<RunLoop> create(ASCIILiteral threadName, ThreadType = ThreadType::Unknown, ThreadQOS = ThreadQOS::UserInitiated);
 
     static bool isMain() { return mainSingleton().isCurrent(); }
     WTF_EXPORT_PRIVATE bool isCurrent() const final;
@@ -290,7 +291,7 @@ public:
 
 private:
     class Holder;
-    static ThreadSpecific<Holder>& runLoopHolder();
+    static ThreadSpecific<Holder, CanBeGCThread::False>& runLoopHolder();
 
     RunLoop();
 

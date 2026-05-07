@@ -402,7 +402,7 @@ public:
         ASSERT(!m_alive);
         m_alive = true;
         m_liveAllocations = 0;
-        dataLogLnIf(verbose, "Allocator ", id(), " in thread ", Thread::currentSingleton(),
+        dataLogLnIf(verbose, "Allocator ", id(), " in thread ", currentThreadID(),
             ": starting lifetime");
     }
 
@@ -423,7 +423,7 @@ public:
             m_decommitQueue.decommit();
 
         dataLogLnIf(verbose, "Allocator ", id(), " in thread ",
-            Thread::currentSingleton(), " ended lifetime: ", m_totalAllocatedBytes, "B allocated");
+            currentThreadID(), " ended lifetime: ", m_totalAllocatedBytes, "B allocated");
 
         if constexpr (verbose)
             m_totalAllocatedBytes = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,32 +25,49 @@
 
 #pragma once
 
-#if ENABLE(MEDIA_SESSION)
-
-#include <wtf/text/WTFString.h>
-
-namespace WebCore {
-
-struct MediaPositionState {
-    double duration = std::numeric_limits<double>::infinity();
-    double playbackRate = 1;
-    double position = 0;
-
-    String toJSONString() const;
-
-    friend bool operator==(const MediaPositionState&, const MediaPositionState&) = default;
-};
-
-}
+#include <cstdint>
 
 namespace WTF {
 
-template<typename> struct LogArgument;
+enum class CanBeGCThread {
+    False,
+    True
+};
 
-template<> struct LogArgument<WebCore::MediaPositionState> {
-    static String toString(const WebCore::MediaPositionState& state) { return state.toJSONString(); }
+enum class GCThreadType : uint8_t {
+    None = 0,
+    Main,
+    Helper,
+};
+
+enum class ThreadType : uint8_t {
+    Unknown = 0,
+    JavaScript,
+    Compiler,
+    GarbageCollection,
+    Network,
+    Graphics,
+    Audio,
+};
+
+enum class ThreadQOS {
+    UserInteractive,
+    UserInitiated,
+    Default,
+    Utility,
+    Background
+};
+
+enum class ThreadSchedulingPolicy : uint8_t {
+    Other = 0,
+    FIFO,
+    Realtime,
 };
 
 } // namespace WTF
 
-#endif // ENABLE(MEDIA_SESSION)
+using WTF::CanBeGCThread;
+using WTF::GCThreadType;
+using WTF::ThreadQOS;
+using WTF::ThreadSchedulingPolicy;
+using WTF::ThreadType;

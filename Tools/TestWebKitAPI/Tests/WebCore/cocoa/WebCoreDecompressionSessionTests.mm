@@ -31,6 +31,7 @@
 #include <WebCore/CMUtilities.h>
 #include <WebCore/WebCoreDecompressionSession.h>
 #include <wtf/NativePromise.h>
+#include <wtf/RunLoop.h>
 
 #include <pal/cf/CoreMediaSoftLink.h>
 

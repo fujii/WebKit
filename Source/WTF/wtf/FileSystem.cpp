@@ -29,6 +29,7 @@
 
 #include <wtf/CryptographicallyRandomNumber.h>
 #include <wtf/FileHandle.h>
+#include <wtf/Function.h>
 #include <wtf/HexNumber.h>
 #include <wtf/Logging.h>
 #include <wtf/MappedFileData.h>

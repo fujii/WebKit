@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,32 +25,15 @@
 
 #pragma once
 
-#if ENABLE(MEDIA_SESSION)
-
-#include <wtf/text/WTFString.h>
-
-namespace WebCore {
-
-struct MediaPositionState {
-    double duration = std::numeric_limits<double>::infinity();
-    double playbackRate = 1;
-    double position = 0;
-
-    String toJSONString() const;
-
-    friend bool operator==(const MediaPositionState&, const MediaPositionState&) = default;
-};
-
-}
+#include <cstdint>
+#include <wtf/ExportMacros.h>
 
 namespace WTF {
 
-template<typename> struct LogArgument;
-
-template<> struct LogArgument<WebCore::MediaPositionState> {
-    static String toString(const WebCore::MediaPositionState& state) { return state.toJSONString(); }
-};
+WTF_EXPORT_PRIVATE uint32_t currentThreadID();
+WTF_EXPORT_PRIVATE bool currentThreadMayBeGCThread();
 
 } // namespace WTF
 
-#endif // ENABLE(MEDIA_SESSION)
+using WTF::currentThreadID;
+using WTF::currentThreadMayBeGCThread;
