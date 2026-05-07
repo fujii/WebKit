@@ -30,7 +30,22 @@
 #include "pas_all_heaps.h"
 
 #include "bmalloc_heap_innards.h"
+#if PAS_ENABLE_HOTBIT
+#include "hotbit_heap_innards.h"
+#endif
+#if PAS_ENABLE_ISO
+#include "iso_heap_innards.h"
+#endif
+#if PAS_ENABLE_ISO_TEST
+#include "iso_test_heap.h"
+#endif
 #include "jit_heap.h"
+#if PAS_ENABLE_MINALIGN32
+#include "minalign32_heap.h"
+#endif
+#if PAS_ENABLE_PAGESIZE64K
+#include "pagesize64k_heap.h"
+#endif
 #include "pas_bitfit_heap.h"
 #include "pas_heap.h"
 #include "pas_heap_lock.h"
@@ -39,6 +54,9 @@
 #include "pas_segregated_heap.h"
 #include "pas_utility_heap.h"
 #include "pas_utility_heap_config.h"
+#if PAS_ENABLE_THINGY
+#include "thingy_heap.h"
+#endif
 
 pas_heap* pas_all_heaps_first_heap = NULL;
 size_t pas_all_heaps_count = 0;
