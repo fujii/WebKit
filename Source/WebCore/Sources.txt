@@ -3637,6 +3637,7 @@ workers/WorkerOrWorkletGlobalScope.cpp
 workers/WorkerOrWorkletScriptController.cpp
 workers/WorkerOrWorkletThread.cpp
 workers/WorkerRunLoop.cpp
+workers/WorkerSTWParticipation.cpp
 workers/WorkerScriptLoader.cpp
 workers/WorkerThread.cpp
 workers/service/ExtendableEvent.cpp

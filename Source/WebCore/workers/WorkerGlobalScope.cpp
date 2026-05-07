@@ -75,6 +75,7 @@
 #include "WorkerNavigator.h"
 #include "WorkerOrWorkletGlobalScope.h"
 #include "WorkerReportingProxy.h"
+#include "WorkerSTWParticipation.h"
 #include "WorkerSWClientConnection.h"
 #include "WorkerScriptLoader.h"
 #include "WorkerStorageConnection.h"
@@ -546,7 +547,7 @@ std::optional<Vector<uint8_t>> WorkerGlobalScope::serializeAndWrapCryptoKey(Cryp
         wrappedKey = context.serializeAndWrapCryptoKey(WTF::move(keyData));
         semaphore.signal();
     });
-    semaphore.wait();
+    waitWithSTWParticipation(semaphore, vm());
     return wrappedKey;
 }
 
@@ -563,7 +564,7 @@ std::optional<Vector<uint8_t>> WorkerGlobalScope::unwrapCryptoKey(const Vector<u
         key = context.unwrapCryptoKey(wrappedKey);
         semaphore.signal();
     });
-    semaphore.wait();
+    waitWithSTWParticipation(semaphore, vm());
     return key;
 }
 
