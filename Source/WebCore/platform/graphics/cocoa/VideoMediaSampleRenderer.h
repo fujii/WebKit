@@ -82,7 +82,7 @@ public:
 
     bool isReadyForMoreMediaData() const;
     void requestMediaDataWhenReady(Function<void()>&&);
-    void enqueueSample(const MediaSample&, const MediaTime&);
+    void enqueueSample(const MediaSample&, std::optional<MediaTime> minimumUpcomingTime);
     void stopRequestingMediaData();
 
     void notifyFirstFrameAvailable(Function<void(const MediaTime&, double)>&&);
@@ -209,7 +209,7 @@ private:
     TimebaseAndTimerSource m_timebaseAndTimerSource WTF_GUARDED_BY_LOCK(m_lock);
     RefPtr<EffectiveRateChangedListener> m_effectiveRateChangedListener;
     std::atomic<FlushId> m_flushId { 0 };
-    Deque<std::tuple<Ref<const MediaSample>, MediaTime, FlushId, bool>> m_compressedSampleQueue WTF_GUARDED_BY_CAPABILITY(dispatcher().get());
+    Deque<std::tuple<Ref<const MediaSample>, std::optional<MediaTime>, FlushId, bool>> m_compressedSampleQueue WTF_GUARDED_BY_CAPABILITY(dispatcher().get());
     std::atomic<uint32_t> m_compressedSamplesCount { 0 };
     std::atomic<uint32_t> m_pendingSamplesCount { 0 };
     MediaSampleReorderQueue m_decodedSampleQueue WTF_GUARDED_BY_CAPABILITY(dispatcher().get());

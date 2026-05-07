@@ -417,10 +417,10 @@ MediaTime VideoMediaSampleRenderer::currentTime() const
     return MediaTime::invalidTime();
 }
 
-void VideoMediaSampleRenderer::enqueueSample(const MediaSample& sample, const MediaTime& minimumUpcomingTime)
+void VideoMediaSampleRenderer::enqueueSample(const MediaSample& sample, std::optional<MediaTime> minimumUpcomingTime)
 {
     assertIsMainThread();
-    DEBUG_LOG(LOGIDENTIFIER, "sample: ", sample, " minimumUpcomingTime: ", minimumUpcomingTime);
+    DEBUG_LOG(LOGIDENTIFIER, "sample: ", sample, " minimumUpcomingTime: ", minimumUpcomingTime.value_or(MediaTime::invalidTime()));
 
     ASSERT(sample.type() == MediaSample::Type::CMSampleBuffer);
     if (sample.type() != MediaSample::Type::CMSampleBuffer)
@@ -501,19 +501,23 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
         if (currentTime.isValid() && !m_wasProtected && !m_decompressionSessionWasBlocked) {
             auto endTime = lastDecodedSampleTime();
             if (endTime.isValid() && endTime > highWaterMarkTime) {
-                auto [sample, upcomingMinimum, flushId, blocked] = m_compressedSampleQueue.first();
-                upcomingMinimum = std::min(sample->presentationTime(), upcomingMinimum.isValid() ? upcomingMinimum : MediaTime::positiveInfiniteTime());
-
-                if (endTime < upcomingMinimum) {
-                    if (m_lastMinimumUpcomingPresentationTime.isInvalid() || upcomingMinimum != m_lastMinimumUpcomingPresentationTime) {
-                        ASSERT(m_lastMinimumUpcomingPresentationTime.isInvalid() || m_lastMinimumUpcomingPresentationTime < upcomingMinimum);
-                        m_lastMinimumUpcomingPresentationTime = upcomingMinimum;
-                        LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded currentTime:%0.2f expectMinimumUpcomingSampleBufferPresentationTime:%0.2f decoded queued:%zu upcoming:%zu high watermark reached", currentTime.toDouble(), m_lastMinimumUpcomingPresentationTime.toDouble(), decodedSamplesCount(), compressedSamplesCount());
-                        [rendererOrDisplayLayer() expectMinimumUpcomingSampleBufferPresentationTime:PAL::toCMTime(m_lastMinimumUpcomingPresentationTime)];
+                const auto& [sample, upcomingMinimumOpt, flushId, blocked] = m_compressedSampleQueue.first();
+                if (upcomingMinimumOpt) {
+                    auto upcomingMinimum = std::min(sample->presentationTime(), *upcomingMinimumOpt);
+                    if (endTime < upcomingMinimum) {
+                        if (m_lastMinimumUpcomingPresentationTime.isInvalid() || upcomingMinimum != m_lastMinimumUpcomingPresentationTime) {
+                            ASSERT(m_lastMinimumUpcomingPresentationTime.isInvalid() || m_lastMinimumUpcomingPresentationTime < upcomingMinimum);
+                            m_lastMinimumUpcomingPresentationTime = upcomingMinimum;
+                            LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded currentTime:%0.2f expectMinimumUpcomingSampleBufferPresentationTime:%0.2f decoded queued:%zu upcoming:%zu high watermark reached", currentTime.toDouble(), m_lastMinimumUpcomingPresentationTime.toDouble(), decodedSamplesCount(), compressedSamplesCount());
+                            [rendererOrDisplayLayer() expectMinimumUpcomingSampleBufferPresentationTime:PAL::toCMTime(m_lastMinimumUpcomingPresentationTime)];
+                        }
+                        return;
                     }
-                    return;
+                    DEBUG_LOG(LOGIDENTIFIER, "Out of order frames detected, forcing extra decode");
                 }
-                DEBUG_LOG(LOGIDENTIFIER, "Out of order frames detected, forcing extra decode");
+                // Without a caller lookahead we can't safely publish a floor — a
+                // later-arriving B-frame could have a lower PTS and would be
+                // rejected by the renderer. Fall through and keep decoding.
             }
             if (endTime.isValid() && endTime >= lowWaterMarkTime && playbackRate > 0.9 && playbackRate < 1.1) {
                 LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded expectMinimumUpcomingSampleBufferPresentationTime:%0.2f decoded queued:%zu upcoming:%zu currentTime:%0.2f endTime:%0.2f low:%0.2f high:%0.2f low watermark reached", m_lastMinimumUpcomingPresentationTime.toDouble(), decodedSamplesCount(), compressedSamplesCount(), currentTime.toDouble(), endTime.toDouble(), lowWaterMarkTime.toDouble(), highWaterMarkTime.toDouble());
@@ -521,7 +525,7 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
             }
         }
 
-        auto [sample, upcomingMinimum, flushId, blocked] = m_compressedSampleQueue.takeFirst();
+        auto [sample, upcomingMinimumOpt, flushId, blocked] = m_compressedSampleQueue.takeFirst();
         m_compressedSamplesCount = m_compressedSampleQueue.size();
         maybeBecomeReadyForMoreMediaData();
 
