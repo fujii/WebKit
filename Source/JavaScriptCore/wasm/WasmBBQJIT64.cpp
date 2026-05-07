@@ -830,13 +830,13 @@ void BBQJIT::emitAtomicStoreOp(ExtAtomicOpType storeOp, Type, Location pointer, 
     }
 }
 
-Value BBQJIT::emitAtomicBinaryRMWOp(ExtAtomicOpType op, Type valueType, Location pointer, Value value, uint32_t uoffset)
+Value BBQJIT::emitAtomicBinaryRMWOp(ExtAtomicOpType op, Type valueType, Location pointer, Value value, uint64_t uoffset)
 {
     ASSERT(pointer.isGPR());
 
     // For Atomic access, we need SimpleAddress (uoffset = 0).
     if (uoffset)
-        m_jit.add64(TrustedImm64(static_cast<int64_t>(uoffset)), pointer.asGPR());
+        m_jit.add64(TrustedImm64(uoffset), pointer.asGPR());
     Address address = Address(pointer.asGPR());
 
     if (accessWidth(op) != Width8)
@@ -1193,13 +1193,13 @@ Value BBQJIT::emitAtomicBinaryRMWOp(ExtAtomicOpType op, Type valueType, Location
     return result;
 }
 
-[[nodiscard]] Value BBQJIT::emitAtomicCompareExchange(ExtAtomicOpType op, Type, Location pointer, Value expected, Value value, uint32_t uoffset)
+[[nodiscard]] Value BBQJIT::emitAtomicCompareExchange(ExtAtomicOpType op, Type, Location pointer, Value expected, Value value, uint64_t uoffset)
 {
     ASSERT(pointer.isGPR());
 
     // For Atomic access, we need SimpleAddress (uoffset = 0).
     if (uoffset)
-        m_jit.add64(TrustedImm64(static_cast<int64_t>(uoffset)), pointer.asGPR());
+        m_jit.add64(TrustedImm64(uoffset), pointer.asGPR());
     Address address = Address(pointer.asGPR());
     Width accessWidth = this->accessWidth(op);
 

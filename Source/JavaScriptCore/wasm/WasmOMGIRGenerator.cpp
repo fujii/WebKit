@@ -1021,7 +1021,7 @@ private:
     void emitChecksForModOrDiv(B3::Opcode, Value* left, Value* right);
 
     [[nodiscard]] int32_t fixupPointerPlusOffset(Value*&, uint32_t);
-    [[nodiscard]] Value* fixupPointerPlusOffsetForAtomicOps(ExtAtomicOpType, Value*, uint32_t);
+    [[nodiscard]] Value* fixupPointerPlusOffsetForAtomicOps(ExtAtomicOpType, Value*, uint64_t);
 
     void restoreWasmContextInstance(BasicBlock*, Value*);
     void restoreWebAssemblyGlobalState(const Vector<MemoryInformation>&, Value* instance, BasicBlock*);
@@ -2892,7 +2892,7 @@ inline Value* OMGIRGenerator::sanitizeAtomicResult(ExtAtomicOpType op, Type valu
     }
 }
 
-Value* OMGIRGenerator::fixupPointerPlusOffsetForAtomicOps(ExtAtomicOpType op, Value* ptr, uint32_t offset)
+Value* OMGIRGenerator::fixupPointerPlusOffsetForAtomicOps(ExtAtomicOpType op, Value* ptr, uint64_t offset)
 {
     auto pointer = m_currentBlock->appendNew<Value>(m_proc, Add, origin(), ptr, m_currentBlock->appendNew<ConstPtrValue>(m_proc, origin(), offset));
     if (accessWidth(op) != Width8) {
