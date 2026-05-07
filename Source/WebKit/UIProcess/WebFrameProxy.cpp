@@ -817,6 +817,28 @@ auto WebFrameProxy::traverseNext(CanWrap canWrap) const -> TraversalResult
     return { };
 }
 
+WebFrameProxy* WebFrameProxy::traverseNext(const WebFrameProxy* stayWithin) const
+{
+    if (auto* child = firstChild())
+        return child;
+
+    if (this == stayWithin)
+        return nullptr;
+
+    if (auto* sibling = nextSibling())
+        return sibling;
+
+    auto* frame = this;
+    while (frame && (!stayWithin || frame->parentFrame() != stayWithin)) {
+        frame = frame->parentFrame();
+        if (!frame)
+            return nullptr;
+        if (auto* sibling = frame->nextSibling())
+            return sibling;
+    }
+    return nullptr;
+}
+
 auto WebFrameProxy::traversePrevious(CanWrap canWrap) -> TraversalResult
 {
     if (RefPtr previousSibling = this->previousSibling())

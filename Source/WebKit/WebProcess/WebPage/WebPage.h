@@ -861,6 +861,9 @@ public:
     void frameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier, const WebCore::FrameTreeSyncSerializationData&);
     void allFrameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier, Ref<WebCore::FrameTreeSyncData>&&);
 
+    void updateUserActivationTimestamps(const Vector<WebCore::FrameIdentifier>&, MonotonicTime);
+    void consumeUserActivations(const Vector<WebCore::FrameIdentifier>&);
+
     std::optional<WebCore::SimpleRange> currentSelectionAsRange();
 
     enum class ShouldPerformLayout : bool { Default, Yes };
