@@ -5461,6 +5461,8 @@ webkit.org/b/313511 media/media-source/media-source-real-duration-after-append.h
 webkit.org/b/313511 media/media-source/media-source-real-fastseek.html [ Failure ]
 webkit.org/b/313511 media/media-source/media-source-real-overlapping-dts.html [ Failure ]
 
+webkit.org/b/314089 media/media-source/media-source-append-media-before-init.html [ Failure ]
+
 [ Debug ] imported/w3c/web-platform-tests/dom/events/Event-dispatch-single-activation-behavior.html [ Pass Failure ]
 
 webkit.org/b/305531 webgl/webgl2-provoking-vertex-primitive-restart-uint16-nocrash.html [ Skip ]
