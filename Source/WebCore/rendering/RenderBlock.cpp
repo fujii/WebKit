@@ -2377,7 +2377,7 @@ void RenderBlock::computeChildPreferredLogicalWidths(RenderBox& childBox, Layout
             maxPreferredLogicalWidth = aspectRatioSize;
             return;
         }
-        auto logicalHeightWithoutLayout = childBox.computeLogicalHeightWithoutLayout();
+        auto logicalHeightWithoutLayout = childBox.computeLogicalHeightForIntrinsicWidthContribution();
         minPreferredLogicalWidth = logicalHeightWithoutLayout;
         maxPreferredLogicalWidth = logicalHeightWithoutLayout;
         return;
