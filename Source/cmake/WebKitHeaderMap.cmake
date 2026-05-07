@@ -45,10 +45,6 @@ function(WEBKIT_MAKE_HEADER_MAP _target _source_root _dirs_var)
         return()
     endif ()
 
-    list(LENGTH _hmap_dirs _hmap_count)
-    list(LENGTH _result _residual_count)
-    message(STATUS "Header map for ${_target}: ${_hmap_count} directories -> ${_target}.hmap (${_residual_count} kept as -I)")
-
     list(TRANSFORM _result REPLACE "^${_placeholder}$" "${_hmap_file}")
     set(${_dirs_var} "${_result}" PARENT_SCOPE)
 endfunction()
