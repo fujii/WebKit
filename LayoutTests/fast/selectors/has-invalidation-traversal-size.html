@@ -44,6 +44,8 @@
 .c20:is(div:has(.trigger)) .target { color: green; }
 /* :has() inside :is() with type selector in outer compound and class peer in inner */
 .c21 div:is(.other:has(.trigger)) .target { color: green; }
+/* Scope selector has no matching ancestor - invalidation is skipped entirely */
+.c22:has(.trigger22) .target { color: green; }
 </style>
 <script>
 if (window.testRunner)
@@ -244,6 +246,12 @@ runTest(".c21 div:is(.other:has(.trigger)) with type in outer compound", "other"
     trigger.className = "trigger";
     container.appendChild(trigger);
 }, true, { wrapperClass: "c21" });
+
+runTest(".c22:has(.trigger22) .target with no .c22 ancestor - skip invalidation", null, function(container) {
+    var trigger = document.createElement("div");
+    trigger.className = "trigger22";
+    container.appendChild(trigger);
+}, false);
 </script>
 </script>
 </body>

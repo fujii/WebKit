@@ -40,4 +40,6 @@
   Traversal count: 7
 .c21 div:is(.other:has(.trigger)) with type in outer compound
   Traversal count: 7
+.c22:has(.trigger22) .target with no .c22 ancestor - skip invalidation
+  Traversal count: 0
 
