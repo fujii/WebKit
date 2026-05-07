@@ -4975,6 +4975,20 @@ bool Internals::isSelectPopupVisible(HTMLSelectElement& element)
 #endif
 }
 
+RefPtr<DOMPointReadOnly> Internals::lastSelectPopupLocation(const HTMLSelectElement& element)
+{
+#if !PLATFORM(IOS_FAMILY)
+    auto location = element.lastPopupLocationForTesting();
+    if (!location)
+        return nullptr;
+
+    return DOMPointReadOnly::create(location->x(), location->y(), 0, 0);
+#else
+    UNUSED_PARAM(element);
+    return nullptr;
+#endif
+}
+
 ExceptionOr<String> Internals::captionsStyleSheetOverride()
 {
     Document* document = contextDocument();

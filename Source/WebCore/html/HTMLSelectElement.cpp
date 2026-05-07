@@ -2147,11 +2147,17 @@ void HTMLSelectElement::showPopup()
         m_popup = document().page()->chrome().createPopupMenu(*this);
     setPopupIsVisible(true);
 
+    // Ensure layout is up-to-date before computing the element location.
+    protect(document())->updateLayout();
+
     // Compute the top left taking transforms into account, but use
     // the actual width of the element to size the popup.
     FloatPoint absTopLeft = renderer->localToAbsolute(FloatPoint(), MapCoordinatesMode::UseTransforms);
+    m_lastPopupLocationForTesting = absTopLeft;
+
     IntRect absBounds = renderer->absoluteBoundingBoxRectIgnoringTransforms();
     absBounds.setLocation(roundedIntPoint(absTopLeft));
+
     protect(m_popup)->show(absBounds, *frameView, optionToListIndex(selectedIndex())); // May run JS.
 }
 
