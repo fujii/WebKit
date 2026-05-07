@@ -68,11 +68,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <bit>
 #include <wtf/Assertions.h>
 #include <wtf/Compiler.h>
-#include <wtf/HashFunctions.h>
-#include <wtf/HashMap.h>
 #include <wtf/MathExtras.h>
-#include <wtf/PlatformRegisters.h>
-#include <wtf/SmallSet.h>
 #include <wtf/StdLibExtras.h>
 
 namespace JSC { namespace Wasm { namespace BBQJITImpl {

@@ -105,7 +105,6 @@
 #include "WeakMapImplInlines.h"
 #include "WeakMapPrototype.h"
 #include "WeakSetPrototype.h"
-#include <wtf/text/MakeString.h>
 
 #if ENABLE(JIT)
 #if ENABLE(DFG_JIT)

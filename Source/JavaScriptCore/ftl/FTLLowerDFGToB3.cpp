@@ -36,6 +36,7 @@
 #include "B3PatchpointValue.h"
 #include "B3SlotBaseValue.h"
 #include "B3StackmapGenerationParams.h"
+#include "BaselineJITRegisters.h"
 #include "B3ValueInlines.h"
 #include "ButterflyInlines.h"
 #include "CPUInlines.h"

@@ -46,7 +46,6 @@
 #include "VMTrapsInlines.h"
 #include "WasmCallee.h"
 #include "WasmCapabilities.h"
-#include <wtf/CommaPrinter.h>
 #include <wtf/FilePrintStream.h>
 #include <wtf/HashSet.h>
 #include <wtf/JSONValues.h>

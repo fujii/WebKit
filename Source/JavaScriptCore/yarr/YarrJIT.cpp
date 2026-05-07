@@ -43,11 +43,9 @@
 #include "YarrMatchingContextHolder.h"
 #include <wtf/ASCIICType.h>
 #include <wtf/BitVector.h>
-#include <wtf/HexNumber.h>
 #include <wtf/ListDump.h>
 #include <wtf/MathExtras.h>
 #include <wtf/TZoneMallocInlines.h>
-#include <wtf/Threading.h>
 #include <wtf/text/MakeString.h>
 
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN

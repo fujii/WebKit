@@ -38,7 +38,6 @@
 #include <wtf/WallTime.h>
 #include <wtf/text/MakeString.h>
 #include <wtf/text/StringParsingBuffer.h>
-#include <wtf/unicode/CharacterNames.h>
 
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 

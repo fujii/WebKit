@@ -35,7 +35,6 @@
 #include "Opcode.h"
 
 #if PLATFORM(COCOA)
-#include <wtf/ResourceUsage.h>
 #include <wtf/cocoa/Entitlements.h>
 #endif
 

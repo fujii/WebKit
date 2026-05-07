@@ -40,10 +40,8 @@
 #include "WasmFunctionParser.h"
 #include "WasmModuleDebugInfo.h"
 #include <wtf/Assertions.h>
-#include <wtf/CompletionHandler.h>
-#include <wtf/RefPtr.h>
 
-/* 
+/*
  * WebAssembly in-place interpreter metadata generator
  * 
  * docs by Daniel Liu <daniel_liu4@apple.com / danlliu@umich.edu>; 2023 intern project

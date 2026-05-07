@@ -41,7 +41,6 @@
 #include <wtf/CommaPrinter.h>
 #include <wtf/DataLog.h>
 #include <wtf/FastMalloc.h>
-#include <wtf/ReferenceWrapperVector.h>
 #include <wtf/StringPrintStream.h>
 #include <wtf/TZoneMallocInlines.h>
 

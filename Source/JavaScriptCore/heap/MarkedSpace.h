@@ -26,11 +26,9 @@
 #include <JavaScriptCore/MarkedBlockSet.h>
 #include <JavaScriptCore/PreciseAllocation.h>
 #include <array>
-#include <wtf/Bag.h>
 #include <wtf/HashSet.h>
 #include <wtf/IterationStatus.h>
 #include <wtf/Noncopyable.h>
-#include <wtf/RetainPtr.h>
 #include <wtf/SentinelLinkedList.h>
 #include <wtf/SinglyLinkedListWithTail.h>
 #include <wtf/Vector.h>

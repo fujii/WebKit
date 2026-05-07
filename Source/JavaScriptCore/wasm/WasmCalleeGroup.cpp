@@ -34,7 +34,6 @@
 #include "WasmIPIntPlan.h"
 #include "WasmMachineThreads.h"
 #include "WasmWorklist.h"
-#include <wtf/text/MakeString.h>
 
 namespace JSC { namespace Wasm {
 

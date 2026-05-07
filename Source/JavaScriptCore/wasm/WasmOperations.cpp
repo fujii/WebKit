@@ -56,7 +56,6 @@
 #include "WasmOperationsInlines.h"
 #include "WasmWorklist.h"
 #include <bit>
-#include <wtf/CheckedArithmetic.h>
 #include <wtf/DataLog.h>
 #include <wtf/Locker.h>
 #include <wtf/StdLibExtras.h>

@@ -27,8 +27,6 @@
 
 #include <JavaScriptCore/GCLogging.h>
 #include <JavaScriptCore/JSExportMacros.h>
-#include <JavaScriptCore/OSCheck.h>
-#include <wtf/MathExtras.h>
 
 #if OS(DARWIN)
 #include <mach/vm_param.h>

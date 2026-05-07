@@ -325,10 +325,8 @@
 #include "WrapForValidIteratorPrototypeInlines.h"
 #include "runtime/VM.h"
 #include <wtf/CryptographicallyRandomNumber.h>
-#include <wtf/FileHandle.h>
 #include <wtf/FixedVector.h>
 #include <wtf/SystemTracing.h>
-#include <wtf/WeakHashSet.h>
 #include <wtf/text/MakeString.h>
 
 #if ENABLE(REMOTE_INSPECTOR)

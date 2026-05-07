@@ -57,7 +57,6 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <wtf/DataLog.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/StringBuilder.h>
-#include <wtf/text/StringParsingBuffer.h>
 #include <wtf/text/WTFString.h>
 
 namespace JSC {
