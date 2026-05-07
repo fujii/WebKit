@@ -1437,6 +1437,8 @@ public:
 
     bool isContextThread() const final;
     bool isSecureContext() const final;
+    bool NODELETE crossOriginIsolated() const final;
+    String agentClusterID() const final;
     bool isJSExecutionForbidden() const final { return false; }
 
     void queueTaskToDispatchEventOnWindow(LocalDOMWindow&, TaskSource, Ref<Event>&&);

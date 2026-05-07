@@ -61,7 +61,8 @@ static WorkletParameters generateWorkletParameters(AudioWorklet& worklet)
         document->referrerPolicy(),
         worklet.audioContext() ? !worklet.audioContext()->isOfflineContext() : false,
         document->advancedPrivacyProtections(),
-        document->noiseInjectionHashSalt()
+        document->noiseInjectionHashSalt(),
+        document->agentClusterID()
     };
 }
 

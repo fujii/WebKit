@@ -239,6 +239,9 @@ public:
     WEBCORE_EXPORT static void NODELETE setCrossOriginMode(CrossOriginMode);
     static CrossOriginMode NODELETE crossOriginMode();
 
+    virtual bool NODELETE crossOriginIsolated() const { return false; }
+    virtual String agentClusterID() const = 0;
+
     WEBCORE_EXPORT void NODELETE ref();
     WEBCORE_EXPORT void deref();
 

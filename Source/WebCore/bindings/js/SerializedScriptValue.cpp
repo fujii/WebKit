@@ -31,7 +31,6 @@
 #include "ByteArrayPixelBuffer.h"
 #include "ClientOrigin.h"
 #include "ContextDestructionObserverInlines.h"
-#include "CrossOriginMode.h"
 #include "CryptoKeyAES.h"
 #include "CryptoKeyEC.h"
 #include "CryptoKeyHMAC.h"
@@ -673,14 +672,26 @@ enum class ImageBitmapSerializationFlags : uint8_t {
             dataLogLn("TRACE ", __VA_ARGS__, " @ ", __LINE__); \
     } while (false)
 
-#if ENABLE(WEBASSEMBLY)
 static String agentClusterIDFromGlobalObject(JSGlobalObject& globalObject)
 {
-    if (auto* domGlobalObject = dynamicDowncast<JSDOMGlobalObject>(globalObject))
-        return domGlobalObject->agentClusterID();
-    return JSDOMGlobalObject::defaultAgentClusterID();
+    auto& domGlobalObject = downcast<JSDOMGlobalObject>(globalObject);
+    RefPtr context = domGlobalObject.scriptExecutionContext();
+    ASSERT(context);
+    if (!context)
+        return nullString();
+    auto result = context->agentClusterID();
+    ASSERT(!result.isNull());
+    return result;
 }
-#endif
+
+static bool isCrossOriginIsolatedContext(JSGlobalObject* globalObject)
+{
+    auto* domGlobalObject = dynamicDowncast<JSDOMGlobalObject>(globalObject);
+    if (!domGlobalObject)
+        return false;
+    RefPtr context = domGlobalObject->scriptExecutionContext();
+    return context && context->crossOriginIsolated();
+}
 
 const uint32_t currentKeyFormatVersion = 1;
 
@@ -2204,23 +2215,20 @@ private:
                         code = SerializationReturnCode::DataCloneError;
                         return true;
                     }
-                    bool isCrossOriginIsolated = ScriptExecutionContext::crossOriginMode() == CrossOriginMode::Isolated;
-                    if (m_context == SerializationContext::WorkerPostMessage && (isCrossOriginIsolated || JSC::Options::useSharedArrayBuffer())) {
+                    if (isCrossOriginIsolatedContext(m_lexicalGlobalObject) || JSC::Options::useSharedArrayBuffer()) {
                         uint32_t index = m_sharedBuffers.size();
                         ArrayBufferContents contents;
                         if (arrayBuffer->shareWith(contents)) {
                             appendObjectPoolTag(SharedArrayBufferTag);
                             write(SharedArrayBufferTag);
+                            write(agentClusterIDFromGlobalObject(*m_lexicalGlobalObject));
                             m_sharedBuffers.append(WTF::move(contents));
                             write(index);
                             return true;
                         }
                     }
-                    if (m_context != SerializationContext::WindowPostMessage || !isCrossOriginIsolated) {
-                        code = SerializationReturnCode::DataCloneError;
-                        return true;
-                    }
-                    // FIXME: WindowPostMessage should share SharedArrayBuffer when cross-origin isolated, not fall through to a non-shared copy.
+                    code = SerializationReturnCode::DataCloneError;
+                    return true;
                 }
                 
                 if (arrayBuffer->isResizableOrGrowableShared()) {
@@ -5716,9 +5724,12 @@ private:
         }
         case SharedArrayBufferTag: {
             // https://html.spec.whatwg.org/multipage/structured-data.html#structureddeserialize
+            CachedStringRef agentClusterID;
+            bool agentClusterIDSuccessfullyRead = readStringData(agentClusterID);
             uint32_t index = UINT_MAX;
             bool indexSuccessfullyRead = read(index);
-            if (!indexSuccessfullyRead || !m_sharedBuffers || index >= m_sharedBuffers->size() || !JSC::Options::useSharedArrayBuffer()) {
+            if (!agentClusterIDSuccessfullyRead || agentClusterID->string() != agentClusterIDFromGlobalObject(*m_globalObject)
+                || !indexSuccessfullyRead || !m_sharedBuffers || index >= m_sharedBuffers->size()) {
                 SERIALIZE_TRACE("FAIL deserialize");
                 fail();
                 return JSValue();
@@ -6991,7 +7002,7 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
     });
 #endif
 
-    Ref result = adoptRef(*new SerializedScriptValue(WTF::move(buffer), WTF::move(blobHandles), arrayBufferContentsArray.releaseReturnValue(), context == SerializationContext::WorkerPostMessage ? WTF::move(sharedBuffers) : nullptr, WTF::move(detachedImageBitmaps)
+    Ref result = adoptRef(*new SerializedScriptValue(WTF::move(buffer), WTF::move(blobHandles), arrayBufferContentsArray.releaseReturnValue(), WTF::move(sharedBuffers), WTF::move(detachedImageBitmaps)
 #if ENABLE(OFFSCREEN_CANVAS_IN_WORKERS)
                 , WTF::move(detachedCanvases)
                 , WTF::move(inMemoryOffscreenCanvases)

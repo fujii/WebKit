@@ -389,6 +389,7 @@ WTF_MAKE_STRUCT_TZONE_ALLOCATED_IMPL(Page::Internals);
 Page::Page(PageConfiguration&& pageConfiguration)
     : m_internals(makeUniqueRef<Internals>())
     , m_identifier(pageConfiguration.identifier)
+    , m_browsingContextGroupIdentifier(pageConfiguration.browsingContextGroupIdentifier)
     , m_chrome(makeUniqueRef<Chrome>(*this, WTF::move(pageConfiguration.chromeClient)))
     , m_dragCaretController(makeUniqueRef<DragCaretController>())
 #if ENABLE(DRAG_SUPPORT)

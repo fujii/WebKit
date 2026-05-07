@@ -2009,8 +2009,8 @@ bool LocalDOMWindow::isSecureContext() const
 
 bool LocalDOMWindow::crossOriginIsolated() const
 {
-    ASSERT(ScriptExecutionContext::crossOriginMode() == CrossOriginMode::Shared || !document() || !document()->mainFrameDocument() || document()->mainFrameDocument()->crossOriginOpenerPolicy().value == CrossOriginOpenerPolicyValue::SameOriginPlusCOEP);
-    return ScriptExecutionContext::crossOriginMode() == CrossOriginMode::Isolated;
+    auto* document = this->document();
+    return document && document->crossOriginIsolated();
 }
 
 static void didAddStorageEventListener(LocalDOMWindow& window)

@@ -24,6 +24,7 @@
 #include <WebCore/AnimationFrameRate.h>
 #include <WebCore/BackForwardFrameItemIdentifier.h>
 #include <WebCore/BoxExtents.h>
+#include <WebCore/BrowsingContextGroupIdentifier.h>
 #include <WebCore/Color.h>
 #include <WebCore/DocumentEnums.h>
 #include <WebCore/FindOptions.h>
@@ -397,6 +398,8 @@ public:
 
     // Utility pages (e.g. SVG image pages) don't have an identifier currently.
     std::optional<PageIdentifier> identifier() const { return m_identifier; }
+
+    std::optional<BrowsingContextGroupIdentifier> browsingContextGroupIdentifier() const { return m_browsingContextGroupIdentifier; }
 
     void willEnterBackForwardCache();
 
@@ -1479,6 +1482,7 @@ private:
     const UniqueRef<Internals> m_internals;
 
     std::optional<PageIdentifier> m_identifier;
+    std::optional<BrowsingContextGroupIdentifier> m_browsingContextGroupIdentifier;
     const UniqueRef<Chrome> m_chrome;
     const UniqueRef<DragCaretController> m_dragCaretController;
 

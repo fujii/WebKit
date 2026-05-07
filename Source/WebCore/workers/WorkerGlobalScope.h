@@ -136,7 +136,7 @@ public:
     void clearInterval(int timeoutId);
 
     bool isSecureContext() const final;
-    bool NODELETE crossOriginIsolated() const;
+    bool NODELETE crossOriginIsolated() const final;
 
     WorkerNavigator* optionalNavigator() const { return m_navigator.get(); }
     WorkerLocation* optionalLocation() const { return m_location.get(); }
@@ -177,7 +177,7 @@ public:
 
     WorkerClient* workerClient() LIFETIME_BOUND { return m_workerClient.get(); }
 
-    const String& agentClusterID() const LIFETIME_BOUND { return m_agentClusterID; }
+    String agentClusterID() const final { return m_agentClusterID; }
 
     void reportErrorToWorkerObject(const String&);
 

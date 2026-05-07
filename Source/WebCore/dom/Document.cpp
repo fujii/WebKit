@@ -218,6 +218,7 @@
 #include "OpportunisticTaskScheduler.h"
 #include "OrientationNotifier.h"
 #include "OwnerPermissionsPolicyData.h"
+#include "Page.h"
 #include "PageGroup.h"
 #include "PageRevealEvent.h"
 #include "PageSwapEvent.h"
@@ -300,6 +301,7 @@
 #include "ServiceWorkerProvider.h"
 #include "Settings.h"
 #include "ShadowRoot.h"
+#include "Site.h"
 #include "SleepDisabler.h"
 #include "SocketProvider.h"
 #include "SpeculationRules.h"
@@ -8430,6 +8432,24 @@ bool Document::isSecureContext() const
     }
 
     return isDocumentSecure(*this);
+}
+
+bool Document::crossOriginIsolated() const
+{
+    RefPtr mainDocument = mainFrameDocument();
+    if (!mainDocument)
+        return false;
+    return mainDocument->crossOriginOpenerPolicy().value == CrossOriginOpenerPolicyValue::SameOriginPlusCOEP;
+}
+
+String Document::agentClusterID() const
+{
+    Ref origin = securityOrigin();
+    auto& data = origin->data();
+    auto browsingContextGroupIdentifier = page() && page()->browsingContextGroupIdentifier() ? page()->browsingContextGroupIdentifier()->toUInt64() : 0;
+    if (crossOriginIsolated())
+        return makeString(browsingContextGroupIdentifier, "-coi-"_s, data.toString());
+    return makeString(browsingContextGroupIdentifier, '-', Site(data).toString());
 }
 
 void Document::updateURLForPushOrReplaceState(const URL& url)

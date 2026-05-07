@@ -161,11 +161,7 @@ void WorkerMessagingProxy::startWorkerGlobalScope(const URL& scriptURL, PAL::Ses
 
     bool isOnline = parentWorkerGlobalScope ? parentWorkerGlobalScope->isOnline() : platformStrategies()->loaderStrategy()->isOnLine();
 
-    String agentClusterID;
-    if (parentWorkerGlobalScope)
-        agentClusterID = parentWorkerGlobalScope->agentClusterID();
-    else
-        agentClusterID = JSDOMGlobalObject::defaultAgentClusterID();
+    auto agentClusterID = scriptExecutionContext->agentClusterID();
 
     m_scriptURL = scriptURL;
 

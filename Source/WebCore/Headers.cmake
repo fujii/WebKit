@@ -2159,6 +2159,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/AudioSampleFormat.h
     platform/BoxExtents.h
     platform/BoxSides.h
+    platform/BrowsingContextGroupIdentifier.h
     platform/CPUMonitor.h
     platform/CaptionPreferencesDelegate.h
     platform/CaretAnimator.h
