@@ -143,6 +143,15 @@ if (ENABLE_SANITIZERS)
         add_compile_options("$<$<NOT:$<COMPILE_LANGUAGE:Swift>>:-fsanitize-address-use-after-return=never>")
         add_link_options("$<$<NOT:$<LINK_LANGUAGE:Swift>>:-fsanitize-address-use-after-return=never>")
     endif ()
+
+    # TSan: ld64 hits "too many personality routines for compact unwind" when
+    # the TSan runtime adds its own personality. Mirror Sanitizers.xcconfig
+    # (which scopes this to WebCore/WebKit/TestWebKitAPI; applying globally is
+    # harmless and avoids per-target plumbing).
+    string(FIND "${ENABLE_SANITIZERS}" "thread" _tsan_pos)
+    if (NOT _tsan_pos EQUAL -1)
+        add_link_options("-Wl,-no_compact_unwind")
+    endif ()
 endif ()
 
 add_link_options("$<$<NOT:$<CONFIG:Debug>>:-Wl,-dead_strip>")
