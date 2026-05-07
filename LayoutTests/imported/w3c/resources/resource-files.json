@@ -10907,6 +10907,7 @@
         "web-platform-tests/css/selectors/selectors-4/details-open-pseudo-001-ref.html",
         "web-platform-tests/css/selectors/selectors-4/details-open-pseudo-003-ref.html",
         "web-platform-tests/css/selectors/selectors-4/lang-000-ref.html",
+        "web-platform-tests/css/selectors/selectors-4/lang-020-ref.html",
         "web-platform-tests/css/selectors/selectors-attr-many-ref.html",
         "web-platform-tests/css/selectors/selectors-attr-white-space-001-ref.html",
         "web-platform-tests/css/selectors/selectors-empty-001-ref.xml",
