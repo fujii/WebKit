@@ -3080,6 +3080,14 @@ bool Internals::hasGrammarMarker(int from, int length)
     return hasMarkerFor(DocumentMarkerType::Grammar, from, length);
 }
 
+unsigned Internals::appliedGrammarTextEffectCount() const
+{
+    RefPtr document = contextDocument();
+    if (!document)
+        return 0;
+    return document->markers().appliedGrammarTextEffectCount();
+}
+
 bool Internals::isAlternativeTextUIActive() const
 {
     RefPtr document = contextDocument();

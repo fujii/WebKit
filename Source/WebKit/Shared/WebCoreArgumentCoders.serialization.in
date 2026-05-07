@@ -2170,6 +2170,7 @@ header: <WebCore/TextChecking.h>
     WebCore::CharacterRange range;
     Vector<String> guesses;
     String userDescription;
+    String uuid;
 };
 
 header: <WebCore/TextChecking.h>

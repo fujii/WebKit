@@ -68,12 +68,14 @@ struct GrammarDetail {
     CharacterRange range;
     Vector<String> guesses;
     String userDescription;
+    String uuid;
 
     GrammarDetail isolatedCopy() && {
         return {
             range,
             crossThreadCopy(WTF::move(guesses)),
-            WTF::move(userDescription).isolatedCopy()
+            WTF::move(userDescription).isolatedCopy(),
+            WTF::move(uuid).isolatedCopy()
         };
     }
 };

@@ -1547,6 +1547,8 @@ webkit.org/b/116473 editing/selection/user-drag-element-and-user-select-none.htm
 webkit.org/b/139862 editing/spelling/editing-multiple-words-with-markers.html [ Timeout Pass ]
 webkit.org/b/139903 editing/spelling/grammar-paste.html [ Timeout Pass ]
 
+editing/spelling/grammar-text-effect-not-reapplied.html [ Skip ]
+
 # This test will run slowly in debug mode, but is plenty fast in release.
 [ Debug ] js/slow-stress/emscripten-memops.html [ Skip ]
 
