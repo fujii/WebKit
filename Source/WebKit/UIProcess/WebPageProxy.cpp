@@ -6974,6 +6974,14 @@ void WebPageProxy::getRenderTreeExternalRepresentation(CompletionHandler<void(co
     sendWithAsyncReply(Messages::WebPage::GetRenderTreeExternalRepresentation(), WTF::move(callback));
 }
 
+void WebPageProxy::clearContentWorld(API::ContentWorld& world, CompletionHandler<void()>&& completionHandler)
+{
+    if (!hasRunningProcess())
+        return completionHandler();
+
+    sendWithAsyncReply(Messages::WebPage::ClearContentWorld(world.identifier()), WTF::move(completionHandler));
+}
+
 void WebPageProxy::getSourceForFrame(WebFrameProxy* frame, CompletionHandler<void(const String&)>&& callback)
 {
     if (!frame)
