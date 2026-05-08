@@ -1076,7 +1076,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/CSSFontFaceDescriptors.h
     css/CSSFontFaceRule.h
     css/CSSFontPaletteValuesRule.h
-    css/CSSGridIntegerRepeatValue.h
+    css/CSSGridTemplateListValue.h
     css/CSSGroupingRule.h
     css/CSSImportRule.h
     css/CSSKeywordValue.h
@@ -1099,7 +1099,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/CSSStyleProperties.h
     css/CSSStyleRule.h
     css/CSSStyleSheet.h
-    css/CSSSubgridValue.h
     css/CSSSubstitutionValue.h
     css/CSSToLengthConversionData.h
     css/CSSUnits.h
@@ -1187,8 +1186,15 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/color/CSSKeywordColor.h
     css/values/color/CSSResolvedColor.h
 
+    css/values/grid/CSSGridAutoFlow.h
+    css/values/grid/CSSGridLineNames.h
     css/values/grid/CSSGridNamedAreaMap.h
+    css/values/grid/CSSGridSubgrid.h
     css/values/grid/CSSGridTemplateAreas.h
+    css/values/grid/CSSGridTemplateList.h
+    css/values/grid/CSSGridTrackBreadth.h
+    css/values/grid/CSSGridTrackList.h
+    css/values/grid/CSSGridTrackSize.h
 
     css/values/images/CSSGradient.h
 
@@ -3286,6 +3292,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/grid/StyleFlowTolerance.h
     style/values/grid/StyleGridAutoFlow.h
+    style/values/grid/StyleGridLineNames.h
     style/values/grid/StyleGridNamedAreaMap.h
     style/values/grid/StyleGridNamedLinesMap.h
     style/values/grid/StyleGridOrderedNamedLinesMap.h

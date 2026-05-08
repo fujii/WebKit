@@ -98,6 +98,10 @@ inline constexpr auto NonnegativeUnzoomed = Range { 0, Range::infinity, RangeCla
 inline constexpr auto Positive = Range { 1, Range::infinity };
 inline constexpr auto PositiveUnzoomed = Range { 1, Range::infinity, RangeClampOptions::Default, RangeZoomOptions::Unzoomed };
 
+// Constant value for `[-∞,-1]`.
+inline constexpr auto Negative = Range { -Range::infinity, -1 };
+inline constexpr auto NegativeUnzoomed = Range { -Range::infinity, -1, RangeClampOptions::Default, RangeZoomOptions::Unzoomed };
+
 // Constant value for `[0,1]`.
 inline constexpr auto ClosedUnitRange = Range { 0, 1 };
 inline constexpr auto ClosedUnitRangeUnzoomed = Range { 0, 1, RangeClampOptions::Default, RangeZoomOptions::Unzoomed };
