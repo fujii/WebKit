@@ -3013,8 +3013,12 @@ static void handleYCombinatorQuirks(QuirksData& quirksData, const URL& quirksURL
 
 static void handleYahooQuirks(QuirksData& quirksData, const URL& /* quirksURL */, const String& /* quirksDomainString */, const URL& /* documentURL */)
 {
-    // yahoo.com: rdar://170502516
-    quirksData.enableQuirk(QuirksData::SiteSpecificQuirk::NeedsYahooVolumeSliderQuirk);
+    quirksData.enableQuirks({
+        // yahoo.com: rdar://170502516
+        QuirksData::SiteSpecificQuirk::NeedsYahooVolumeSliderQuirk,
+        // yahoo.com: rdar://136767005
+        QuirksData::SiteSpecificQuirk::ShouldAvoidStartingSelectionOnMouseDownOverPointerCursor,
+    });
 }
 
 #if ENABLE(TOUCH_EVENTS)
