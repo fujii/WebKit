@@ -199,6 +199,7 @@ set(WTF_PUBLIC_HEADERS
     MetaAllocatorHandle.h
     MmapSpan.h
     MonotonicTime.h
+    module.modulemap
     NakedPtr.h
     NativePromise.h
     NaturalLoops.h
@@ -240,6 +241,7 @@ set(WTF_PUBLIC_HEADERS
     PlatformCallingConventions.h
     PlatformCPU.h
     PlatformEnable.h
+    PlatformEnableCocoa.h
     PlatformHave.h
     PlatformLegacy.h
     PlatformOS.h
@@ -448,6 +450,8 @@ set(WTF_PUBLIC_HEADERS
     dtoa/utils.h
 
     fast_float/fast_float.h
+
+    ios/WebCoreThread.h
 
     persistence/PersistentCoders.h
     persistence/PersistentDecoder.h
@@ -835,6 +839,14 @@ WEBKIT_COPY_FILES(WTF_CopyHeaders
     DESTINATION ${WTF_FRAMEWORK_HEADERS_DIR}/wtf
     FILES ${WTF_PUBLIC_HEADERS}
 )
+
+if (NOT APPLE AND SWIFT_REQUIRED)
+    # module.modulemap has "umbrella spi" for the wtf.SPI submodule; Clang requires
+    # the umbrella directory to be non-empty or it fails with "cannot create includes file".
+    # Provide a stub header so the directory has at least one entry.
+    file(MAKE_DIRECTORY "${WTF_FRAMEWORK_HEADERS_DIR}/wtf/spi")
+    file(WRITE "${WTF_FRAMEWORK_HEADERS_DIR}/wtf/spi/wtf_spi_stub.h" "")
+endif ()
 
 WEBKIT_FRAMEWORK(WTF)
 
