@@ -1109,6 +1109,36 @@ void addLargeFreeHeapTests()
                  },
                  1));
 
+    ADD_TEST(testFastLargeFreeHeap(
+                 {
+                     Action::deallocate(1000, 100),
+                     Action::deallocate(3000, 200),
+                     Action::deallocate(2000, 400),
+                     Action::allocate(350, alignSimple(1), 2000),
+                     Action::allocate(150, alignSimple(1), 3000)
+                 },
+                 {
+                     Free(1000, 1100),
+                     Free(2350, 2400),
+                     Free(3150, 3200)
+                 },
+                 1));
+
+    ADD_TEST(testFastLargeFreeHeap(
+                 {
+                     Action::deallocate(1000, 100),
+                     Action::deallocate(3000, 1000),
+                     Action::deallocate(5000, 200),
+                     Action::deallocate(5200, 3000),
+                     Action::allocate(2000, alignSimple(1), 5000)
+                 },
+                 {
+                     Free(1000, 1100),
+                     Free(3000, 4000),
+                     Free(7000, 8200)
+                 },
+                 1));
+
     ADD_TEST(testBootstrapHeap({ }, { }, 1));
     ADD_TEST(testBootstrapHeap(
                  {
