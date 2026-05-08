@@ -162,6 +162,20 @@ void RenderLayer::paintForegroundChildrenForSVG(GraphicsContext& context, const 
     paintChildrenInDOMOrderForSVG(context, localPaintingInfo, paintFlags, layerFragments, paintBehavior, subtreePaintRoot);
 }
 
+RenderLayer::HitLayer RenderLayer::hitTestChildrenForSVG(RenderLayer* rootLayer, const HitTestRequest& request, HitTestResult& result, const LayoutRect& hitTestRect, const HitTestLocation& hitTestLocation, const HitTestingTransformState* transformState, double* zOffsetForDescendants)
+{
+    ASSERT(m_svgData);
+    ASSERT(!renderer().isRenderSVGForeignObject());
+
+    // RenderSVGRoot: viewport-clip points outside the SVG content box.
+    if (auto* svgRoot = dynamicDowncast<RenderSVGRoot>(renderer())) {
+        if (svgRoot->shouldApplyViewportClip() && !hitTestLocation.intersects(svgRoot->contentBoxRect()))
+            return { };
+    }
+
+    return hitTestChildrenInDOMOrderForSVG(rootLayer, request, result, hitTestRect, hitTestLocation, transformState, zOffsetForDescendants);
+}
+
 bool RenderLayer::shouldSkipRepaintAfterLayoutForSVG() const
 {
     ASSERT(m_svgData);
@@ -639,6 +653,134 @@ void RenderLayer::paintSubtreeWithinTransformScopeForSVG(GraphicsContext& contex
             child->paint(outlinePaintInfo, paintOffset);
         }
     }
+}
+
+RenderLayer::HitLayer RenderLayer::hitTestChildrenInDOMOrderForSVG(RenderLayer* rootLayer, const HitTestRequest& request, HitTestResult& result,
+    const LayoutRect& hitTestRect, const HitTestLocation& hitTestLocation, const HitTestingTransformState* transformState, double* zOffsetForDescendants)
+{
+    ASSERT(m_svgData);
+    auto& allChildren = childrenInDOMOrderForSVG();
+    if (allChildren.isEmpty())
+        return { };
+
+    CheckedPtr svgModelObject = dynamicDowncast<RenderSVGModelObject>(renderer());
+    LayoutSize svgOffset = svgModelObject ? toLayoutSize(svgModelObject->nominalSVGLayoutLocation()) : LayoutSize();
+
+    for (int i = allChildren.size() - 1; i >= 0; --i) {
+        auto& childToPaint = allChildren[i];
+
+        if (CheckedPtr childLayer = childToPaint.layer.get()) {
+            auto hitLayer = childLayer->hitTestLayer(rootLayer, this, request, result, hitTestRect, hitTestLocation, false, transformState, zOffsetForDescendants);
+            if (hitLayer.layer)
+                return hitLayer;
+            continue;
+        }
+
+        if (!childToPaint.phasesToPaint.contains(PaintPhase::Foreground))
+            continue;
+
+        CheckedPtr childRendererPtr = childToPaint.renderer.get();
+        if (!childRendererPtr)
+            continue;
+        CheckedRef childRenderer = *childRendererPtr;
+
+        if (childRenderer->isTransformed()) {
+            auto hitLayer = hitTestRendererByInversingTransformForSVG(childRenderer.get(), childToPaint.accumulatedAncestorOffset, rootLayer, request, result, hitTestRect, hitTestLocation, transformState, zOffsetForDescendants);
+            if (hitLayer.layer)
+                return hitLayer;
+            continue;
+        }
+
+        LayoutPoint accumulatedOffset(svgOffset);
+        accumulatedOffset += childToPaint.accumulatedAncestorOffset;
+
+        if (childRenderer->nodeAtPoint(request, result, hitTestLocation, accumulatedOffset, HitTestAction::Foreground))
+            return { this, 0 };
+    }
+
+    return { };
+}
+
+RenderLayer::HitLayer RenderLayer::hitTestRendererByInversingTransformForSVG(RenderElement& rendererToTest,
+    const LayoutSize& positionOffset, RenderLayer* rootLayer, const HitTestRequest& request, HitTestResult& result,
+    const LayoutRect& hitTestRect, const HitTestLocation& hitTestLocation,
+    const HitTestingTransformState* transformState, double* zOffsetForDescendants)
+{
+    auto transformResult = computeRendererTransformForSVG(rendererToTest, positionOffset);
+    if (!transformResult)
+        return { };
+
+    auto inverse = transformResult->transform.inverse();
+    if (!inverse)
+        return { };
+
+    auto localPoint = inverse->mapPoint(hitTestLocation.point());
+    auto localRect = enclosingLayoutRect(inverse->mapRect(FloatRect(hitTestRect)));
+
+    HitTestLocation localLocation { LayoutPoint { localPoint } };
+
+    if (rendererToTest.isRenderSVGContainer()) {
+        LayoutPoint accumulatedOffset;
+        if (auto* viewportContainer = dynamicDowncast<RenderSVGViewportContainer>(rendererToTest); !viewportContainer || !viewportContainer->isAnonymous()) {
+            if (auto* svgModel = dynamicDowncast<RenderSVGModelObject>(rendererToTest))
+                accumulatedOffset = svgModel->nominalSVGLayoutLocation();
+        }
+        return hitTestSubtreeWithinTransformScopeForSVG(rendererToTest, accumulatedOffset, rootLayer, request, result, localRect, localLocation, transformState, zOffsetForDescendants);
+    }
+
+    LayoutPoint accumulatedOffset;
+    if (CheckedPtr parentRenderer = rendererToTest.parent()) {
+        if (CheckedPtr parentSvgModel = dynamicDowncast<RenderSVGModelObject>(*parentRenderer))
+            accumulatedOffset = parentSvgModel->nominalSVGLayoutLocation();
+    }
+    if (rendererToTest.nodeAtPoint(request, result, localLocation, accumulatedOffset, HitTestAction::Foreground))
+        return { this, 0 };
+    return { };
+}
+
+RenderLayer::HitLayer RenderLayer::hitTestSubtreeWithinTransformScopeForSVG(RenderElement& container,
+    const LayoutPoint& accumulatedOffset, RenderLayer* rootLayer, const HitTestRequest& request, HitTestResult& result,
+    const LayoutRect& hitTestRect, const HitTestLocation& hitTestLocation,
+    const HitTestingTransformState* transformState, double* zOffsetForDescendants)
+{
+    for (CheckedPtr child = container.lastChild(); child; child = child->previousSibling()) {
+        CheckedPtr childElement = dynamicDowncast<RenderElement>(child.get());
+        if (!childElement)
+            continue;
+
+        if (childElement->isRenderSVGHiddenContainer() || childElement->style().display() == Style::DisplayType::None)
+            continue;
+
+        if (childElement->isTransformed()) {
+            if (auto hitLayer = hitTestRendererByInversingTransformForSVG(*childElement, toLayoutSize(accumulatedOffset), rootLayer, request, result, hitTestRect, hitTestLocation, transformState, zOffsetForDescendants); hitLayer.layer)
+                return hitLayer;
+            continue;
+        }
+
+        if (childElement->hasSelfPaintingLayer()) {
+            if (childElement->nodeAtPoint(request, result, hitTestLocation, accumulatedOffset, HitTestAction::Foreground))
+                return { this, 0 };
+            continue;
+        }
+
+        auto adjustedOffset = accumulatedOffset;
+        if (CheckedPtr childSvgModel = dynamicDowncast<RenderSVGModelObject>(*childElement))
+            adjustedOffset.moveBy(childSvgModel->currentSVGLayoutLocation());
+
+        if (childElement->isRenderSVGContainer()) {
+            if (CheckedPtr viewportContainer = dynamicDowncast<RenderSVGViewportContainer>(*childElement)) {
+                if (SVGRenderSupport::isOverflowHidden(*viewportContainer) && !viewportContainer->viewport().contains(hitTestLocation.point()))
+                    continue;
+            }
+            if (auto hitLayer = hitTestSubtreeWithinTransformScopeForSVG(*childElement, adjustedOffset, rootLayer, request, result, hitTestRect, hitTestLocation, transformState, zOffsetForDescendants); hitLayer.layer)
+                return hitLayer;
+        } else {
+            if (childElement->nodeAtPoint(request, result, hitTestLocation, accumulatedOffset, HitTestAction::Foreground))
+                return { this, 0 };
+        }
+    }
+
+    return { };
 }
 
 } // namespace WebCore
