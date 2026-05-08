@@ -54,7 +54,8 @@ void substituteBackreferences(StringBuilder& result, const String& replacement, 
 void substituteBackreferencesSlow(StringBuilder& result, StringView replacement, StringView source, const int* ovector, RegExp*, size_t firstDollarSignPosition);
 
 JSC_DECLARE_HOST_FUNCTION(stringProtoFuncRepeatCharacter);
-JSC_DECLARE_HOST_FUNCTION(stringProtoFuncSplitFast);
+JSC_DECLARE_HOST_FUNCTION(stringProtoFuncSplit);
+JSCell* stringSplitFast(JSGlobalObject*, JSString* thisString, JSString* separatorString, unsigned limit);
 JSC_DECLARE_HOST_FUNCTION(stringProtoFuncSubstring);
 
 JSC_DECLARE_HOST_FUNCTION(builtinStringIncludesInternal);
