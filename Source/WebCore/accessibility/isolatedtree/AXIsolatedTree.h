@@ -545,6 +545,17 @@ public:
     static bool anyTreeNeedsTearDown() { return s_anyTreeNeedsTearDown.load(std::memory_order_relaxed); }
     static void clearAnyTreeNeedsTearDown() { s_anyTreeNeedsTearDown.store(false, std::memory_order_relaxed); }
 
+    static bool shouldCacheIdentifierAttribute()
+    {
+#if !LOG_DISABLED
+        // Always cache the ID when logging is enabled to avoid
+        // main-thread hits when logging objects.
+        return true;
+#else
+        return AXObjectCache::clientIsInTestMode();
+#endif
+    }
+
     constexpr AXTreeID treeID() const { return m_id; }
     constexpr ProcessID processID() const { return m_processID; }
     void setPageActivityState(OptionSet<ActivityState>);

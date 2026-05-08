@@ -498,6 +498,8 @@ private:
     FloatRect convertFrameToSpace(const FloatRect&, AccessibilityConversionSpace) const final;
     void increment() final;
     void decrement() final;
+    void syncIncrement() final;
+    void syncDecrement() final;
     bool performDismissAction() final;
     void performDismissActionIgnoringResult() final;
     void scrollToMakeVisible() const final;
@@ -506,6 +508,7 @@ private:
     bool replaceTextInRange(const String&, const CharacterRange&) final;
     bool insertText(const String&) final;
     bool press() final;
+    bool syncPress() final;
 
     bool isAccessibilityObject() const final { return false; }
 

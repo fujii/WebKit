@@ -3551,8 +3551,9 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
             }
         }
 
-#if ENABLE(ACCESSIBILITY_ISOLATED_TREE) && !LOG_DISABLED
-        updateIsolatedTree(get(*element), AXNotification::IdAttributeChanged);
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+        if (AXIsolatedTree::shouldCacheIdentifierAttribute())
+            updateIsolatedTree(get(*element), AXNotification::IdAttributeChanged);
 #endif
     }
     else if (attrName == openAttr) {

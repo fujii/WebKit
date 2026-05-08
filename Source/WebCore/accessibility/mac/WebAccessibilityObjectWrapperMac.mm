@@ -3094,13 +3094,12 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_BEGIN
 
     if ([action isEqualToString:NSAccessibilityPressAction])
         [self accessibilityPerformPressAction];
-    else if ([action isEqualToString:NSAccessibilitySyncPressAction]) {
-        // Used in layout tests, so that we don't have to wait for the async press action.
-        [self _accessibilityPerformPressAction];
-    } else if ([action isEqualToString:NSAccessibilitySyncIncrementAction])
-        [self _accessibilityPerformIncrementAction];
+    else if ([action isEqualToString:NSAccessibilitySyncPressAction])
+        backingObject->syncPress();
+    else if ([action isEqualToString:NSAccessibilitySyncIncrementAction])
+        backingObject->syncIncrement();
     else if ([action isEqualToString:NSAccessibilitySyncDecrementAction])
-        [self _accessibilityPerformDecrementAction];
+        backingObject->syncDecrement();
     else if ([action isEqualToString:NSAccessibilityShowMenuAction])
         [self accessibilityPerformShowMenuAction];
     else if ([action isEqualToString:NSAccessibilityIncrementAction])

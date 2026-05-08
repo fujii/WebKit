@@ -2110,6 +2110,10 @@ IsolatedObjectData createIsolatedObjectData(const Ref<AccessibilityObject>& axOb
             setProperty(AXProperty::IsBlockFlow, true);
             setProperty(AXProperty::StitchGroups, object.stitchGroups());
         }
+
+        if (AXIsolatedTree::shouldCacheIdentifierAttribute())
+            setProperty(AXProperty::IdentifierAttribute, object.identifierAttribute().isolatedCopy());
+
         appendBasePlatformProperties(properties, propertyFlags, axObject);
 
 #if ENABLE_ACCESSIBILITY_LOCAL_FRAME
@@ -2167,11 +2171,6 @@ IsolatedObjectData createIsolatedObjectData(const Ref<AccessibilityObject>& axOb
         setProperty(AXProperty::ExplicitInvalidStatus, object.explicitInvalidStatus().isolatedCopy());
         setProperty(AXProperty::SupportsExpanded, object.supportsExpanded());
         setProperty(AXProperty::SortDirection, static_cast<int>(object.sortDirection()));
-#if !LOG_DISABLED
-        // Eagerly cache ID when logging is enabled so that we can log isolated objects without constant deadlocks.
-        // Don't cache ID when logging is disabled because we don't expect non-test AX clients to actually request it.
-        setProperty(AXProperty::IdentifierAttribute, object.identifierAttribute().isolatedCopy());
-#endif
         // FIXME: We never update AXProperty::SupportsDropping.
         setProperty(AXProperty::SupportsDropping, object.supportsDropping());
         setProperty(AXProperty::SupportsDragging, object.supportsDragging());
