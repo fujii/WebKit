@@ -3729,13 +3729,7 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computeSizingKe
             // trigger relayout, even if the height is currently indefinite.
             if (!isOrthogonal(*this, containingBlock) && !isGridItem())
                 view().addPercentHeightDescendant(const_cast<RenderBox&>(*this));
-            // For orthogonal children, the child's block axis maps to the parent's inline axis,
-            // which is always definite for block-level containers.
-            // For flex/grid items, the containing block gets its height from flex/grid
-            // layout which may not be reflected in hasDefiniteLogicalHeight() yet, but
-            // availableLogicalHeight()/gridAreaContentLogicalHeight() below will resolve
-            // it correctly.
-            if (!isOrthogonal(*this, containingBlock) && !containingBlock->isFlexItem() && !isGridItem() && !containingBlock->hasDefiniteLogicalHeight() && !containingBlock->stretchesToViewport())
+            if (!isGridItem() && !containingBlockHasDefiniteBlockSize())
                 return { };
 
             LayoutUnit available;
@@ -5207,7 +5201,28 @@ bool RenderBox::containingBlockHasDefiniteBlockSize() const
 {
     CheckedPtr containingBlock = this->containingBlock();
     ASSERT(containingBlock);
-    return isOrthogonal(*this, *containingBlock) || containingBlock->hasDefiniteLogicalHeight() || containingBlock->stretchesToViewport();
+
+    // Orthogonal children's block axis maps to the parent's inline axis, which is always definite.
+    if (isOrthogonal(*this, *containingBlock))
+        return true;
+
+    // The containing block has a directly resolvable height (fixed, percentage, etc.)
+    if (containingBlock->hasDefiniteLogicalHeight() || containingBlock->stretchesToViewport())
+        return true;
+
+    // hasDefiniteLogicalHeight() is timing-dependent for flex items: it returns false during
+    // "after main axis item sizing" because the overriding cross size hasn't been set yet.
+    // hasDefiniteCrossSizeForFlexItem() answers the same question based purely on style
+    // (container cross size is definite + item will be stretched).
+    // This only applies when the flex item's block axis is the cross axis (row flex).
+    // For column flex, the block axis is the main axis and hasDefiniteLogicalHeight()
+    // already gives the correct answer during that phase.
+    if (containingBlock->isFlexItem()) {
+        if (auto* flexContainer = dynamicDowncast<RenderFlexibleBox>(containingBlock->parent()))
+            return flexContainer->mainAxisIsFlexItemInlineAxis(*containingBlock) && flexContainer->hasDefiniteCrossSizeForFlexItem(*containingBlock);
+    }
+
+    return false;
 }
 
 bool RenderBox::shouldComputeLogicalHeightFromAspectRatio() const
