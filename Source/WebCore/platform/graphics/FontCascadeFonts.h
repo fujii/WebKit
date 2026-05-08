@@ -70,6 +70,7 @@ struct GlyphOverflow {
 struct GlyphGeometryCacheEntry {
     Markable<float> width;
     Markable<GlyphOverflow> glyphOverflow;
+    bool usedFallbackFonts { false };
 };
 
 namespace ShapedTextCacheDefaults {
