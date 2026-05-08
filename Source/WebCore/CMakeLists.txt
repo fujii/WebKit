@@ -3152,7 +3152,9 @@ endif ()
 # These files are very large and exhaust virtual memory on 32-bit ARM.
 if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
     set(DerivedSources_COMPILE_OPTIONS -O0 -DRELEASE_WITHOUT_OPTIMIZATIONS=ON)
-    set_source_files_properties(${WebCore_DERIVED_SOURCES_DIR}/JSDOMWindow.cpp PROPERTIES COMPILE_OPTIONS "${DerivedSources_COMPILE_OPTIONS}")
+    set_source_files_properties(${WebCore_DERIVED_SOURCES_DIR}/JSDOMWindow.cpp PROPERTIES
+        COMPILE_OPTIONS "${DerivedSources_COMPILE_OPTIONS}"
+        SKIP_PRECOMPILE_HEADERS ON)
 endif ()
 
 ADD_WEBKIT_PREFIX_HEADERS(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h)

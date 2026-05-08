@@ -1007,7 +1007,9 @@ if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
         GeneratedSerializersCommon
         WebKitPlatformGeneratedSerializers
     )
-        set_source_files_properties(${WebKit_DERIVED_SOURCES_DIR}/${GeneratedSerializers_BASENAME}.cpp PROPERTIES COMPILE_OPTIONS "${GeneratedSerializers_COMPILE_OPTIONS}")
+        set_source_files_properties(${WebKit_DERIVED_SOURCES_DIR}/${GeneratedSerializers_BASENAME}.cpp PROPERTIES
+            COMPILE_OPTIONS "${GeneratedSerializers_COMPILE_OPTIONS}"
+            SKIP_PRECOMPILE_HEADERS ON)
     endforeach ()
 endif ()
 
