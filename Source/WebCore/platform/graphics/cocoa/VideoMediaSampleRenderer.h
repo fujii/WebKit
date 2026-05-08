@@ -234,6 +234,8 @@ private:
     bool m_needsFlushing WTF_GUARDED_BY_CAPABILITY(mainThread) { false };
 
     MediaTime m_lastMinimumUpcomingPresentationTime WTF_GUARDED_BY_CAPABILITY(dispatcher().get()) { MediaTime::invalidTime() };
+    bool m_decoderIdledAtHighWaterMark WTF_GUARDED_BY_CAPABILITY(dispatcher().get()) { false };
+    bool m_hasReachedHighWatermark WTF_GUARDED_BY_CAPABILITY(dispatcher().get()) { false };
 
     // Playback Statistics
     std::atomic<unsigned> m_totalVideoFrames { 0 };

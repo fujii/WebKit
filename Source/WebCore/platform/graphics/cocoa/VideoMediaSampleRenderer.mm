@@ -78,7 +78,7 @@ static constexpr CMItemCount SampleQueueHighWaterMark = 30;
 static constexpr CMItemCount SampleQueueLowWaterMark = 15;
 
 static constexpr MediaTime DecodeLowWaterMark { 100, 1000 };
-static constexpr MediaTime DecodeHighWaterMark { 133, 1000 };
+static constexpr MediaTime DecodeHighWaterMark { 166, 1000 };
 
 static bool isRendererThreadSafe(WebSampleBufferVideoRendering *renderering)
 {
@@ -498,9 +498,19 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
     while (!m_compressedSampleQueue.isEmpty() && !m_isDecodingSample) {
         WebCoreDecompressionSession::DecodingFlags decodingFlags;
 
+        auto endTime = lastDecodedSampleTime();
+
         if (currentTime.isValid() && !m_wasProtected && !m_decompressionSessionWasBlocked) {
-            auto endTime = lastDecodedSampleTime();
+            // Hysteresis: once we stopped at the high watermark, stay idle
+            // until the decoded buffer drains below the low watermark.
+            if (m_decoderIdledAtHighWaterMark) {
+                if (endTime.isValid() && endTime >= lowWaterMarkTime)
+                    return;
+                m_decoderIdledAtHighWaterMark = false;
+            }
+
             if (endTime.isValid() && endTime > highWaterMarkTime) {
+                m_hasReachedHighWatermark = true;
                 const auto& [sample, upcomingMinimumOpt, flushId, blocked] = m_compressedSampleQueue.first();
                 if (upcomingMinimumOpt) {
                     auto upcomingMinimum = std::min(sample->presentationTime(), *upcomingMinimumOpt);
@@ -511,6 +521,7 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
                             LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded currentTime:%0.2f expectMinimumUpcomingSampleBufferPresentationTime:%0.2f decoded queued:%zu upcoming:%zu high watermark reached", currentTime.toDouble(), m_lastMinimumUpcomingPresentationTime.toDouble(), decodedSamplesCount(), compressedSamplesCount());
                             [rendererOrDisplayLayer() expectMinimumUpcomingSampleBufferPresentationTime:PAL::toCMTime(m_lastMinimumUpcomingPresentationTime)];
                         }
+                        m_decoderIdledAtHighWaterMark = true;
                         return;
                     }
                     DEBUG_LOG(LOGIDENTIFIER, "Out of order frames detected, forcing extra decode");
@@ -519,14 +530,11 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
                 // later-arriving B-frame could have a lower PTS and would be
                 // rejected by the renderer. Fall through and keep decoding.
             }
-            if (endTime.isValid() && endTime >= lowWaterMarkTime && playbackRate > 0.9 && playbackRate < 1.1) {
-                LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded expectMinimumUpcomingSampleBufferPresentationTime:%0.2f decoded queued:%zu upcoming:%zu currentTime:%0.2f endTime:%0.2f low:%0.2f high:%0.2f low watermark reached", m_lastMinimumUpcomingPresentationTime.toDouble(), decodedSamplesCount(), compressedSamplesCount(), currentTime.toDouble(), endTime.toDouble(), lowWaterMarkTime.toDouble(), highWaterMarkTime.toDouble());
-                decodingFlags.add(WebCoreDecompressionSession::DecodingFlag::RealTime);
-            }
         }
 
         auto [sample, upcomingMinimumOpt, flushId, blocked] = m_compressedSampleQueue.takeFirst();
         m_compressedSamplesCount = m_compressedSampleQueue.size();
+
         maybeBecomeReadyForMoreMediaData();
 
         if (flushId != m_flushId) {
@@ -559,6 +567,21 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
             decodingFlags.add(WebCoreDecompressionSession::DecodingFlag::NonDisplaying);
         if (useStereoDecoding())
             decodingFlags.add(WebCoreDecompressionSession::DecodingFlag::EnableStereo);
+        // Mirror AVF's RealTime policy. On iOS-family the flag is set
+        // whenever we're in normal 1x playback and the sample is displaying.
+        // On macOS it is additionally suppressed during the
+        // kVMC2DecayingFromHighWaterLevel state: we have previously crossed
+        // the high watermark at least once since the last flush, and the
+        // decoded buffer has since drained below the low watermark.
+#if PLATFORM(MAC)
+        bool suppressRealTime = m_hasReachedHighWatermark && endTime.isValid() && endTime < lowWaterMarkTime;
+#else
+        bool suppressRealTime = false;
+#endif
+        if (currentTime.isValid() && !sample->isNonDisplaying() && playbackRate > 0.9 && playbackRate < 1.1 && !suppressRealTime) {
+            LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded RealTime set currentTime:%0.2f endTime:%0.2f low:%0.2f high:%0.2f reachedHigh:%d", currentTime.toDouble(), endTime.toDouble(), lowWaterMarkTime.toDouble(), highWaterMarkTime.toDouble(), m_hasReachedHighWatermark);
+            decodingFlags.add(WebCoreDecompressionSession::DecodingFlag::RealTime);
+        }
 
         RetainPtr cmSample = sample->platformSample().cmSampleBuffer();
         auto decodePromise = decompressionSession->decodeSample(cmSample.get(), decodingFlags);
@@ -748,6 +771,8 @@ void VideoMediaSampleRenderer::flushDecodedSampleQueue()
     m_lastDisplayedTime.reset();
     m_isDisplayingSample = false;
     m_lastMinimumUpcomingPresentationTime = MediaTime::invalidTime();
+    m_decoderIdledAtHighWaterMark = false;
+    m_hasReachedHighWatermark = false;
 }
 
 void VideoMediaSampleRenderer::cancelTimer()
