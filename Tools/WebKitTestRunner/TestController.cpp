@@ -4628,14 +4628,6 @@ static void genericVoidCallback(void* userData)
     context->testController.notifyDone();
 }
 
-void TestController::clearServiceWorkerRegistrations()
-{
-    GenericVoidContext context(*this);
-
-    WKWebsiteDataStoreRemoveAllServiceWorkerRegistrations(websiteDataStore(), &context, genericVoidCallback);
-    runUntil(context.done, noTimeout);
-}
-
 struct ClearDOMCacheCallbackContext {
     explicit ClearDOMCacheCallbackContext(TestController& controller)
         : testController(controller)
@@ -4693,20 +4685,6 @@ static void StorageVoidCallback(void* userData)
     auto* context = static_cast<StorageVoidCallbackContext*>(userData);
     context->done = true;
     context->testController.notifyDone();
-}
-
-void TestController::clearIndexedDatabases()
-{
-    StorageVoidCallbackContext context(*this);
-    WKWebsiteDataStoreRemoveAllIndexedDatabases(websiteDataStore(), &context, StorageVoidCallback);
-    runUntil(context.done, noTimeout);
-}
-
-void TestController::clearLocalStorage()
-{
-    StorageVoidCallbackContext context(*this);
-    WKWebsiteDataStoreRemoveLocalStorage(websiteDataStore(), &context, StorageVoidCallback);
-    runUntil(context.done, noTimeout);
 }
 
 void TestController::syncLocalStorage()

@@ -342,11 +342,7 @@ public:
 
     void removeAllSessionCredentials(CompletionHandler<void(WKTypeRef)>&&);
 
-    void clearIndexedDatabases();
-    void clearLocalStorage();
     void syncLocalStorage();
-
-    void clearServiceWorkerRegistrations();
 
     void clearMemoryCache();
     void clearDOMCache(WKStringRef origin);
