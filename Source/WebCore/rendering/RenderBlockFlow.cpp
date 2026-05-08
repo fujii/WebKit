@@ -1279,24 +1279,37 @@ void RenderBlockFlow::adjustOutOfFlowBlock(RenderBox& child, const MarginInfo& m
 {
     bool isHorizontal = isHorizontalWritingMode();
     bool hasStaticBlockPosition = child.style().hasStaticBlockPosition(isHorizontal);
-    
-    LayoutUnit logicalTop = logicalHeight();
-    updateStaticInlinePositionForChild(child, logicalTop);
 
-    if (!marginInfo.canCollapseWithMarginBefore()) {
-        // Positioned blocks don't collapse margins, so add the margin provided by
-        // the container now. The child's own margin is added later when calculating its logical top.
-        LayoutUnit collapsedBeforePos = marginInfo.positiveMargin();
-        LayoutUnit collapsedBeforeNeg = marginInfo.negativeMargin();
-        logicalTop += collapsedBeforePos - collapsedBeforeNeg;
+    LayoutUnit blockPosition = 0;
+    LayoutUnit inlinePosition = 0;
+
+    // https://drafts.csswg.org/css-position-3/#staticpos-rect
+    // > Boxes in the top layer always use the initial containing block as their static-position rectangle.
+    // In other cases, we compute the static position as usual.
+    if (RefPtr element = child.element(); !(element && element->isInTopLayer())) [[likely]] {
+        blockPosition = logicalHeight();
+        if (!marginInfo.canCollapseWithMarginBefore()) {
+            // Positioned blocks don't collapse margins, so add the margin provided by
+            // the container now. The child's own margin is added later when calculating its logical top.
+            LayoutUnit collapsedBeforePos = marginInfo.positiveMargin();
+            LayoutUnit collapsedBeforeNeg = marginInfo.negativeMargin();
+            blockPosition += collapsedBeforePos - collapsedBeforeNeg;
+        }
+
+        if (child.style().originalDisplay().isInlineType())
+            inlinePosition = staticInlinePositionForOriginalDisplayInline(blockPosition);
+        else
+            inlinePosition = startOffsetForContent();
     }
 
     CheckedPtr childLayer = child.layer();
-    if (childLayer->staticBlockPosition() != logicalTop) {
-        childLayer->setStaticBlockPosition(logicalTop);
+    if (childLayer->staticBlockPosition() != blockPosition) {
+        childLayer->setStaticBlockPosition(blockPosition);
         if (hasStaticBlockPosition)
             child.setChildNeedsLayout(MarkingBehavior::MarkOnlyThis);
     }
+
+    setStaticInlinePositionForChild(child, inlinePosition);
 }
 
 void RenderBlockFlow::determineLogicalLeftPositionForChild(RenderBox& child, ApplyLayoutDeltaMode applyDelta)
@@ -1350,14 +1363,6 @@ void RenderBlockFlow::adjustFloatingBlock(const MarginInfo& marginInfo)
     setLogicalHeight(logicalHeight() + marginOffset);
     positionNewFloats();
     setLogicalHeight(logicalHeight() - marginOffset);
-}
-
-void RenderBlockFlow::updateStaticInlinePositionForChild(RenderBox& child, LayoutUnit logicalTop)
-{
-    if (child.style().originalDisplay().isInlineType())
-        setStaticInlinePositionForChild(child, staticInlinePositionForOriginalDisplayInline(logicalTop));
-    else
-        setStaticInlinePositionForChild(child, startOffsetForContent());
 }
 
 void RenderBlockFlow::setStaticInlinePositionForChild(RenderBox& child, LayoutUnit inlinePosition)
