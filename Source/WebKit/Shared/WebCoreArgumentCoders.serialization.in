@@ -7984,7 +7984,7 @@ using WebCore::RiceSocket = std::pair<String, WebCore::RTCIceProtocol>;
 };
 #endif
 
-headers: <JavaScriptCore/WasmModule.h> <WebCore/ImageBitmap.h> <WebCore/MessagePort.h> <WebCore/OffscreenCanvas.h>
+headers: <JavaScriptCore/WasmModule.h> <WebCore/ImageBitmap.h> <WebCore/MessagePort.h> <WebCore/OffscreenCanvas.h> <WebCore/SerializedScriptValue.h> <WebCore/SerializedScriptValueInternals.h>
 [Nested] class WebCore::SerializedScriptValue::Internals {
     Vector<uint8_t> data;
     std::unique_ptr<Vector<JSC::ArrayBufferContents>> arrayBufferContentsArray;
@@ -8028,7 +8028,7 @@ headers: <JavaScriptCore/WasmModule.h> <WebCore/ImageBitmap.h> <WebCore/MessageP
 };
 
 [RefCounted] class WebCore::SerializedScriptValue {
-    WebCore::SerializedScriptValue::Internals m_internals;
+    std::unique_ptr<WebCore::SerializedScriptValueInternals> m_internals;
 };
 
 header: <WebCore/SharedBuffer.h>

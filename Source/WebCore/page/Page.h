@@ -46,18 +46,12 @@
 #include <WebCore/Supplementable.h>
 #include <WebCore/Timer.h>
 #include <WebCore/UserInterfaceLayoutDirection.h>
-#include <memory>
 #include <pal/SessionID.h>
-#include <wtf/Assertions.h>
 #include <wtf/CheckedPtr.h>
-#include <wtf/Forward.h>
 #include <wtf/Function.h>
 #include <wtf/HashSet.h>
 #include <wtf/Noncopyable.h>
-#include <wtf/OptionSet.h>
-#include <wtf/Platform.h>
 #include <wtf/ProcessID.h>
-#include <wtf/Ref.h>
 #include <wtf/RefCountedAndCanMakeWeakPtr.h>
 #include <wtf/RobinHoodHashSet.h>
 #include <wtf/TZoneMalloc.h>
@@ -65,7 +59,6 @@
 #include <wtf/UniqueRef.h>
 #include <wtf/WeakHashMap.h>
 #include <wtf/WeakHashSet.h>
-#include <wtf/WeakPtr.h>
 #include <wtf/text/WTFString.h>
 
 #if ENABLE(APPLICATION_MANIFEST)

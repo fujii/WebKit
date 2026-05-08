@@ -32,11 +32,9 @@
 #include <WebCore/SecurityContext.h>
 #include <WebCore/ServiceWorkerIdentifier.h>
 #include <WebCore/Timer.h>
-#include <wtf/Forward.h>
 #include <wtf/Function.h>
 #include <wtf/HashSet.h>
 #include <wtf/ListHashSet.h>
-#include <wtf/ObjectIdentifier.h>
 #include <wtf/ThreadSafeWeakHashSet.h>
 #include <wtf/WeakHashSet.h>
 #include <wtf/text/WTFString.h>

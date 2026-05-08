@@ -22,10 +22,7 @@
 #pragma once
 
 #include <WebCore/JSDOMGlobalObject.h>
-#include <wtf/Compiler.h>
-#include <wtf/Forward.h>
 #include <wtf/WeakHashSet.h>
-#include <wtf/WeakPtr.h>
 
 namespace WebCore {
 

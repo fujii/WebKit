@@ -26,15 +26,11 @@
 #pragma once
 
 #include <WebCore/ThreadTimers.h>
-#include <functional>
 #include <wtf/AbstractCanMakeCheckedPtr.h>
-#include <wtf/CheckedRef.h>
-#include <wtf/CompactRefPtrTuple.h>
 #include <wtf/CurrentThread.h>
 #include <wtf/Function.h>
 #include <wtf/MonotonicTime.h>
 #include <wtf/Noncopyable.h>
-#include <wtf/Platform.h>
 #include <wtf/RunLoop.h>
 #include <wtf/Seconds.h>
 #include <wtf/TZoneMalloc.h>

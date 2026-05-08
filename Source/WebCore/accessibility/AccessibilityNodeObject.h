@@ -41,6 +41,8 @@ namespace WebCore {
 class AXObjectCache;
 class Element;
 class HTMLLabelElement;
+class HTMLMediaElement;
+class HTMLVideoElement;
 class Node;
 
 class AccessibilityNodeObject : public AccessibilityObject {

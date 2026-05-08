@@ -42,6 +42,8 @@
 #include "EventLoop.h"
 #include "FloatQuad.h"
 #include "FrameDestructionObserverInlines.h"
+#include "HTMLElement.h"
+#include "HTMLTextFormControlElement.h"
 #include "LocalFrameInlines.h"
 #include "LocalFrameView.h"
 #include "Page.h"

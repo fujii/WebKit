@@ -40,6 +40,7 @@
 #include "MutableStyleProperties.h"
 #include "PositionInlines.h"
 #include "Text.h"
+#include "TextIterator.h"
 #include "TextListParser.h"
 #include "VisibleUnits.h"
 #include <wtf/text/StringToIntegerConversion.h>

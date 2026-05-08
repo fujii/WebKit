@@ -29,7 +29,6 @@
 #include <wtf/Assertions.h>
 #include <wtf/CurrentThread.h>
 #include <wtf/HashMap.h>
-#include <wtf/MainThread.h>
 #include <wtf/text/ASCIILiteral.h>
 
 namespace WebCore {

@@ -830,6 +830,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     accessibility/AXNotifications.h
     accessibility/AXObjectCache.h
     accessibility/AXObjectCacheInlines.h
+    accessibility/AXObjectTypes.h
     accessibility/AXObjectRareData.h
     accessibility/AXRemoteFrame.h
     accessibility/AXSearchManager.h
@@ -972,6 +973,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     bindings/js/ScriptWrappable.h
     bindings/js/ScriptWrappableInlines.h
     bindings/js/SerializedScriptValue.h
+    bindings/js/SerializedScriptValueInternals.h
     bindings/js/StringAdaptors.h
     bindings/js/WebAssemblyCachedScriptSourceProvider.h
     bindings/js/WebAssemblyScriptSourceCode.h

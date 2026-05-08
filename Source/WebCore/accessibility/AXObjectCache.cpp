@@ -983,6 +983,30 @@ AccessibilityObject* AXObjectCache::exportedGetOrCreate(Node& node)
     return getOrCreate(node, IsPartOfRelation::No);
 }
 
+Document* AXObjectCache::document() const
+{
+    return m_document.get();
+}
+
+AccessibilityObject* AXObjectCache::get(Node& node) const
+{
+    if (CheckedPtr document = dynamicDowncast<Document>(node)) [[unlikely]]
+        return get(document->renderView());
+    return m_nodeObjectMapping.get(node);
+}
+
+std::optional<AXID> AXObjectCache::getAXID(RenderObject& renderer) const
+{
+    if (auto* node = renderer.node())
+        return m_nodeIdMapping.getOptional(*node);
+    return m_renderObjectIdMapping.getOptional(const_cast<RenderObject&>(renderer));
+}
+
+void AXObjectCache::onLaidOutInlineContent(const RenderBlockFlow& renderBlock)
+{
+    setDirtyStitchGroups(renderBlock);
+}
+
 AccessibilityObject* AXObjectCache::getOrCreate(Widget& widget)
 {
     if (RefPtr object = get(widget))

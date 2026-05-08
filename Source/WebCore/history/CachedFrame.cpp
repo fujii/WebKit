@@ -26,6 +26,7 @@
 #include "config.h"
 #include "CachedFrame.h"
 
+#include "ActiveDOMObject.h"
 #include "BackForwardCache.h"
 #include "CachedFramePlatformData.h"
 #include "CachedPage.h"

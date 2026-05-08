@@ -75,6 +75,7 @@
 #include "StyleTransformFunction.h"
 #include "StyleTransformResolver.h"
 #include "WebAnimationUtilities.h"
+#include "WritingMode.h"
 
 namespace WebCore {
 namespace Style {

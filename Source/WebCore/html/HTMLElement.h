@@ -24,7 +24,6 @@
 
 #include <WebCore/HTMLNames.h>
 #include <WebCore/StyledElement.h>
-#include <wtf/Platform.h>
 
 namespace WebCore {
 

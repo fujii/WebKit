@@ -33,13 +33,11 @@
 
 #pragma once
 
-#include <cassert>
 #include <cmath>
+#include <compare>
 #include <cstdint>
-#include <cstring>
 #include <iosfwd>
 #include <limits>
-#include <utility>
 #include <wtf/ExportMacros.h>
 #include <wtf/Platform.h>
 

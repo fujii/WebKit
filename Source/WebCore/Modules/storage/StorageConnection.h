@@ -26,6 +26,7 @@
 #pragma once
 
 #include <WebCore/FileSystemHandleIdentifier.h>
+#include <WebCore/FileSystemStorageConnection.h>
 #include <WebCore/StorageEstimate.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/ThreadSafeWeakPtr.h>

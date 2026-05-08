@@ -26,9 +26,6 @@
 #pragma once
 
 #include <WebCore/WebCoreLogDefinitions.h>
-#include <wtf/Assertions.h>
-#include <wtf/Forward.h>
-#include <wtf/StdLibExtras.h>
 
 #define COMMA() ,
 #define OPTIONAL_ARGS(...) __VA_OPT__(COMMA() SAFE_PRINTF_TYPE(__VA_ARGS__))

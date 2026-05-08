@@ -29,12 +29,10 @@
 
 #include <WebCore/GainMap.h>
 #include <WebCore/ImageTypes.h>
-#include <WebCore/PlatformExportMacros.h>
 #include <WebCore/PlatformImage.h>
 #include <WebCore/RenderingResource.h>
 #include <wtf/CheckedRef.h>
 #include <wtf/TZoneMalloc.h>
-#include <wtf/UniqueRef.h>
 
 #if USE(SKIA)
 class GrDirectContext;

@@ -28,8 +28,6 @@
 
 #include <WebCore/ContextDestructionObserver.h>
 #include <WebCore/TaskSource.h>
-#include <wtf/AbstractRefCounted.h>
-#include <wtf/Assertions.h>
 #include <wtf/CancellableTask.h>
 #include <wtf/CurrentThread.h>
 #include <wtf/Forward.h>
