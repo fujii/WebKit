@@ -1468,7 +1468,6 @@ http/tests/webgpu/webgpu/shader/execution/expression/call/builtin/refract.html [
 # test output is out of order
 http/tests/webgpu/webgpu/shader/validation/decl/context_dependent_resolution.html [ Skip ]
 http/tests/webgpu/webgpu/shader/validation/expression/binary/add_sub_mul.html [ Skip ]
-http/tests/webgpu/webgpu/shader/validation/expression/binary/div_rem.html [ Skip ]
 http/tests/webgpu/webgpu/shader/validation/expression/binary/bitwise_shift.html [ Skip ]
 http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/dot.html [ Skip ]
 http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/extractBits.html [ Skip ]
