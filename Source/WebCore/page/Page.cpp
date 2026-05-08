@@ -4895,7 +4895,8 @@ OptionSet<FilterRenderingMode> Page::preferredFilterRenderingModes(const Graphic
 #if !HAVE(FIX_FOR_RADAR_104392017)
     if (context.renderingMode() == RenderingMode::Accelerated || !context.knownToHaveFloatBasedBacking()) {
 #endif
-        if (!context.hasDropShadow() && settings().graphicsContextFiltersEnabled())
+        // FIXME: Remove the RenderingMode::PDFDocument check once CG applies filters correctly on PDF contexts (rdar://176473171).
+        if (!context.hasDropShadow() && context.renderingMode() != RenderingMode::PDFDocument && settings().graphicsContextFiltersEnabled())
             modes.add(FilterRenderingMode::GraphicsContext);
 #if !HAVE(FIX_FOR_RADAR_104392017)
     }
