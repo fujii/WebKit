@@ -1812,8 +1812,11 @@ constexpr Seconds BoundingBoxTimeout = 25_ms;
 constexpr Seconds GeneralPropertyTimeout = 25_ms;
 constexpr Seconds VisibilityCheckTimeout = 50_ms;
 constexpr Seconds SpellCheckTimeout = 100_ms;
+constexpr Seconds LineRectsAndTextTimeout = 100_ms;
+constexpr Seconds TextMarkerForBoundsTimeout = 100_ms;
 constexpr Seconds InteractiveTimeout = 250_ms;
 constexpr Seconds ImageDataTimeout = 250_ms;
+constexpr Seconds PluginTimeout = 500_ms;
 
 template<typename U>
 inline DidTimeout performFunctionOnMainThreadAndWaitWithTimeout(U&& lambda, Seconds timeout)

@@ -56,6 +56,8 @@ public:
     static Ref<AXIsolatedObject> create(IsolatedObjectData&&);
     ~AXIsolatedObject();
 
+    RefPtr<AXIsolatedObject> approximateHitTest(const IntPoint&) const;
+
     std::optional<AXTreeID> treeID() const final { return tree().treeID(); }
     String debugDescriptionInternal(bool, std::optional<OptionSet<AXDebugStringOption>> = std::nullopt) const final;
 
@@ -130,8 +132,6 @@ private:
     AXIsolatedObject(IsolatedObjectData&&);
     bool isAXIsolatedObjectInstance() const final { return true; }
     AccessibilityObject* associatedAXObject() const;
-
-    RefPtr<AXIsolatedObject> approximateHitTest(const IntPoint&) const;
 
     void setProperty(AXProperty, AXPropertyValueVariant&&);
     void setPropertyInVector(AXProperty property, AXPropertyValueVariant&& value)
