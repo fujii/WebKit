@@ -168,8 +168,11 @@ private:
 
     class GlyphPageCacheEntry {
     public:
-        GlyphPageCacheEntry() = default;
+        GlyphPageCacheEntry();
         GlyphPageCacheEntry(RefPtr<GlyphPage>&&);
+        GlyphPageCacheEntry(GlyphPageCacheEntry&&) = default;
+        GlyphPageCacheEntry& operator=(GlyphPageCacheEntry&&) = default;
+        ~GlyphPageCacheEntry();
 
         GlyphData glyphDataForCharacter(char32_t);
 

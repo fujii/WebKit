@@ -76,6 +76,9 @@ inline FontCascadeFonts::GlyphPageCacheEntry::GlyphPageCacheEntry(RefPtr<GlyphPa
 {
 }
 
+FontCascadeFonts::GlyphPageCacheEntry::GlyphPageCacheEntry() = default;
+FontCascadeFonts::GlyphPageCacheEntry::~GlyphPageCacheEntry() = default;
+
 GlyphData FontCascadeFonts::GlyphPageCacheEntry::glyphDataForCharacter(char32_t character)
 {
     ASSERT(!(m_singleFont && m_mixedFont));
