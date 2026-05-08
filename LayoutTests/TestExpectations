@@ -2535,6 +2535,8 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/empty-src-no-current-request.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/relevant-mutations-lazy.html [ Pass Failure ]
 
+webkit.org/b/314302 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/update-the-image-data/lazy-out-of-band-load.html [ Pass Failure ]
+
 # Imported Mozilla SVG tests
 webkit.org/b/32177 imported/mozilla/svg/as-image/background-image-rect-1png.html [ ImageOnlyFailure ]
 webkit.org/b/32177 imported/mozilla/svg/as-image/background-image-rect-2.html [ ImageOnlyFailure ]
@@ -3740,6 +3742,8 @@ webkit.org/b/177799,webkit.org/b/290781 accessibility/table-detection.html [ Pas
 webkit.org/b/291984 [ Debug ] accessibility/roles-computedRoleString.html [ Timeout ]
 
 webkit.org/b/179069 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/sandbox_032.htm [ Pass Failure ]
+
+webkit.org/b/314297 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe-loading-lazy-nav-location-replace-set-src.html [ Pass Failure ]
 
 http/tests/privateClickMeasurement [ Skip ]
 
@@ -6559,8 +6563,6 @@ webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/collapsed-bor
 webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-as-item-cell-percentage-001.html [ ImageOnlyFailure ]
 webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-as-item-cell-percentage-003.html [ ImageOnlyFailure ]
 webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-as-item-cell-percentage-004.html [ ImageOnlyFailure ]
-webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-intrinsic-size-003.html [ ImageOnlyFailure ]
-webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-intrinsic-size-004.html [ ImageOnlyFailure ]
 webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/visibility-collapse-border-spacing-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/html5-table-formatting-3.html [ Pass Failure ]
 
