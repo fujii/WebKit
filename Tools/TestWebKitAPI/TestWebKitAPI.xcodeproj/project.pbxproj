@@ -173,7 +173,6 @@
 				"\"${SCRIPT_INPUT_FILE_0}\"",
 				"",
 				"",
-				"",
 			);
 		};
 /* End PBXBuildRule section */
@@ -705,6 +704,7 @@
 				WebCore/CBORWriterTest.cpp,
 				WebCore/cocoa/AudioStreamDescriptionCocoa.mm,
 				WebCore/cocoa/AudioVideoRendererAVFObjCTests.mm,
+				WebCore/cocoa/WebCoreDecompressionSessionTests.mm,
 				WebCore/cocoa/AVFoundationSoftLinkTest.mm,
 				WebCore/cocoa/BifurcatedGraphicsContextTestsCG.cpp,
 				WebCore/cocoa/CaptionPreferencesTests.mm,
@@ -724,7 +724,6 @@
 				WebCore/cocoa/TestGraphicsContextGLCocoa.mm,
 				WebCore/cocoa/TestUTIRegistry.cpp,
 				WebCore/cocoa/TestUTIUtilities.cpp,
-				WebCore/cocoa/WebCoreDecompressionSessionTests.mm,
 				WebCore/cocoa/WebCoreNSURLSession.mm,
 				WebCore/cocoa/XMLParsing.mm,
 				WebCore/ColorTests.cpp,
@@ -1186,7 +1185,6 @@
 				WTF/FileSystem.cpp,
 				WTF/FixedBitVector.cpp,
 				WTF/FixedVector.cpp,
-				WTF/FormattedLogging.cpp,
 				WTF/Function.cpp,
 				WTF/GenerationalSet.cpp,
 				WTF/HashCountedSet.cpp,

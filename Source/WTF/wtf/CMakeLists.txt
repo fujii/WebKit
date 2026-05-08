@@ -109,7 +109,6 @@ set(WTF_PUBLIC_HEADERS
     FlipBytes.h
     Float16.h
     ForbidHeapAllocation.h
-    FormattedLogging.h
     Forward.h
     Function.h
     FunctionDispatcher.h
