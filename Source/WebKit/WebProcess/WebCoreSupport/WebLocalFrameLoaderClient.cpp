@@ -1096,16 +1096,6 @@ void WebLocalFrameLoaderClient::broadcastFrameTreeSyncDataToOtherProcesses(const
     WebFrameLoaderClient::broadcastFrameTreeSyncDataToOtherProcesses(data);
 }
 
-void WebLocalFrameLoaderClient::didNotifyUserActivation(MonotonicTime activationTime)
-{
-    WebFrameLoaderClient::didNotifyUserActivation(activationTime);
-}
-
-void WebLocalFrameLoaderClient::didConsumeUserActivation()
-{
-    WebFrameLoaderClient::didConsumeUserActivation();
-}
-
 void WebLocalFrameLoaderClient::cancelPolicyCheck()
 {
     m_frame->invalidatePolicyListeners();

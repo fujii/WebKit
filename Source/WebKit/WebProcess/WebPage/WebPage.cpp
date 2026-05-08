@@ -269,7 +269,6 @@
 #include <WebCore/JSNode.h>
 #include <WebCore/KeyboardEvent.h>
 #include <WebCore/LegacySchemeRegistry.h>
-#include <WebCore/LocalDOMWindow.h>
 #include <WebCore/LocalFrameInlines.h>
 #include <WebCore/LocalFrameView.h>
 #include <WebCore/LocalizedStrings.h>
@@ -1361,34 +1360,6 @@ void WebPage::allFrameTreeSyncDataChangedInAnotherProcess(FrameIdentifier frameI
     RefPtr coreFrame = frame->coreFrame();
     if (coreFrame)
         coreFrame->updateFrameTreeSyncData(WTF::move(data));
-}
-
-void WebPage::updateUserActivationTimestamps(const Vector<FrameIdentifier>& frameIDs, MonotonicTime activationTime)
-{
-    for (auto frameID : frameIDs) {
-        RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
-        if (!webFrame || webFrame->page() != this)
-            continue;
-        RefPtr localFrame = webFrame->coreLocalFrame();
-        if (!localFrame)
-            continue;
-        if (RefPtr window = localFrame->window())
-            window->setLastActivationTimestamp(activationTime);
-    }
-}
-
-void WebPage::consumeUserActivations(const Vector<FrameIdentifier>& frameIDs)
-{
-    for (auto frameID : frameIDs) {
-        RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
-        if (!webFrame || webFrame->page() != this)
-            continue;
-        RefPtr localFrame = webFrame->coreLocalFrame();
-        if (!localFrame)
-            continue;
-        if (RefPtr window = localFrame->window())
-            window->consumeLastActivationIfNecessary();
-    }
 }
 
 #if ENABLE(GPU_PROCESS)

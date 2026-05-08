@@ -83,9 +83,6 @@ protected:
     void broadcastAllFrameTreeSyncDataToOtherProcesses(WebCore::FrameTreeSyncData&);
     void broadcastFrameTreeSyncDataToOtherProcesses(const WebCore::FrameTreeSyncSerializationData&);
 
-    void didNotifyUserActivation(MonotonicTime);
-    void didConsumeUserActivation();
-
     const Ref<WebFrame> m_frame;
     ScopeExit<Function<void()>> m_frameInvalidator;
 };

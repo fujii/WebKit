@@ -229,16 +229,6 @@ void WebRemoteFrameClient::broadcastFrameTreeSyncDataToOtherProcesses(const Fram
     WebFrameLoaderClient::broadcastFrameTreeSyncDataToOtherProcesses(data);
 }
 
-void WebRemoteFrameClient::didNotifyUserActivation(MonotonicTime activationTime)
-{
-    WebFrameLoaderClient::didNotifyUserActivation(activationTime);
-}
-
-void WebRemoteFrameClient::didConsumeUserActivation()
-{
-    WebFrameLoaderClient::didConsumeUserActivation();
-}
-
 void WebRemoteFrameClient::applyWebsitePolicies(WebsitePoliciesData&& websitePolicies)
 {
     RefPtr coreFrame = m_frame->coreRemoteFrame();

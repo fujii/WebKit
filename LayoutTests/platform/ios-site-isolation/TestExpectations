@@ -264,6 +264,7 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-cross-origin-iframe-002.sub.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-details-element/details-toggle-source.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-attribute-basic.html [ Failure ]
+imported/w3c/web-platform-tests/html/user-activation/propagation-crossorigin.sub.html [ Failure ]
 imported/w3c/web-platform-tests/intersection-observer/cross-origin-iframe.sub.html [ Failure ]
 imported/w3c/web-platform-tests/intersection-observer/nested-cross-origin-iframe.sub.html [ Failure ]
 imported/w3c/web-platform-tests/intersection-observer/same-origin-grand-child-iframe.sub.html [ Failure ]
