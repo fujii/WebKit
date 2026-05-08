@@ -6469,6 +6469,7 @@ struct WebCore::AcceleratedEffectOpacity {
 
 enum class WebCore::AcceleratedEffectCoordBox : uint8_t {
     ContentBox,
+    MarginBox,
     PaddingBox,
     BorderBox,
     FillBox,
