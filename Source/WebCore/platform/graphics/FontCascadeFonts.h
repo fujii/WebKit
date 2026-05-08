@@ -37,6 +37,7 @@
 #include <wtf/MainThread.h>
 #include <wtf/Platform.h>
 #include <wtf/TriState.h>
+#include <wtf/unicode/CharacterNames.h>
 
 #if PLATFORM(IOS_FAMILY)
 #include <WebCore/WebCoreThread.h>
@@ -229,15 +230,15 @@ inline const Font& FontCascadeFonts::primaryFont(const FontCascadeDescription& d
         // the character U+0020 (space) is not excluded by a unicode-range [...]. Note: it does not
         // matter whether that font actually has a glyph for the space character."
         auto& primaryRanges = realizeFallbackRangesAt(description, fontSelector, 0);
-        m_cachedPrimaryFont = primaryRanges.glyphDataForCharacter(' ', ExternalResourceDownloadPolicy::Allow).font.get();
-        if (!m_cachedPrimaryFont && primaryRanges.hasRangeContaining(' '))
+        m_cachedPrimaryFont = primaryRanges.glyphDataForCharacter(space, ExternalResourceDownloadPolicy::Allow).font.get();
+        if (!m_cachedPrimaryFont && primaryRanges.hasRangeContaining(space))
             m_cachedPrimaryFont = primaryRanges.rangeAt(0).font(ExternalResourceDownloadPolicy::Allow);
         if (!m_cachedPrimaryFont || m_cachedPrimaryFont->isInterstitial()) {
             for (unsigned index = 1; ; ++index) {
                 auto& localRanges = realizeFallbackRangesAt(description, fontSelector, index);
                 if (localRanges.isNull())
                     break;
-                WeakPtr font = localRanges.glyphDataForCharacter(' ', ExternalResourceDownloadPolicy::Forbid).font.get();
+                WeakPtr font = localRanges.glyphDataForCharacter(space, ExternalResourceDownloadPolicy::Forbid).font.get();
                 if (font && !font->isInterstitial()) {
                     m_cachedPrimaryFont = WTF::move(font);
                     break;
