@@ -584,6 +584,14 @@ bool HTMLOptionElement::isDisabledFormControl() const
     return false;
 }
 
+bool HTMLOptionElement::isActuallyDisabled() const
+{
+    if (HTMLElement::isActuallyDisabled())
+        return true;
+    RefPtr select = ownerSelectElement();
+    return select && select->isDisabledFormControl();
+}
+
 String HTMLOptionElement::collectOptionInnerText() const
 {
     StringBuilder text;

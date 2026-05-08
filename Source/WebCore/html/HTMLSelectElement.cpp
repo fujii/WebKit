@@ -580,6 +580,28 @@ void HTMLSelectElement::attributeChanged(const QualifiedName& name, const AtomSt
     }
 }
 
+void HTMLSelectElement::setDisabledInternal(bool disabled, bool disabledByAncestorFieldset)
+{
+    bool newDisabledState = disabled || disabledByAncestorFieldset;
+    if (newDisabledState == isDisabled()) {
+        ValidatedFormListedElement::setDisabledInternal(disabled, disabledByAncestorFieldset);
+        return;
+    }
+
+    Vector<Style::PseudoClassChangeInvalidation> descendantInvalidations;
+    for (Ref descendant : descendantsOfType<HTMLElement>(*this)) {
+        if (!isAnyOf<HTMLOptionElement, HTMLOptGroupElement>(descendant.get()))
+            continue;
+        bool newDescendantDisabled = newDisabledState || descendant->isDisabledFormControl();
+        descendantInvalidations.append({ descendant.get(), {
+            { CSSSelector::PseudoClass::Disabled, newDescendantDisabled },
+            { CSSSelector::PseudoClass::Enabled, !newDescendantDisabled },
+        } });
+    }
+
+    ValidatedFormListedElement::setDisabledInternal(disabled, disabledByAncestorFieldset);
+}
+
 int HTMLSelectElement::defaultTabIndex() const
 {
     return 0;
