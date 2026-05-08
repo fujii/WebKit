@@ -31,6 +31,7 @@
 #include "ContextDestructionObserverInlines.h"
 #include "DocumentLoader.h"
 #include "DocumentPage.h"
+#include "DocumentQuirks.h"
 #include "EventLoop.h"
 #include "EventNames.h"
 #include "HTMLMediaElement.h"
@@ -172,6 +173,10 @@ MediaSession::MediaSession(Navigator& navigator)
 {
     m_logger = Document::sharedLogger();
     m_logIdentifier = nextLogIdentifier();
+#if PLATFORM(COCOA)
+    if (RefPtr document = navigator.document())
+        m_shouldSuppressMediaSessionPauseActionOnInterruption = document->quirks().shouldSuppressMediaSessionPauseActionOnInterruption();
+#endif
 
     ALWAYS_LOG(LOGIDENTIFIER);
 }
@@ -637,6 +642,11 @@ void MediaSession::mayResumePlayback(bool shouldResume)
 
 void MediaSession::suspendPlayback()
 {
+#if PLATFORM(COCOA)
+    if (m_shouldSuppressMediaSessionPauseActionOnInterruption)
+        return;
+#endif
+
     ALWAYS_LOG(LOGIDENTIFIER);
     callActionHandler({ MediaSessionAction::Pause });
 }

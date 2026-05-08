@@ -227,6 +227,9 @@ private:
     std::optional<CaptionUserPreferencesDisplayMode> m_captionDisplayMode;
     Vector<MediaSessionCaptionTrack> m_captionTracks;
     bool m_captionsEnabled { false };
+#if PLATFORM(COCOA)
+    bool m_shouldSuppressMediaSessionPauseActionOnInterruption { false };
+#endif
 };
 
 String convertEnumerationToString(MediaSessionPlaybackState);

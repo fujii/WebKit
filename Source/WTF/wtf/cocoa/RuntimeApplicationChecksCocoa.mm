@@ -654,6 +654,12 @@ bool IOSApplication::isTableau()
     return isTableau;
 }
 
+bool IOSApplication::isTubular()
+{
+    static bool isTubular = applicationBundleIdentifier().startsWith("com.aaronbrannan.youtubeAVP"_s);
+    return isTubular;
+}
+
 #endif // PLATFORM(IOS_FAMILY)
 
 } // namespace WTF

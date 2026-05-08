@@ -2315,6 +2315,13 @@ bool Quirks::shouldSuppressHLSSubtitles() const
     return m_quirksData.quirkIsEnabled(QuirksData::SiteSpecificQuirk::ShouldSuppressHLSSubtitles);
 }
 
+bool Quirks::shouldSuppressMediaSessionPauseActionOnInterruption() const
+{
+    QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
+
+    return m_quirksData.quirkIsEnabled(QuirksData::SiteSpecificQuirk::ShouldSuppressMediaSessionPauseActionOnInterruption);
+}
+
 // spotify.com rdar://140707449
 bool Quirks::shouldAvoidStartingSelectionOnMouseDownOverPointerCursor(const Node& target) const
 {
@@ -3734,6 +3741,11 @@ static void handleYouTubeQuirks(QuirksData& quirksData, const URL& quirksURL, co
             QuirksData::SiteSpecificQuirk::NeedsYouTubeMouseOutQuirk
         });
     }
+#endif
+
+#if PLATFORM(IOS_FAMILY)
+    if (WTF::IOSApplication::isTubular())
+        quirksData.enableQuirk(QuirksData::SiteSpecificQuirk::ShouldSuppressMediaSessionPauseActionOnInterruption);
 #endif
 
     UNUSED_PARAM(quirksURL);

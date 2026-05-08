@@ -340,6 +340,8 @@ public:
     bool shouldLimitHLSPlaybackRate() const;
     bool shouldSuppressHLSSubtitles() const;
 
+    bool shouldSuppressMediaSessionPauseActionOnInterruption() const;
+
     void determineRelevantQuirks();
 
 private:
