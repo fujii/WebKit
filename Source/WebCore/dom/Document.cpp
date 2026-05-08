@@ -4598,7 +4598,7 @@ void Document::setURL(URL&& url)
     auto topOrigin = isTopDocument() && !SecurityContext::securityOrigin() ? SecurityOrigin::create(newURL)->data() : this->topOrigin().data();
     m_syncData->documentURL = newURL;
     m_url = { WTF::move(newURL), topOrigin };
-    if (m_frame)
+    if (m_frame && m_frame->document() == this)
         m_frame->documentURLOrOriginDidChange();
 
     m_documentURI = m_url.url();
@@ -11953,7 +11953,7 @@ void Document::securityOriginDidChange()
 {
     m_syncData->documentSecurityOrigin = SecurityContext::securityOrigin();
     m_permissionsPolicy = nullptr;
-    if (m_frame)
+    if (m_frame && m_frame->document() == this)
         m_frame->documentURLOrOriginDidChange();
 }
 
