@@ -768,6 +768,7 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/a
 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-permissions-policy.https.sub.html [ Skip ] # timeout and passes a subtest
 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-default-permissions-policy.https.sub.html [ Skip ] # timeout and passes a subtest
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location-origin-idna.sub.window.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location_replace_session_history.html [ Skip ] # timeout on all browsers
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location_assign.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/per-global.window.html [ Skip ]
 # bfcache is not enabled in WebKitTestRunner.

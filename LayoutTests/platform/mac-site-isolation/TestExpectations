@@ -259,6 +259,7 @@ imported/w3c/web-platform-tests/FileAPI/url/url-in-tags-revoke.window.html [ Fai
 imported/w3c/web-platform-tests/fullscreen/rendering/fullscreen-root-block-scroll.html [ Failure ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/pageswap/pageswap-replace-with-cross-origin-redirect.sub.html [ Failure ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-failure.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location-ancestor-origins.sub.html [ Failure ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-iframe-messagechannel.https.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-cross-origin-iframe-001.sub.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-cross-origin-iframe-002.sub.html [ Failure ]
