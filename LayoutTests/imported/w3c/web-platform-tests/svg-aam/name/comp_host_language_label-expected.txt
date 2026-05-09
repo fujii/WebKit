@@ -6,6 +6,9 @@ SVG * > title
 
 
 
+Interactive Elements > SVG > title
+
+
 SVG a[xlink:title][href]
 
 
@@ -19,6 +22,42 @@ PASS circle > title
 PASS rect > title
 PASS polygon > title
 PASS g > title
+FAIL a > circle > title assert_equals: <a href="#" data-expectedlabel="circle label" data-testname="a &gt; circle &gt; title" class="ex">
+  <svg viewBox="0 0 300 100">
+    <title>circle label</title>
+    <circle cx="26" cy="26" r="25"></circle>
+  </svg>
+</a> expected "circle label" but got ""
+FAIL a > rect > title assert_equals: <a href="#" data-expectedlabel="rect label" data-testname="a &gt; rect &gt; title" class="ex">
+  <svg viewBox="0 0 300 100">
+    <title>rect label</title>
+    <rect x="60" y="1" width="50" height="50"></rect>
+  </svg>
+</a> expected "rect label" but got ""
+FAIL a > polygon > title assert_equals: <a href="#" data-expectedlabel="polygon label" data-testname="a &gt; polygon &gt; title" class="ex">
+  <svg viewBox="0 0 300 100">
+    <title>polygon label</title>
+    <polygon points="100,100 150,25 150,75 200,0" fill="none" stroke="black"></polygon>
+  </svg>
+</a> expected "polygon label" but got ""
+FAIL button > circle > title assert_equals: <button href="#" data-expectedlabel="circle label" data-testname="button &gt; circle &gt; title" class="ex">
+  <svg viewBox="0 0 300 100">
+    <title>circle label</title>
+    <circle cx="26" cy="26" r="25"></circle>
+  </svg>
+</button> expected "circle label" but got ""
+FAIL button > rect > title assert_equals: <button href="#" data-expectedlabel="rect label" data-testname="button &gt; rect &gt; title" class="ex">
+  <svg viewBox="0 0 300 100">
+    <title>rect label</title>
+    <rect x="60" y="1" width="50" height="50"></rect>
+  </svg>
+</button> expected "rect label" but got ""
+FAIL button > polygon > title assert_equals: <button href="#" data-expectedlabel="polygon label" data-testname="button &gt; polygon &gt; title" class="ex">
+  <svg viewBox="0 0 300 100">
+    <title>polygon label</title>
+    <polygon points="100,100 150,25 150,75 200,0" fill="none" stroke="black"></polygon>
+  </svg>
+</button> expected "polygon label" but got ""
 PASS [xlink:title][href] > circle
 PASS [xlink:title][href] > rect
 PASS [xlink:title][href] > polygon
