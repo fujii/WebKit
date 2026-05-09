@@ -1047,6 +1047,7 @@ webkit.org/b/217617 [ Release ] imported/w3c/web-platform-tests/service-workers/
 webkit.org/b/217617 imported/w3c/web-platform-tests/service-workers/service-worker/navigate-window.https.html [ Pass Failure ]
 
 webkit.org/b/279748 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir-auto-dynamic-changes.window.html [ Pass Failure ]
+imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir-shadow-39.html [ ImageOnlyFailure ]
 
 # csp tests which fail stress test mode.
 imported/w3c/web-platform-tests/content-security-policy/generic/image-document-ignores-csp.html [ ImageOnlyFailure Pass ]
