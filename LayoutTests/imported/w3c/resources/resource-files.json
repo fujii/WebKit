@@ -5021,6 +5021,8 @@
         "web-platform-tests/css/css-grid/grid-lanes/alignment/row-grid-lanes-alignment-positioned-items-003-ref.html",
         "web-platform-tests/css/css-grid/grid-lanes/alignment/row-grid-lanes-alignment-positioned-items-004-ref.html",
         "web-platform-tests/css/css-grid/grid-lanes/alignment/row-overflow-alignment-001-ref.html",
+        "web-platform-tests/css/css-grid/grid-lanes/animation/grid-template-columns-001-ref.html",
+        "web-platform-tests/css/css-grid/grid-lanes/animation/grid-template-rows-001-ref.html",
         "web-platform-tests/css/css-grid/grid-lanes/baseline/column-grid-lanes-container-baseline-001a-ref.html",
         "web-platform-tests/css/css-grid/grid-lanes/baseline/column-grid-lanes-container-baseline-001b-ref.html",
         "web-platform-tests/css/css-grid/grid-lanes/baseline/column-grid-lanes-container-baseline-002a-ref.html",
