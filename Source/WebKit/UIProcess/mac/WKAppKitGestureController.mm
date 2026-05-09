@@ -817,7 +817,8 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
         unacceleratedScrollingDelta,
         ioHIDEventTimestamp,
         rawPlatformDelta,
-        momentumEndType
+        momentumEndType,
+        WebKit::WebEventInputSource::Automation
     };
 
     WebKit::NativeWebWheelEvent nativeEvent { wheelEvent };
@@ -874,7 +875,8 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
         WebCore::FloatSize { },
         timestamp,
         std::nullopt,
-        WebKit::WebWheelEvent::MomentumEndType::Unknown
+        WebKit::WebWheelEvent::MomentumEndType::Unknown,
+        WebKit::WebEventInputSource::Automation
     };
     WebKit::NativeWebWheelEvent nativeMomentumEvent { momentumEvent };
 
