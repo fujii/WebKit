@@ -512,10 +512,24 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
             if (endTime.isValid() && endTime > highWaterMarkTime) {
                 m_hasReachedHighWatermark = true;
                 const auto& [sample, upcomingMinimumOpt, flushId, blocked] = m_compressedSampleQueue.first();
-                if (upcomingMinimumOpt) {
-                    auto upcomingMinimum = std::min(sample->presentationTime(), *upcomingMinimumOpt);
+                // Tri-state on upcomingMinimumOpt:
+                //   nullopt            -> caller did not supply a bound; use
+                //                         sample->presentationTime() as an
+                //                         internal ceiling. Do not publish a
+                //                         floor to AVF — external floors are
+                //                         only promised when a caller has
+                //                         explicitly asserted a lookahead.
+                //   !isFinite()        -> caller marked as unknown
+                //                         (MediaTime::indefiniteTime()); keep
+                //                         decoding unbounded.
+                //   finite MediaTime   -> caller-supplied lookahead bound; use
+                //                         it and publish the floor to AVF.
+                const bool explicitUnknown = upcomingMinimumOpt && !upcomingMinimumOpt->isFinite();
+                if (!explicitUnknown) {
+                    const bool callerSuppliedBound = upcomingMinimumOpt.has_value();
+                    auto upcomingMinimum = callerSuppliedBound ? std::min(sample->presentationTime(), *upcomingMinimumOpt) : sample->presentationTime();
                     if (endTime < upcomingMinimum) {
-                        if (m_lastMinimumUpcomingPresentationTime.isInvalid() || upcomingMinimum != m_lastMinimumUpcomingPresentationTime) {
+                        if (callerSuppliedBound && (m_lastMinimumUpcomingPresentationTime.isInvalid() || upcomingMinimum != m_lastMinimumUpcomingPresentationTime)) {
                             ASSERT(m_lastMinimumUpcomingPresentationTime.isInvalid() || m_lastMinimumUpcomingPresentationTime < upcomingMinimum);
                             m_lastMinimumUpcomingPresentationTime = upcomingMinimum;
                             LogPerformance("VideoMediaSampleRenderer::decodeNextSampleIfNeeded currentTime:%0.2f expectMinimumUpcomingSampleBufferPresentationTime:%0.2f decoded queued:%zu upcoming:%zu high watermark reached", currentTime.toDouble(), m_lastMinimumUpcomingPresentationTime.toDouble(), decodedSamplesCount(), compressedSamplesCount());
@@ -524,11 +538,9 @@ void VideoMediaSampleRenderer::decodeNextSampleIfNeeded()
                         m_decoderIdledAtHighWaterMark = true;
                         return;
                     }
-                    DEBUG_LOG(LOGIDENTIFIER, "Out of order frames detected, forcing extra decode");
+                    if (callerSuppliedBound)
+                        DEBUG_LOG(LOGIDENTIFIER, "Out of order frames detected, forcing extra decode");
                 }
-                // Without a caller lookahead we can't safely publish a floor — a
-                // later-arriving B-frame could have a lower PTS and would be
-                // rejected by the renderer. Fall through and keep decoding.
             }
         }
 
