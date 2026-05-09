@@ -2627,6 +2627,9 @@ public:
     void broadcastFrameTreeSyncData(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::FrameTreeSyncSerializationData&);
     void broadcastAllFrameTreeSyncData(IPC::Connection&, WebCore::FrameIdentifier,  Ref<WebCore::FrameTreeSyncData>&&);
 
+    void didNotifyUserActivation(IPC::Connection&, WebCore::FrameIdentifier, MonotonicTime);
+    void didConsumeUserActivation(IPC::Connection&, WebCore::FrameIdentifier);
+
     void addOpenedPage(WebPageProxy&);
     bool NODELETE hasOpenedPage() const;
     bool hasPageOpenedByMainFrame() const;
