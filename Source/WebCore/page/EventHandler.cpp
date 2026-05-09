@@ -137,6 +137,7 @@
 #include "StaticPasteboard.h"
 #include "StyleCachedImage.h"
 #include "StyleCursor.h"
+#include "StylePrimitiveNumericTypes+Evaluation.h"
 #include "Styleable.h"
 #include "TextEvent.h"
 #include "TextIterator.h"
@@ -1719,7 +1720,7 @@ std::optional<Cursor> EventHandler::selectCursor(const HitTestResult& result, bo
                 continue;
             float scale = styleImage->imageScaleFactor();
             // Get hotspot and convert from logical pixels to physical pixels.
-            auto hotSpot = styleCursorImage.hotSpot;
+            auto hotSpot = styleCursorImage.hotSpot ? Style::evaluate<IntPoint>(*styleCursorImage.hotSpot) : IntPoint { -1, -1 };
 
             CheckedPtr renderElement = dynamicDowncast<RenderElement>(renderer);
             if (!renderElement && renderer && renderer->parent())

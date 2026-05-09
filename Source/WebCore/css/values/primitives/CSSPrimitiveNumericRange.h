@@ -122,6 +122,10 @@ inline constexpr auto ClosedPercentageRangeUnzoomed = Range { 0, 100, RangeClamp
 inline constexpr auto ClosedPercentageRangeClampUpper = Range { 0, 100, RangeClampOptions::ClampUpper };
 inline constexpr auto ClosedPercentageRangeClampUpperUnzoomed = Range { 0, 100, RangeClampOptions::ClampUpper, RangeZoomOptions::Unzoomed };
 
+// Constant value for `[0,100(clamp both)]`.
+inline constexpr auto ClosedPercentageRangeClampBoth = Range { 0, 100, RangeClampOptions::ClampBoth };
+inline constexpr auto ClosedPercentageRangeClampBothUnzoomed = Range { 0, 100, RangeClampOptions::ClampBoth, RangeZoomOptions::Unzoomed };
+
 // Clamps a floating point value to within `range`.
 template<Range range, std::floating_point T, typename U> constexpr T clampToRange(U value)
 {
