@@ -7726,15 +7726,16 @@ void SpeculativeJIT::compileStringEquality(
     
     trueCase.append(branchTest32(Zero, lengthGPR));
     
-    slowCase.append(branchTest32(
-        Zero,
-        Address(leftTempGPR, StringImpl::flagsOffset()),
-        TrustedImm32(StringImpl::flagIs8Bit())));
-    slowCase.append(branchTest32(
-        Zero,
-        Address(rightTempGPR, StringImpl::flagsOffset()),
-        TrustedImm32(StringImpl::flagIs8Bit())));
-    
+    // leftTemp2GPR/rightTemp2GPR may alias leftGPR/rightGPR (Reuse), so we must not clobber
+    // them before the last slowCase branch is emitted.
+    Jump leftIs8Bit = branchTest32(NonZero, Address(leftTempGPR, StringImpl::flagsOffset()), TrustedImm32(StringImpl::flagIs8Bit()));
+    slowCase.append(branchTest32(NonZero, Address(rightTempGPR, StringImpl::flagsOffset()), TrustedImm32(StringImpl::flagIs8Bit())));
+    lshift32(TrustedImm32(1), lengthGPR);
+    Jump widthDone = jump();
+    leftIs8Bit.link(this);
+    slowCase.append(branchTest32(Zero, Address(rightTempGPR, StringImpl::flagsOffset()), TrustedImm32(StringImpl::flagIs8Bit())));
+    widthDone.link(this);
+
     loadPtr(Address(leftTempGPR, StringImpl::dataOffset()), leftTempGPR);
     loadPtr(Address(rightTempGPR, StringImpl::dataOffset()), rightTempGPR);
 

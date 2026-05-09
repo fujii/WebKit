@@ -21139,8 +21139,9 @@ IGNORE_CLANG_WARNINGS_END
         LBasicBlock notEmptyCase = m_out.newBlock();
         LBasicBlock leftReadyCase = m_out.newBlock();
         LBasicBlock rightReadyCase = m_out.newBlock();
-        LBasicBlock left8BitCase = m_out.newBlock();
-        LBasicBlock right8BitCase = m_out.newBlock();
+        LBasicBlock widthMatchedCase = m_out.newBlock();
+        LBasicBlock is16BitCase = m_out.newBlock();
+        LBasicBlock byteLengthReady = m_out.newBlock();
         LBasicBlock byteLoop = m_out.newBlock();
         LBasicBlock bytesEqual = m_out.newBlock();
         LBasicBlock wordLoopPreheader = m_out.newBlock();
@@ -21169,30 +21170,37 @@ IGNORE_CLANG_WARNINGS_END
         m_out.appendTo(notTriviallyUnequalCase, notEmptyCase);
         m_out.branch(m_out.isZero32(length), unsure(trueCase), unsure(notEmptyCase));
 
-        m_out.appendTo(notEmptyCase, left8BitCase);
-        m_out.branch(
-            m_out.testIsZero32(
-                m_out.load32(left, m_heaps.StringImpl_hashAndFlags),
-                m_out.constInt32(StringImpl::flagIs8Bit())),
-            unsure(slowCase), unsure(left8BitCase));
+        // Mixed-width pairs bail to the slow path; the runtime helper handles cross-width equality.
+        m_out.appendTo(notEmptyCase, widthMatchedCase);
+        LValue leftIs8Bit = m_out.bitAnd(
+            m_out.load32(left, m_heaps.StringImpl_hashAndFlags),
+            m_out.constInt32(StringImpl::flagIs8Bit()));
+        LValue rightIs8Bit = m_out.bitAnd(
+            m_out.load32(right, m_heaps.StringImpl_hashAndFlags),
+            m_out.constInt32(StringImpl::flagIs8Bit()));
+        m_out.branch(m_out.notEqual(leftIs8Bit, rightIs8Bit), rarely(slowCase), usually(widthMatchedCase));
 
-        m_out.appendTo(left8BitCase, right8BitCase);
-        m_out.branch(
-            m_out.testIsZero32(
-                m_out.load32(right, m_heaps.StringImpl_hashAndFlags),
-                m_out.constInt32(StringImpl::flagIs8Bit())),
-            unsure(slowCase), unsure(right8BitCase));
+        // 8-bit is the common case: fall through with byteLength == length. 16-bit converts char-count
+        // to byte-count via length << 1 so the byte-addressed loops below work unchanged.
+        m_out.appendTo(widthMatchedCase, is16BitCase);
+        ValueFromBlock byteLengthIf8Bit = m_out.anchor(length);
+        m_out.branch(m_out.isZero32(leftIs8Bit), rarely(is16BitCase), usually(byteLengthReady));
 
-        m_out.appendTo(right8BitCase, byteLoop);
+        m_out.appendTo(is16BitCase, byteLengthReady);
+        ValueFromBlock byteLengthIf16Bit = m_out.anchor(m_out.shl(length, m_out.int32One));
+        m_out.jump(byteLengthReady);
+
+        m_out.appendTo(byteLengthReady, byteLoop);
+        LValue byteLength = m_out.phi(Int32, byteLengthIf8Bit, byteLengthIf16Bit);
 
         LValue leftData = m_out.loadPtr(left, m_heaps.StringImpl_data);
         LValue rightData = m_out.loadPtr(right, m_heaps.StringImpl_data);
 
         constexpr unsigned wordSize = 8;
-        ValueFromBlock byteIndexAtStart = m_out.anchor(length);
+        ValueFromBlock byteIndexAtStart = m_out.anchor(byteLength);
         // Lay out the byte loop as the fall-through so that short strings only pay for a
         // not-taken branch; long strings easily amortize the taken-branch cost over the word loop.
-        m_out.branch(m_out.below(length, m_out.constInt32(wordSize)), usually(byteLoop), rarely(wordLoopPreheader));
+        m_out.branch(m_out.below(byteLength, m_out.constInt32(wordSize)), usually(byteLoop), rarely(wordLoopPreheader));
 
         // length in [1, wordSize): byte-at-a-time loop.
         m_out.appendTo(byteLoop, bytesEqual);
@@ -21208,9 +21216,9 @@ IGNORE_CLANG_WARNINGS_END
         m_out.addIncomingToPhi(byteIndexAtLoopTop, m_out.anchor(byteIndexInLoop));
         m_out.branch(m_out.notZero32(byteIndexInLoop), unsure(byteLoop), unsure(trueCase));
 
-        // length >= wordSize: compare a word at a time, walking backwards.
+        // byteLength >= wordSize: compare a word at a time, walking backwards.
         m_out.appendTo(wordLoopPreheader, wordLoop);
-        ValueFromBlock wordIndexAtStart = m_out.anchor(length);
+        ValueFromBlock wordIndexAtStart = m_out.anchor(byteLength);
         m_out.jump(wordLoop);
 
         m_out.appendTo(wordLoop, wordsEqual);
@@ -21225,7 +21233,7 @@ IGNORE_CLANG_WARNINGS_END
         m_out.addIncomingToPhi(wordIndexAtLoopTop, m_out.anchor(wordIndexInLoop));
         m_out.branch(m_out.aboveOrEqual(wordIndexInLoop, m_out.constInt32(wordSize)), unsure(wordLoop), unsure(wordTail));
 
-        // 0 <= wordIndexInLoop < wordSize bytes remain at the head. Since the original length was
+        // 0 <= wordIndexInLoop < wordSize bytes remain at the head. Since the byteLength was
         // >= wordSize, a single overlapping word load at offset 0 safely covers the remainder.
         m_out.appendTo(wordTail, wordTailCompare);
         m_out.branch(m_out.isZero32(wordIndexInLoop), unsure(trueCase), unsure(wordTailCompare));
