@@ -1062,6 +1062,7 @@
 		534638751E70DDEC00F12AC1 /* DeferredWorkTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 534638741E70DDEC00F12AC1 /* DeferredWorkTimer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		53486BB71C1795C300F6F3AF /* JSTypedArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 53486BB61C1795C300F6F3AF /* JSTypedArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		534902851C7276B70012BCB8 /* TypedArrayCTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 534902821C7242C80012BCB8 /* TypedArrayCTest.cpp */; };
+		FF356D302FA9DACE00213929 /* TemporalCoreTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF356D2F2FA9DACE00213929 /* TemporalCoreTest.cpp */; };
 		534C457C1BC72411007476A7 /* JSTypedArrayViewConstructor.h in Headers */ = {isa = PBXBuildFile; fileRef = 534C457B1BC72411007476A7 /* JSTypedArrayViewConstructor.h */; };
 		534E034E1E4D4B1600213F64 /* AccessCase.h in Headers */ = {isa = PBXBuildFile; fileRef = 534E034D1E4D4B1600213F64 /* AccessCase.h */; };
 		534E03541E53BD2900213F64 /* IntrinsicGetterAccessCase.h in Headers */ = {isa = PBXBuildFile; fileRef = 534E03531E53BD2900213F64 /* IntrinsicGetterAccessCase.h */; };
@@ -2338,6 +2339,10 @@
 		FF356CF82FA9832600213929 /* TemporalCoreTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = FF356CF32FA9832600213929 /* TemporalCoreTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FF356CFA2FA9837C00213929 /* TemporalObject.h in Headers */ = {isa = PBXBuildFile; fileRef = F6F1501A2693D33E004B98EF /* TemporalObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FF41590C28FF3C6B00F80B96 /* WaiterListManager.h in Headers */ = {isa = PBXBuildFile; fileRef = FF41590B28FF3C6B00F80B96 /* WaiterListManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FF6273A52FAD56220098B5A3 /* InstantCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FF62739F2FAD56220098B5A3 /* InstantCore.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FF6273A62FAD56220098B5A3 /* Rounding.h in Headers */ = {isa = PBXBuildFile; fileRef = FF6273A32FAD56220098B5A3 /* Rounding.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FF6273A72FAD56220098B5A3 /* ISOArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = FF6273A12FAD56220098B5A3 /* ISOArithmetic.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FF6273A82FAD56220098B5A3 /* CalendarArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = FF62739D2FAD56220098B5A3 /* CalendarArithmetic.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FF6A4D7E2E663147001FB92C /* WasmModuleDebugInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = FF6A4D7D2E663147001FB92C /* WasmModuleDebugInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FFA2E02A2EA16F37006661A3 /* ControlFlowTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA2E0222EA16F37006661A3 /* ControlFlowTests.cpp */; };
 		FFA2E02C2EA16F37006661A3 /* SpecialTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA2E0242EA16F37006661A3 /* SpecialTests.cpp */; };
@@ -4420,6 +4425,8 @@
 		53486BBA1C18E84500F6F3AF /* JSTypedArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSTypedArray.cpp; sourceTree = "<group>"; };
 		534902821C7242C80012BCB8 /* TypedArrayCTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TypedArrayCTest.cpp; path = API/tests/TypedArrayCTest.cpp; sourceTree = "<group>"; };
 		534902831C7242C80012BCB8 /* TypedArrayCTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TypedArrayCTest.h; path = API/tests/TypedArrayCTest.h; sourceTree = "<group>"; };
+		FF356D2E2FA9DACE00213929 /* TemporalCoreTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TemporalCoreTest.h; path = API/tests/TemporalCoreTest.h; sourceTree = "<group>"; };
+		FF356D2F2FA9DACE00213929 /* TemporalCoreTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = TemporalCoreTest.cpp; path = API/tests/TemporalCoreTest.cpp; sourceTree = "<group>"; };
 		534C457A1BC703DC007476A7 /* TypedArrayConstructor.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = TypedArrayConstructor.js; sourceTree = "<group>"; };
 		534C457B1BC72411007476A7 /* JSTypedArrayViewConstructor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSTypedArrayViewConstructor.h; sourceTree = "<group>"; };
 		534C457D1BC72549007476A7 /* JSTypedArrayViewConstructor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSTypedArrayViewConstructor.cpp; sourceTree = "<group>"; };
@@ -6519,6 +6526,14 @@
 		FF356CF32FA9832600213929 /* TemporalCoreTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TemporalCoreTypes.h; sourceTree = "<group>"; };
 		FF356CF42FA9832600213929 /* TemporalEnums.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TemporalEnums.h; sourceTree = "<group>"; };
 		FF41590B28FF3C6B00F80B96 /* WaiterListManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WaiterListManager.h; sourceTree = "<group>"; };
+		FF62739D2FAD56220098B5A3 /* CalendarArithmetic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CalendarArithmetic.h; sourceTree = "<group>"; };
+		FF62739E2FAD56220098B5A3 /* CalendarArithmetic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CalendarArithmetic.cpp; sourceTree = "<group>"; };
+		FF62739F2FAD56220098B5A3 /* InstantCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InstantCore.h; sourceTree = "<group>"; };
+		FF6273A02FAD56220098B5A3 /* InstantCore.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InstantCore.cpp; sourceTree = "<group>"; };
+		FF6273A12FAD56220098B5A3 /* ISOArithmetic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISOArithmetic.h; sourceTree = "<group>"; };
+		FF6273A22FAD56220098B5A3 /* ISOArithmetic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ISOArithmetic.cpp; sourceTree = "<group>"; };
+		FF6273A32FAD56220098B5A3 /* Rounding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rounding.h; sourceTree = "<group>"; };
+		FF6273A42FAD56220098B5A3 /* Rounding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rounding.cpp; sourceTree = "<group>"; };
 		FF6A4D7D2E663147001FB92C /* WasmModuleDebugInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WasmModuleDebugInfo.h; sourceTree = "<group>"; };
 		FFA2E0212EA16F37006661A3 /* BinaryTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BinaryTests.cpp; sourceTree = "<group>"; };
 		FFA2E0222EA16F37006661A3 /* ControlFlowTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ControlFlowTests.cpp; sourceTree = "<group>"; };
@@ -7309,6 +7324,8 @@
 				65570F591AA4C00A009B3C23 /* Regress141275.mm */,
 				FEB51F6A1A97B688001F921C /* Regress141809.h */,
 				FEB51F6B1A97B688001F921C /* Regress141809.mm */,
+				FF356D2F2FA9DACE00213929 /* TemporalCoreTest.cpp */,
+				FF356D2E2FA9DACE00213929 /* TemporalCoreTest.h */,
 				FECB8B291D25CABB006F2463 /* testapi-function-overrides.js */,
 				14BD5A2D0A3E91F600BAF59C /* testapi.c */,
 				531D4E191F59CDD200EC836C /* testapi.cpp */,
@@ -10850,6 +10867,14 @@
 		FF356CF52FA9832600213929 /* core */ = {
 			isa = PBXGroup;
 			children = (
+				FF62739E2FAD56220098B5A3 /* CalendarArithmetic.cpp */,
+				FF62739D2FAD56220098B5A3 /* CalendarArithmetic.h */,
+				FF6273A02FAD56220098B5A3 /* InstantCore.cpp */,
+				FF62739F2FAD56220098B5A3 /* InstantCore.h */,
+				FF6273A22FAD56220098B5A3 /* ISOArithmetic.cpp */,
+				FF6273A12FAD56220098B5A3 /* ISOArithmetic.h */,
+				FF6273A42FAD56220098B5A3 /* Rounding.cpp */,
+				FF6273A32FAD56220098B5A3 /* Rounding.h */,
 				FF356CF32FA9832600213929 /* TemporalCoreTypes.h */,
 				FF356CF42FA9832600213929 /* TemporalEnums.h */,
 			);
@@ -11279,6 +11304,7 @@
 				1409ECC1225E178C00BEDD54 /* CachePayload.h in Headers */,
 				1409ECC0225E178100BEDD54 /* CacheUpdate.h in Headers */,
 				0FEC3C601F379F5300F59B6C /* CagedBarrierPtr.h in Headers */,
+				FF6273A82FAD56220098B5A3 /* CalendarArithmetic.h in Headers */,
 				BC18C3ED0E16F5CD00B34460 /* CallData.h in Headers */,
 				0F64B27A1A7957B2006E4E66 /* CallEdge.h in Headers */,
 				796DAA2B1E89CCD6005DF24A /* CalleeBits.h in Headers */,
@@ -11859,6 +11885,7 @@
 				0F49E9AA20AB4D00001CA0AA /* InstanceOfAccessCase.h in Headers */,
 				0FB399BF20AF6B3F0017E213 /* InstanceOfStatus.h in Headers */,
 				0FB399C020AF6B430017E213 /* InstanceOfVariant.h in Headers */,
+				FF6273A52FAD56220098B5A3 /* InstantCore.h in Headers */,
 				14A4680C216FA565000D2B1A /* Instruction.h in Headers */,
 				14C25B9E216EA36A00137764 /* InstructionStream.h in Headers */,
 				A7A8AF3B17ADB5F3005AB174 /* Int16Array.h in Headers */,
@@ -11916,6 +11943,7 @@
 				860BD801148EA6F200112B2F /* Intrinsic.h in Headers */,
 				534E03541E53BD2900213F64 /* IntrinsicGetterAccessCase.h in Headers */,
 				A38CA59E26DD84DE00C8D84C /* ISO8601.h in Headers */,
+				FF6273A72FAD56220098B5A3 /* ISOArithmetic.h in Headers */,
 				0FB467801FDDA6F1003FCB09 /* IsoCellSet.h in Headers */,
 				0FB467811FDDA6F7003FCB09 /* IsoCellSetInlines.h in Headers */,
 				E3BF1BAE238AAEDB003A1C2B /* IsoHeapCellType.h in Headers */,
@@ -12492,6 +12520,7 @@
 				FE9F3FB92613C7890069E89F /* ResourceExhaustion.h in Headers */,
 				869EBCB70E8C6D4A008722CC /* ResultType.h in Headers */,
 				FE3B642F25D6FB4D001ADDB4 /* RootMarkReason.h in Headers */,
+				FF6273A62FAD56220098B5A3 /* Rounding.h in Headers */,
 				0F2C63AA1E4FA42E00C13839 /* RunningScope.h in Headers */,
 				70B0A9D11A9B66460001306A /* RuntimeFlags.h in Headers */,
 				52C0611F1AA51E1C00B4ADBA /* RuntimeType.h in Headers */,
@@ -13930,6 +13959,7 @@
 				FE7C41961B97FC4B00F4D598 /* PingPongStackOverflowTest.cpp in Sources */,
 				65570F5A1AA4C3EA009B3C23 /* Regress141275.mm in Sources */,
 				FEB51F6C1A97B688001F921C /* Regress141809.mm in Sources */,
+				FF356D302FA9DACE00213929 /* TemporalCoreTest.cpp in Sources */,
 				1440F6100A4F85670005F061 /* testapi.c in Sources */,
 				53EAFE2F208DFAB4007D524B /* testapi.cpp in Sources */,
 				86D2221A167EF9440024C804 /* testapi.mm in Sources */,

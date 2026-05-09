@@ -1151,6 +1151,11 @@ runtime/WeakSetPrototype.cpp
 runtime/WideningNumberPredictionFuzzerAgent.cpp
 runtime/WrapForValidIteratorPrototype.cpp
 
+runtime/temporal/core/CalendarArithmetic.cpp
+runtime/temporal/core/InstantCore.cpp
+runtime/temporal/core/ISOArithmetic.cpp
+runtime/temporal/core/Rounding.cpp
+
 tools/CellList.cpp
 tools/CharacterPropertyDataGenerator.cpp
 tools/CompilerTimingScope.cpp

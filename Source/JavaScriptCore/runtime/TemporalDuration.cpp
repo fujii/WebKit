@@ -30,6 +30,7 @@
 #include "DateConstructor.h"
 #include "FractionToDouble.h"
 #include "IntlObjectInlines.h"
+#include "Rounding.h"
 #include "JSCInlines.h"
 #include "TemporalCalendar.h"
 #include "TemporalObject.h"
@@ -670,7 +671,7 @@ Nudged TemporalDuration::nudgeToCalendarUnit(JSGlobalObject* globalObject, int32
     ISO8601::Duration endDuration;
     switch (unit) {
     case TemporalUnit::Year: {
-        Int128 years = roundNumberToIncrementInt128((Int128) duration.dateDuration().years(),
+        Int128 years = TemporalCore::roundNumberToIncrementInt128((Int128) duration.dateDuration().years(),
             (Int128) increment, RoundingMode::Trunc);
         r1 = (double) years;
         r2 = (double) years + increment * sign;
@@ -679,7 +680,7 @@ Nudged TemporalDuration::nudgeToCalendarUnit(JSGlobalObject* globalObject, int32
         break;
     }
     case TemporalUnit::Month: {
-        Int128 months = roundNumberToIncrementInt128((Int128) duration.dateDuration().months(),
+        Int128 months = TemporalCore::roundNumberToIncrementInt128((Int128) duration.dateDuration().months(),
             (Int128) increment, RoundingMode::Trunc);
         r1 = (double) months;
         r2 = (double) months + increment * sign;
@@ -696,7 +697,7 @@ Nudged TemporalDuration::nudgeToCalendarUnit(JSGlobalObject* globalObject, int32
         RETURN_IF_EXCEPTION(scope, { });
         auto weeksEnd = TemporalCalendar::balanceISODate(globalObject, weeksStart.year(), weeksStart.month(), weeksStart.day() + duration.dateDuration().days());
         auto untilResult = TemporalCalendar::calendarDateUntil(weeksStart, weeksEnd, TemporalUnit::Week);
-        Int128 weeks = roundNumberToIncrementInt128((Int128) (duration.dateDuration().weeks() + untilResult.weeks()),
+        Int128 weeks = TemporalCore::roundNumberToIncrementInt128((Int128) (duration.dateDuration().weeks() + untilResult.weeks()),
             (Int128) increment, RoundingMode::Trunc);
         r1 = (double) weeks;
         r2 = (double) weeks + increment * sign;
@@ -708,7 +709,7 @@ Nudged TemporalDuration::nudgeToCalendarUnit(JSGlobalObject* globalObject, int32
     }
     default: {
         ASSERT(unit == TemporalUnit::Day);
-        Int128 days = roundNumberToIncrementInt128((Int128) duration.dateDuration().days(),
+        Int128 days = TemporalCore::roundNumberToIncrementInt128((Int128) duration.dateDuration().days(),
             (Int128) increment, RoundingMode::Trunc);
         r1 = (double) days;
         r2 = (double) days + increment * sign;
@@ -743,7 +744,7 @@ Nudged TemporalDuration::nudgeToCalendarUnit(JSGlobalObject* globalObject, int32
     double roundedUnit = std::abs(r2);
     if (progress != 1) {
         ASSERT(std::abs(r1) <= std::abs(total) && std::abs(total) < std::abs(r2));
-        roundedUnit = applyUnsignedRoundingMode(
+        roundedUnit = TemporalCore::applyUnsignedRoundingMode(
             std::abs(total), std::abs(r1), std::abs(r2), unsignedRoundingMode);
     }
     bool didExpandCalendarUnit = true;
@@ -770,7 +771,7 @@ static NudgeResult nudgeToDayOrTime(JSGlobalObject* globalObject, ISO8601::Inter
     Int128 timeDuration = add24HourDaysToTimeDuration(globalObject, duration.time(), duration.dateDuration().days());
     RETURN_IF_EXCEPTION(scope, { });
     Int128 unitLength = lengthInNanoseconds(smallestUnit);
-    Int128 roundedTime = roundNumberToIncrementInt128(timeDuration,
+    Int128 roundedTime = TemporalCore::roundNumberToIncrementInt128(timeDuration,
         unitLength * (Int128) std::trunc(increment), roundingMode);
     Int128 diffTime = roundedTime - timeDuration;
     double wholeDays = totalTimeDuration(timeDuration, TemporalUnit::Day);
@@ -935,7 +936,7 @@ ISO8601::InternalDuration TemporalDuration::round(JSGlobalObject* globalObject, 
 
     if (unit == TemporalUnit::Day) {
         double fractionalDays = totalTimeDuration(internalDuration.time(), TemporalUnit::Day);
-        double days = roundNumberToIncrementDouble(fractionalDays, increment, mode);
+        double days = TemporalCore::roundNumberToIncrementDouble(fractionalDays, increment, mode);
         return ISO8601::InternalDuration::combineDateAndTimeDuration(
             ISO8601::Duration { 0, 0, 0, static_cast<int64_t>(days), 0, 0, 0, 0, 0, 0 },
             0);
@@ -1019,7 +1020,7 @@ ISO8601::Duration TemporalDuration::round(JSGlobalObject* globalObject, JSValue 
         throwRangeError(globalObject, scope, "smallestUnit must be smaller than largestUnit"_s);
         return { };
     }
-    auto maximum = maximumRoundingIncrement(smallestUnit);
+    auto maximum = TemporalCore::maximumRoundingIncrement(smallestUnit);
     validateTemporalRoundingIncrement(globalObject, roundingIncrement, maximum, Inclusivity::Exclusive);
     RETURN_IF_EXCEPTION(scope, { });
 

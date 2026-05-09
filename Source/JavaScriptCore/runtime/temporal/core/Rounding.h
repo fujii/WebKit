@@ -25,44 +25,33 @@
 
 #pragma once
 
-// JSC Temporal Core — Shared types and error handling
-// temporal_rs reference: src/error.rs
+// JSC Temporal Core — Rounding algorithms
+// temporal_rs reference: src/rounding.rs
+//                        src/options.rs
+//                        src/options/increment.rs
+// Last synced: v0.2.3
 
-#include <wtf/Expected.h>
-#include <wtf/text/ASCIILiteral.h>
-#include <wtf/text/WTFString.h>
+#include <JavaScriptCore/JSExportMacros.h>
+#include <JavaScriptCore/TemporalCoreTypes.h>
+#include <JavaScriptCore/TemporalEnums.h>
+#include <optional>
 
 namespace JSC {
-
-// TemporalErrorKind — temporal_rs: ErrorKind (src/error.rs)
-enum class TemporalErrorKind : uint8_t {
-    RangeError,
-    TypeError,
-};
-
-// TemporalError — temporal_rs: TemporalError (src/error.rs)
-struct TemporalError {
-    TemporalErrorKind kind;
-    String message;
-};
-
-// TemporalResult<T> — temporal_rs: TemporalResult<T> = Result<T, TemporalError>
-template<typename T>
-using TemporalResult = Expected<T, TemporalError>;
-
-// Convenience constructors — temporal_rs: TemporalError::range() / TemporalError::type_()
 namespace TemporalCore {
-inline TemporalError rangeError(ASCIILiteral msg) { return { TemporalErrorKind::RangeError, String(msg) }; }
-inline TemporalError rangeError(String msg) { return { TemporalErrorKind::RangeError, WTF::move(msg) }; }
-inline TemporalError typeError(ASCIILiteral msg) { return { TemporalErrorKind::TypeError, String(msg) }; }
-inline TemporalError typeError(String msg) { return { TemporalErrorKind::TypeError, WTF::move(msg) }; }
+
+RoundingMode JS_EXPORT_PRIVATE negateTemporalRoundingMode(RoundingMode);
+
+double JS_EXPORT_PRIVATE applyUnsignedRoundingMode(double x, double r1, double r2, UnsignedRoundingMode);
+
+std::optional<unsigned> JS_EXPORT_PRIVATE maximumRoundingIncrement(TemporalUnit);
+
+double JS_EXPORT_PRIVATE roundNumberToIncrementDouble(double x, double increment, RoundingMode);
+
+Int128 JS_EXPORT_PRIVATE roundNumberToIncrementAsIfPositive(Int128 x, Int128 increment, RoundingMode);
+
+Int128 JS_EXPORT_PRIVATE roundNumberToIncrementInt128(Int128 x, Int128 increment, RoundingMode);
+
+TemporalResult<void> JS_EXPORT_PRIVATE validateTemporalRoundingIncrement(double increment, std::optional<double> dividend, Inclusivity);
+
 } // namespace TemporalCore
-
-// TransitionDirection — temporal_rs: TransitionDirection (timezone_provider crate, src/provider.rs)
-// Used by getTimeZoneTransition to indicate search direction.
-enum class TransitionDirection : bool {
-    Next,
-    Previous,
-};
-
 } // namespace JSC

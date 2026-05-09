@@ -29,6 +29,7 @@
 #include "IntlObjectInlines.h"
 #include "JSCInlines.h"
 #include "LazyPropertyInlines.h"
+#include "Rounding.h"
 #include "TemporalPlainDate.h"
 #include "TemporalPlainTime.h"
 #include "VMTrapsInlines.h"
@@ -352,7 +353,7 @@ TemporalPlainDateTime* TemporalPlainDateTime::round(JSGlobalObject* globalObject
     unsigned maximum = 1;
     Inclusivity isInclusive = Inclusivity::Inclusive;
     if (smallestUnit != TemporalUnit::Day) {
-        auto maximumOptional = maximumRoundingIncrement(smallestUnit);
+        auto maximumOptional = TemporalCore::maximumRoundingIncrement(smallestUnit);
         ASSERT(maximumOptional);
         maximum = maximumOptional.value();
         isInclusive = Inclusivity::Exclusive;

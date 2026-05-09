@@ -25,44 +25,22 @@
 
 #pragma once
 
-// JSC Temporal Core — Shared types and error handling
-// temporal_rs reference: src/error.rs
+// JSC Temporal Core — Calendar arithmetic (ISO8601 path)
+// temporal_rs reference: src/builtins/core/calendar.rs
+// Last synced: v0.2.3
 
-#include <wtf/Expected.h>
-#include <wtf/text/ASCIILiteral.h>
-#include <wtf/text/WTFString.h>
+#include <JavaScriptCore/ISO8601.h>
+#include <JavaScriptCore/ISOArithmetic.h>
+#include <JavaScriptCore/JSExportMacros.h>
+#include <JavaScriptCore/TemporalCoreTypes.h>
+#include <JavaScriptCore/TemporalObject.h>
 
 namespace JSC {
-
-// TemporalErrorKind — temporal_rs: ErrorKind (src/error.rs)
-enum class TemporalErrorKind : uint8_t {
-    RangeError,
-    TypeError,
-};
-
-// TemporalError — temporal_rs: TemporalError (src/error.rs)
-struct TemporalError {
-    TemporalErrorKind kind;
-    String message;
-};
-
-// TemporalResult<T> — temporal_rs: TemporalResult<T> = Result<T, TemporalError>
-template<typename T>
-using TemporalResult = Expected<T, TemporalError>;
-
-// Convenience constructors — temporal_rs: TemporalError::range() / TemporalError::type_()
 namespace TemporalCore {
-inline TemporalError rangeError(ASCIILiteral msg) { return { TemporalErrorKind::RangeError, String(msg) }; }
-inline TemporalError rangeError(String msg) { return { TemporalErrorKind::RangeError, WTF::move(msg) }; }
-inline TemporalError typeError(ASCIILiteral msg) { return { TemporalErrorKind::TypeError, String(msg) }; }
-inline TemporalError typeError(String msg) { return { TemporalErrorKind::TypeError, WTF::move(msg) }; }
+
+ISO8601::Duration JS_EXPORT_PRIVATE calendarDateUntil(const ISO8601::PlainDate& one, const ISO8601::PlainDate& two, TemporalUnit largestUnit);
+
+TemporalResult<ISO8601::PlainDate> JS_EXPORT_PRIVATE calendarDateAdd(const ISO8601::PlainDate&, const ISO8601::Duration&, TemporalOverflow);
+
 } // namespace TemporalCore
-
-// TransitionDirection — temporal_rs: TransitionDirection (timezone_provider crate, src/provider.rs)
-// Used by getTimeZoneTransition to indicate search direction.
-enum class TransitionDirection : bool {
-    Next,
-    Previous,
-};
-
 } // namespace JSC

@@ -1484,6 +1484,10 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/WriteBarrier.h
     runtime/WriteBarrierInlines.h
 
+    runtime/temporal/core/CalendarArithmetic.h
+    runtime/temporal/core/ISOArithmetic.h
+    runtime/temporal/core/InstantCore.h
+    runtime/temporal/core/Rounding.h
     runtime/temporal/core/TemporalCoreTypes.h
     runtime/temporal/core/TemporalEnums.h
 

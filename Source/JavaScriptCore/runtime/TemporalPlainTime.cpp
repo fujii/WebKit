@@ -28,6 +28,7 @@
 #include "TemporalPlainTime.h"
 
 #include "IntlObjectInlines.h"
+#include "Rounding.h"
 #include "JSCInlines.h"
 #include "LazyPropertyInlines.h"
 #include "TemporalDuration.h"
@@ -205,42 +206,42 @@ ISO8601::Duration TemporalPlainTime::roundTime(ISO8601::PlainTime plainTime, dou
     case TemporalUnit::Day: {
         double length = dayLengthNs.value_or(8.64 * 1e13);
         quantity = (((((plainTime.hour() * 60.0 + plainTime.minute()) * 60.0 + plainTime.second()) * 1000.0 + plainTime.millisecond()) * 1000.0 + plainTime.microsecond()) * 1000.0 + plainTime.nanosecond()) / length;
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         return ISO8601::Duration(0, 0, 0, result, 0, 0, 0, 0, 0, 0);
     }
     case TemporalUnit::Hour: {
         quantity = (fractionalSecond(plainTime) / 60.0 + plainTime.minute()) / 60.0 + plainTime.hour();
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         ASSERT(std::isfinite(result));
         return balanceTime(static_cast<Int128>(result), 0, 0, 0, 0, 0);
     }
     case TemporalUnit::Minute: {
         quantity = fractionalSecond(plainTime) / 60.0 + plainTime.minute();
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         ASSERT(std::isfinite(result));
         return balanceTime(static_cast<Int128>(plainTime.hour()), static_cast<Int128>(result), 0, 0, 0, 0);
     }
     case TemporalUnit::Second: {
         quantity = fractionalSecond(plainTime);
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         ASSERT(std::isfinite(result));
         return balanceTime(static_cast<Int128>(plainTime.hour()), static_cast<Int128>(plainTime.minute()), static_cast<Int128>(result), 0, 0, 0);
     }
     case TemporalUnit::Millisecond: {
         quantity = plainTime.millisecond() + plainTime.microsecond() * 1e-3 + plainTime.nanosecond() * 1e-6;
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         ASSERT(std::isfinite(result));
         return balanceTime(static_cast<Int128>(plainTime.hour()), static_cast<Int128>(plainTime.minute()), static_cast<Int128>(plainTime.second()), static_cast<Int128>(result), 0, 0);
     }
     case TemporalUnit::Microsecond: {
         quantity = plainTime.microsecond() + plainTime.nanosecond() * 1e-3;
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         ASSERT(std::isfinite(result));
         return balanceTime(static_cast<Int128>(plainTime.hour()), static_cast<Int128>(plainTime.minute()), static_cast<Int128>(plainTime.second()), static_cast<Int128>(plainTime.millisecond()), static_cast<Int128>(result), 0);
     }
     case TemporalUnit::Nanosecond: {
         quantity = plainTime.nanosecond();
-        auto result = roundNumberToIncrementDouble(quantity, increment, roundingMode);
+        auto result = TemporalCore::roundNumberToIncrementDouble(quantity, increment, roundingMode);
         ASSERT(std::isfinite(result));
         return balanceTime(static_cast<Int128>(plainTime.hour()), static_cast<Int128>(plainTime.minute()), static_cast<Int128>(plainTime.second()), static_cast<Int128>(plainTime.millisecond()), static_cast<Int128>(plainTime.microsecond()), static_cast<Int128>(result));
     }
@@ -296,7 +297,7 @@ ISO8601::PlainTime TemporalPlainTime::round(JSGlobalObject* globalObject, JSValu
     auto smallestUnit = smallest.value();
     validateTemporalUnitValue(globalObject, smallestUnit, UnitGroup::Time, AllowedUnit::None, "smallestUnit"_s);
     RETURN_IF_EXCEPTION(scope, { });
-    auto maximum = maximumRoundingIncrement(smallestUnit);
+    auto maximum = TemporalCore::maximumRoundingIncrement(smallestUnit);
     validateTemporalRoundingIncrement(globalObject, roundingIncrement, maximum, Inclusivity::Exclusive);
     RETURN_IF_EXCEPTION(scope, { });
 

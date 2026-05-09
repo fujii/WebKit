@@ -29,12 +29,13 @@
 // temporal_rs reference: src/options.rs
 
 #include <cstdint>
+#include <wtf/Int128.h>
 #include <wtf/text/ASCIILiteral.h>
 #include <wtf/text/StringView.h>
 
 namespace JSC {
 
-// https://tc39.es/proposal-temporal/#sec-temporal-totemporaldisambiguation
+// https://tc39.es/proposal-temporal/#sec-temporal-gettemporaldisambiguationoption
 // temporal_rs: Disambiguation
 enum class TemporalDisambiguation : uint8_t {
     Compatible,
@@ -43,7 +44,7 @@ enum class TemporalDisambiguation : uint8_t {
     Reject,
 };
 
-// https://tc39.es/proposal-temporal/#sec-temporal-totemporaloffset
+// https://tc39.es/proposal-temporal/#sec-temporal-gettemporaloffsetoption
 // temporal_rs: OffsetDisambiguation
 enum class TemporalOffsetDisambiguation : uint8_t {
     Use,
@@ -52,16 +53,15 @@ enum class TemporalOffsetDisambiguation : uint8_t {
     Reject,
 };
 
-// https://tc39.es/proposal-temporal/#sec-temporal-interpretisodatetimeoffset
-// temporal_rs: interpret_isodatetime_offset — is_exact/offset_nanos pair encoding
+// OffsetBehaviour encodes the offset source used by interpretISODateTimeOffset.
 enum class OffsetBehaviour : uint8_t {
     Wall, // no inline offset in string — resolve via timezone + disambiguation
     Exact, // Z flag — UTC epoch directly
     Option, // +HH:MM present — use inlineOffsetNs
 };
 
-// https://tc39.es/proposal-temporal/#sec-temporal-tocalendaridentifier
-// temporal_rs: AnyCalendarKind
+// https://tc39.es/proposal-temporal/#sec-temporal-totemporalcalendaridentifier
+// temporal_rs: AnyCalendarKind (icu_calendar crate, imported by builtins/core/calendar.rs)
 enum class CalendarKind : uint8_t {
     Iso8601 = 0, // must be 0 so zero-initialised objects default to iso8601
     Buddhist,
@@ -206,5 +206,154 @@ inline CalendarKind toCalendarKind(WTF::StringView s)
         return CalendarKind::Vikram;
     return CalendarKind::Iso8601;
 }
+
+// -----------------------------------------------------------------------
+// Temporal unit
+// -----------------------------------------------------------------------
+
+#define JSC_TEMPORAL_PLAIN_DATE_UNITS(macro) \
+    macro(year, Year) \
+    macro(month, Month) \
+    macro(day, Day) \
+
+#define JSC_TEMPORAL_PLAIN_MONTH_DAY_UNITS(macro) \
+    macro(month, Month) \
+    macro(day, Day)
+
+#define JSC_TEMPORAL_PLAIN_YEAR_MONTH_UNITS(macro) \
+    macro(year, Year) \
+    macro(month, Month)
+
+#define JSC_TEMPORAL_PLAIN_TIME_UNITS(macro) \
+    macro(hour, Hour) \
+    macro(minute, Minute) \
+    macro(second, Second) \
+    macro(millisecond, Millisecond) \
+    macro(microsecond, Microsecond) \
+    macro(nanosecond, Nanosecond) \
+
+#define JSC_TEMPORAL_UNITS(macro) \
+    macro(year, Year) \
+    macro(month, Month) \
+    macro(week, Week) \
+    macro(day, Day) \
+    JSC_TEMPORAL_PLAIN_TIME_UNITS(macro) \
+
+// temporal_rs: Unit (src/options.rs)
+// https://tc39.es/proposal-temporal/#table-temporal-units
+enum class TemporalUnit : uint8_t {
+#define JSC_DEFINE_TEMPORAL_UNIT_ENUM(name, capitalizedName) capitalizedName,
+    JSC_TEMPORAL_UNITS(JSC_DEFINE_TEMPORAL_UNIT_ENUM)
+#undef JSC_DEFINE_TEMPORAL_UNIT_ENUM
+};
+#define JSC_COUNT_TEMPORAL_UNITS(name, capitalizedName) + 1
+static constexpr unsigned numberOfTemporalUnits = 0 JSC_TEMPORAL_UNITS(JSC_COUNT_TEMPORAL_UNITS);
+static constexpr unsigned numberOfTemporalPlainDateUnits = 0 JSC_TEMPORAL_PLAIN_DATE_UNITS(JSC_COUNT_TEMPORAL_UNITS);
+static constexpr unsigned numberOfTemporalPlainTimeUnits = 0 JSC_TEMPORAL_PLAIN_TIME_UNITS(JSC_COUNT_TEMPORAL_UNITS);
+static constexpr unsigned numberOfTemporalPlainYearMonthUnits = 0 JSC_TEMPORAL_PLAIN_YEAR_MONTH_UNITS(JSC_COUNT_TEMPORAL_UNITS);
+static constexpr unsigned numberOfTemporalPlainMonthDayUnits = 0 JSC_TEMPORAL_PLAIN_MONTH_DAY_UNITS(JSC_COUNT_TEMPORAL_UNITS);
+#undef JSC_COUNT_TEMPORAL_UNITS
+
+extern const TemporalUnit temporalUnitsInTableOrder[numberOfTemporalUnits];
+
+// https://tc39.es/proposal-temporal/#table-temporal-units
+constexpr Int128 lengthInNanoseconds(TemporalUnit unit)
+{
+    switch (unit) {
+    case TemporalUnit::Nanosecond:
+        return 1;
+    case TemporalUnit::Microsecond:
+        return 1000;
+    case TemporalUnit::Millisecond:
+        return 1000 * lengthInNanoseconds(TemporalUnit::Microsecond);
+    case TemporalUnit::Second:
+        return 1000 * lengthInNanoseconds(TemporalUnit::Millisecond);
+    case TemporalUnit::Minute:
+        return 60 * lengthInNanoseconds(TemporalUnit::Second);
+    case TemporalUnit::Hour:
+        return 60 * lengthInNanoseconds(TemporalUnit::Minute);
+    case TemporalUnit::Day:
+        return 24 * lengthInNanoseconds(TemporalUnit::Hour);
+    default:
+        break;
+    }
+    RELEASE_ASSERT_NOT_REACHED();
+}
+
+// -----------------------------------------------------------------------
+// Rounding enums
+// -----------------------------------------------------------------------
+
+// temporal_rs: RoundingMode (src/options.rs)
+// https://tc39.es/proposal-temporal/#sec-temporal-totemporalroundingmode
+enum class RoundingMode : uint8_t {
+    Ceil,
+    Floor,
+    Expand,
+    Trunc,
+    HalfCeil,
+    HalfFloor,
+    HalfExpand,
+    HalfTrunc,
+    HalfEven
+};
+
+// temporal_rs: UnsignedRoundingMode (src/options.rs)
+enum class UnsignedRoundingMode : uint8_t {
+    Infinity,
+    Zero,
+    HalfInfinity,
+    HalfZero,
+    HalfEven
+};
+
+// https://tc39.es/proposal-temporal/#sec-getunsignedroundingmode
+// temporal_rs: RoundingMode::get_unsigned_round_mode (src/options.rs)
+constexpr UnsignedRoundingMode getUnsignedRoundingMode(RoundingMode roundingMode, bool isNegative)
+{
+    switch (roundingMode) {
+    case RoundingMode::Ceil:
+        return isNegative ? UnsignedRoundingMode::Zero : UnsignedRoundingMode::Infinity;
+    case RoundingMode::Floor:
+        return isNegative ? UnsignedRoundingMode::Infinity : UnsignedRoundingMode::Zero;
+    case RoundingMode::Expand:
+        return UnsignedRoundingMode::Infinity;
+    case RoundingMode::Trunc:
+        return UnsignedRoundingMode::Zero;
+    case RoundingMode::HalfCeil:
+        return isNegative ? UnsignedRoundingMode::HalfZero : UnsignedRoundingMode::HalfInfinity;
+    case RoundingMode::HalfFloor:
+        return isNegative ? UnsignedRoundingMode::HalfInfinity : UnsignedRoundingMode::HalfZero;
+    case RoundingMode::HalfExpand:
+        return UnsignedRoundingMode::HalfInfinity;
+    case RoundingMode::HalfTrunc:
+        return UnsignedRoundingMode::HalfZero;
+    default:
+        return UnsignedRoundingMode::HalfEven;
+    }
+}
+
+// temporal_rs: no direct equivalent; used as parameter to ValidateTemporalRoundingIncrement.
+enum class Inclusivity : bool {
+    Inclusive,
+    Exclusive
+};
+
+// -----------------------------------------------------------------------
+// Arithmetic operation enums
+// -----------------------------------------------------------------------
+
+// temporal_rs: Overflow (src/options.rs)
+// https://tc39.es/proposal-temporal/#sec-temporal-totemporaloverflow
+enum class TemporalOverflow : bool {
+    Constrain,
+    Reject,
+};
+
+// temporal_rs: DifferenceOperation (src/options.rs)
+enum class DifferenceOperation : bool {
+    Since,
+    Until
+};
 
 } // namespace JSC

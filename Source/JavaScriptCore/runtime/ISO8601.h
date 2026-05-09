@@ -39,6 +39,9 @@ static constexpr int32_t maxYear = 275760;
 static constexpr int32_t minYear = -271821;
 static constexpr int32_t outOfRangeYear = minYear - 1;
 
+static constexpr int32_t monthsPerYear = 12;
+static constexpr int32_t daysPerWeek = 7;
+
 class Duration {
     WTF_MAKE_TZONE_ALLOCATED(Duration);
 public:
@@ -473,7 +476,7 @@ using CalendarID = RFC9557Value;
 std::optional<std::tuple<PlainTime, std::optional<TimeZoneRecord>>> parseTime(StringView);
 std::optional<std::tuple<PlainTime, std::optional<TimeZoneRecord>, std::optional<CalendarID>>> parseCalendarTime(StringView);
 std::optional<std::tuple<PlainDate, std::optional<PlainTime>, std::optional<TimeZoneRecord>>> parseDateTime(StringView, TemporalDateFormat);
-std::optional<std::tuple<PlainDate, std::optional<PlainTime>, std::optional<TimeZoneRecord>, std::optional<CalendarID>>> parseCalendarDateTime(StringView, TemporalDateFormat);
+JS_EXPORT_PRIVATE std::optional<std::tuple<PlainDate, std::optional<PlainTime>, std::optional<TimeZoneRecord>, std::optional<CalendarID>>> parseCalendarDateTime(StringView, TemporalDateFormat);
 uint8_t dayOfWeek(PlainDate);
 uint16_t NODELETE dayOfYear(PlainDate);
 uint8_t weeksInYear(int32_t year);

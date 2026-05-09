@@ -23,46 +23,33 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-
-// JSC Temporal Core — Shared types and error handling
-// temporal_rs reference: src/error.rs
-
-#include <wtf/Expected.h>
-#include <wtf/text/ASCIILiteral.h>
-#include <wtf/text/WTFString.h>
+#include "config.h"
+#include "CalendarArithmetic.h"
 
 namespace JSC {
-
-// TemporalErrorKind — temporal_rs: ErrorKind (src/error.rs)
-enum class TemporalErrorKind : uint8_t {
-    RangeError,
-    TypeError,
-};
-
-// TemporalError — temporal_rs: TemporalError (src/error.rs)
-struct TemporalError {
-    TemporalErrorKind kind;
-    String message;
-};
-
-// TemporalResult<T> — temporal_rs: TemporalResult<T> = Result<T, TemporalError>
-template<typename T>
-using TemporalResult = Expected<T, TemporalError>;
-
-// Convenience constructors — temporal_rs: TemporalError::range() / TemporalError::type_()
 namespace TemporalCore {
-inline TemporalError rangeError(ASCIILiteral msg) { return { TemporalErrorKind::RangeError, String(msg) }; }
-inline TemporalError rangeError(String msg) { return { TemporalErrorKind::RangeError, WTF::move(msg) }; }
-inline TemporalError typeError(ASCIILiteral msg) { return { TemporalErrorKind::TypeError, String(msg) }; }
-inline TemporalError typeError(String msg) { return { TemporalErrorKind::TypeError, WTF::move(msg) }; }
+
+// CalendarDateUntil (ISO8601 path) — temporal_rs: Calendar::date_until
+// https://tc39.es/proposal-temporal/#sec-temporal-calendardateuntil (ISO8601 path)
+ISO8601::Duration calendarDateUntil(const ISO8601::PlainDate& one, const ISO8601::PlainDate& two, TemporalUnit largestUnit)
+{
+    // 3. If calendar is "iso8601", then
+    //    3.k. Return ! CreateDateDurationRecord(years, months, weeks, days).
+    // (full ISO8601 path implemented in diffISODate)
+    return diffISODate(one, two, largestUnit);
+}
+
+// CalendarDateAdd (ISO8601 path) — temporal_rs: Calendar::date_add
+// https://tc39.es/proposal-temporal/#sec-temporal-calendardateadd (ISO8601 path)
+TemporalResult<ISO8601::PlainDate> calendarDateAdd(const ISO8601::PlainDate& date, const ISO8601::Duration& duration, TemporalOverflow overflow)
+{
+    // 1. If calendar is "iso8601", then
+    //    1.a-1.d. BalanceISOYearMonth + RegulateISODate + AddDaysToISODate.
+    //    3. If ISODateWithinLimits(result) is false, throw a RangeError.
+    //    4. Return result.
+    // (full ISO8601 path implemented in isoDateAdd)
+    return isoDateAdd(date, duration, overflow);
+}
+
 } // namespace TemporalCore
-
-// TransitionDirection — temporal_rs: TransitionDirection (timezone_provider crate, src/provider.rs)
-// Used by getTimeZoneTransition to indicate search direction.
-enum class TransitionDirection : bool {
-    Next,
-    Previous,
-};
-
 } // namespace JSC

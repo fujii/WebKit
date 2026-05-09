@@ -25,44 +25,30 @@
 
 #pragma once
 
-// JSC Temporal Core — Shared types and error handling
-// temporal_rs reference: src/error.rs
+// JSC Temporal Core — Instant algorithms
+// temporal_rs reference: src/builtins/core/instant.rs
+// Last synced: v0.2.3
 
-#include <wtf/Expected.h>
-#include <wtf/text/ASCIILiteral.h>
+#include <JavaScriptCore/ISO8601.h>
+#include <JavaScriptCore/JSExportMacros.h>
+#include <JavaScriptCore/TemporalObject.h>
+#include <optional>
 #include <wtf/text/WTFString.h>
 
 namespace JSC {
-
-// TemporalErrorKind — temporal_rs: ErrorKind (src/error.rs)
-enum class TemporalErrorKind : uint8_t {
-    RangeError,
-    TypeError,
-};
-
-// TemporalError — temporal_rs: TemporalError (src/error.rs)
-struct TemporalError {
-    TemporalErrorKind kind;
-    String message;
-};
-
-// TemporalResult<T> — temporal_rs: TemporalResult<T> = Result<T, TemporalError>
-template<typename T>
-using TemporalResult = Expected<T, TemporalError>;
-
-// Convenience constructors — temporal_rs: TemporalError::range() / TemporalError::type_()
 namespace TemporalCore {
-inline TemporalError rangeError(ASCIILiteral msg) { return { TemporalErrorKind::RangeError, String(msg) }; }
-inline TemporalError rangeError(String msg) { return { TemporalErrorKind::RangeError, WTF::move(msg) }; }
-inline TemporalError typeError(ASCIILiteral msg) { return { TemporalErrorKind::TypeError, String(msg) }; }
-inline TemporalError typeError(String msg) { return { TemporalErrorKind::TypeError, WTF::move(msg) }; }
+
+// MaximumTemporalInstantRoundingIncrement — temporal_rs: internal (no single fn; values are hardcoded per spec table)
+// Values from Temporal.Instant.prototype.round steps 15-20 (one per unit).
+// https://tc39.es/proposal-temporal/#sec-temporal.instant.prototype.round
+constexpr double NODELETE maximumInstantIncrement(TemporalUnit smallestUnit)
+{
+    // Maximum increment = how many units of smallestUnit fit in one day.
+    return static_cast<double>(static_cast<int64_t>(lengthInNanoseconds(TemporalUnit::Day)))
+        / static_cast<double>(static_cast<int64_t>(lengthInNanoseconds(smallestUnit)));
+}
+
+WTF::String JS_EXPORT_PRIVATE instantToString(ISO8601::ExactTime, std::optional<int64_t> offsetNs, PrecisionData);
+
 } // namespace TemporalCore
-
-// TransitionDirection — temporal_rs: TransitionDirection (timezone_provider crate, src/provider.rs)
-// Used by getTimeZoneTransition to indicate search direction.
-enum class TransitionDirection : bool {
-    Next,
-    Previous,
-};
-
 } // namespace JSC

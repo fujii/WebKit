@@ -35,6 +35,7 @@ if (DEVELOPER_MODE)
         ../API/tests/JSObjectGetProxyTargetTest.cpp
         ../API/tests/MultithreadedMultiVMExecutionTest.cpp
         ../API/tests/PingPongStackOverflowTest.cpp
+        ../API/tests/TemporalCoreTest.cpp
         ../API/tests/TypedArrayCTest.cpp
         ../API/tests/VMManagerStopTheWorldTest.cpp
         ../API/tests/testapi.cpp

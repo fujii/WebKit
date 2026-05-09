@@ -30,6 +30,7 @@
 #include "FractionToDouble.h"
 #include "IntlObject.h"
 #include "ParseInt.h"
+#include "Rounding.h"
 #include "TemporalObject.h"
 #include <bit>
 #include <limits>
@@ -1823,7 +1824,7 @@ static Int128 roundTemporalInstant(Int128 ns, unsigned increment, TemporalUnit u
 {
     auto unitLength = lengthInNanoseconds(unit);
     auto incrementNs = increment * unitLength;
-    return roundNumberToIncrementAsIfPositive(ns, incrementNs, roundingMode);
+    return TemporalCore::roundNumberToIncrementAsIfPositive(ns, incrementNs, roundingMode);
 }
 
 // https://tc39.es/proposal-temporal/#sec-validatetemporalroundingincrement
@@ -1881,7 +1882,7 @@ static Int128 roundTimeDurationToIncrement(JSGlobalObject* globalObject, Int128 
     VM& vm = globalObject->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    Int128 rounded = roundNumberToIncrementInt128(d, increment, roundingMode);
+    Int128 rounded = TemporalCore::roundNumberToIncrementInt128(d, increment, roundingMode);
     if (absInt128(rounded) > InternalDuration::maxTimeDuration) {
         throwRangeError(globalObject, scope, "Rounded time duration exceeds maximum"_s);
         return 0;
