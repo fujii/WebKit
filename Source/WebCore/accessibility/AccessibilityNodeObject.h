@@ -186,7 +186,7 @@ public:
     String revealableText() const final;
     bool isHiddenUntilFoundContainer() const final;
     String text() const final;
-    void alternativeText(Vector<AccessibilityText>&) const;
+    virtual void alternativeText(Vector<AccessibilityText>&) const;
     void helpText(Vector<AccessibilityText>&) const;
     String stringValue() const override;
 
