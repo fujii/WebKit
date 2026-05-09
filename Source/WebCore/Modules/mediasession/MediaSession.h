@@ -160,6 +160,8 @@ public:
     void setCaptionsEnabled(bool);
     bool captionsEnabled() const { return m_captionsEnabled; }
 
+    void presentationModeChanged();
+
 private:
     explicit MediaSession(Navigator&);
 
@@ -230,6 +232,7 @@ private:
 #if PLATFORM(COCOA)
     bool m_shouldSuppressMediaSessionPauseActionOnInterruption { false };
 #endif
+    bool m_needsYouTubeCaptionsQuirk { false };
 };
 
 String convertEnumerationToString(MediaSessionPlaybackState);
