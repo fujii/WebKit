@@ -76,7 +76,7 @@ add_library(WebGPU SHARED ${WebGPU_SOURCES} ${WebGPU_WGSL_SOURCES})
 # WebGPU compiles all sources (including .cpp) as ObjC++ via the -ObjC++ flag
 # below; mark the WGSL .cpp sources as OBJCXX so the precompiled header agrees.
 set_source_files_properties(${WebGPU_WGSL_SOURCES} PROPERTIES LANGUAGE OBJCXX)
-ADD_WEBKIT_PREFIX_HEADERS(WebGPU WebGPUPrefix.h)
+WEBKIT_ADD_PREFIX_HEADER(WebGPU WebGPUPrefix.h)
 
 set_target_properties(WebGPU PROPERTIES
     FRAMEWORK TRUE

@@ -3,7 +3,7 @@ include(WebKitVersion)
 # Enable Objective-C / Objective-C++ so .m/.mm sources use the OBJC/OBJCXX
 # compile rules and $<COMPILE_LANGUAGE:OBJC/OBJCXX> generator expressions
 # match. Without this CMake compiles .mm as CXX, CMAKE_OBJCXX_FLAGS are
-# ignored, and ADD_WEBKIT_PREFIX_HEADERS produces no OBJCXX precompiled
+# ignored, and WEBKIT_ADD_PREFIX_HEADER produces no OBJCXX precompiled
 # header for .mm sources.
 enable_language(OBJC OBJCXX)
 

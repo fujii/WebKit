@@ -4852,6 +4852,7 @@ JSResizeObserverCallback.cpp
 JSResizeObserverEntry.cpp
 JSResizeObserverOptions.cpp
 JSResizeObserverSize.cpp
+JSResolvedCaptionDisplaySettingsOptions.cpp
 JSRouterCondition.cpp
 JSRouterRule.cpp
 JSRouterSourceDict.cpp

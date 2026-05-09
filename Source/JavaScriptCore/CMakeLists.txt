@@ -1819,9 +1819,14 @@ else ()
 endif ()
 
 WEBKIT_COMPUTE_SOURCES(JavaScriptCore)
+
+WEBKIT_DEFINE_SUBTARGET(JavaScriptCore JavaScriptCoreJIT
+    PREFIX JavaScriptCoreJITPrefix.h
+    DIRS jit dfg ftl bytecode bytecompiler llint lol tools)
+
 WEBKIT_FRAMEWORK(JavaScriptCore)
 
-ADD_WEBKIT_PREFIX_HEADERS(JavaScriptCore JavaScriptCorePrefix.h)
+WEBKIT_ADD_PREFIX_HEADER(JavaScriptCore JavaScriptCorePrefix.h)
 
 if (NOT "${PORT}" STREQUAL "Mac")
     if (${JavaScriptCore_LIBRARY_TYPE} STREQUAL "SHARED")
