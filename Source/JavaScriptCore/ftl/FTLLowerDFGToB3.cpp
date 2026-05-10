@@ -8597,8 +8597,8 @@ IGNORE_CLANG_WARNINGS_END
             LBasicBlock fastCheckElementString = m_out.newBlock();
             LBasicBlock fastPath = m_out.newBlock();
             LBasicBlock slowCheckElementRope = m_out.newBlock();
-            LBasicBlock slowCheckElement8Bit = m_out.newBlock();
             LBasicBlock compareStringLengths = m_out.newBlock();
+            LBasicBlock slowCheckElement8Bit = m_out.newBlock();
             LBasicBlock checkNonEmpty = m_out.newBlock();
             LBasicBlock loadBytes = m_out.newBlock();
             LBasicBlock compareBytesLoop = m_out.newBlock();
@@ -8645,37 +8645,37 @@ IGNORE_CLANG_WARNINGS_END
 
             m_out.appendTo(loopHeader, fastCheckElementEmpty);
             LValue index = m_out.phi(pointerType(), initialStartIndex);
-            m_out.branch(m_out.notEqual(index, length), unsure(fastCheckElementEmpty), unsure(notFound));
+            m_out.branch(m_out.notEqual(index, length), usually(fastCheckElementEmpty), rarely(notFound));
 
             m_out.appendTo(fastCheckElementEmpty, fastCheckElementCell);
             LValue element = m_out.load64(m_out.baseIndex(m_heaps.indexedContiguousProperties, storage, index));
-            m_out.branch(m_out.isZero64(element), unsure(loopNext), unsure(fastCheckElementCell));
+            m_out.branch(m_out.isZero64(element), rarely(loopNext), usually(fastCheckElementCell));
 
             m_out.appendTo(fastCheckElementCell, fastCheckElementString);
-            m_out.branch(isCell(element), unsure(fastCheckElementString), unsure(loopNext));
+            m_out.branch(isCell(element), usually(fastCheckElementString), rarely(loopNext));
 
             m_out.appendTo(fastCheckElementString, fastPath);
-            m_out.branch(isString(element), unsure(fastPath), unsure(loopNext));
+            m_out.branch(isString(element), usually(fastPath), rarely(loopNext));
 
             m_out.appendTo(fastPath, slowCheckElementRope);
             ValueFromBlock foundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(true)) : m_out.anchor(index);
-            m_out.branch(m_out.equal(element, searchElement), unsure(continuation), unsure(slowCheckElementRope));
+            m_out.branch(m_out.equal(element, searchElement), rarely(continuation), usually(slowCheckElementRope));
 
-            m_out.appendTo(slowCheckElementRope, slowCheckElement8Bit);
-            m_out.branch(isRopeString(element), rarely(slowCase), usually(slowCheckElement8Bit));
+            m_out.appendTo(slowCheckElementRope, compareStringLengths);
+            m_out.branch(isRopeString(element), rarely(slowCase), usually(compareStringLengths));
 
-            m_out.appendTo(slowCheckElement8Bit, compareStringLengths);
+            m_out.appendTo(compareStringLengths, slowCheckElement8Bit);
             LValue elementImpl = m_out.loadPtr(element, m_heaps.JSString_value);
-            m_out.branch(m_out.testIsZero32(m_out.load32(elementImpl, m_heaps.StringImpl_hashAndFlags), m_out.constInt32(StringImpl::flagIs8Bit())), unsure(slowCase), unsure(compareStringLengths));
-
-            m_out.appendTo(compareStringLengths, loopNext);
             LValue elementLength = m_out.load32(elementImpl, m_heaps.StringImpl_length);
             m_out.branch(
                 m_out.notEqual(elementLength, m_out.load32(searchElementImpl, m_heaps.StringImpl_length)),
-                unsure(loopNext), unsure(checkNonEmpty));
+                unsure(loopNext), unsure(slowCheckElement8Bit));
+
+            m_out.appendTo(slowCheckElement8Bit, checkNonEmpty);
+            m_out.branch(m_out.testIsZero32(m_out.load32(elementImpl, m_heaps.StringImpl_hashAndFlags), m_out.constInt32(StringImpl::flagIs8Bit())), rarely(slowCase), usually(checkNonEmpty));
 
             m_out.appendTo(checkNonEmpty, loadBytes);
-            m_out.branch(m_out.isZero32(elementLength), unsure(continuation), unsure(loadBytes));
+            m_out.branch(m_out.isZero32(elementLength), rarely(continuation), usually(loadBytes));
 
             m_out.appendTo(loadBytes, compareBytesLoop);
             LValue elementData = m_out.loadPtr(elementImpl, m_heaps.StringImpl_data);
