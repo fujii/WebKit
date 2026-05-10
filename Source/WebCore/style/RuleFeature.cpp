@@ -252,6 +252,12 @@ struct RuleFeatureSet::RecursiveCollectionContext {
     const CSSSelector* hasPseudoClass { nullptr };
     bool isNestedInLogicalCombination { false };
     bool crossedScopeBreakingCombinator { false };
+    // Set when :has() sits in a non-subject compound of an enclosing :is()/:not() argument,
+    // e.g. `A:is(:has(X) C)`. The has-bearer is then ancestral to the :is() subject rather
+    // than the :is() subject itself, so the has-bearer can be anywhere relative to elements
+    // matching :has() arg simples — invariant "has-bearer is an ancestor of changed element"
+    // does not hold. Treat as scope-breaking.
+    bool hasInNonSubjectCompoundOfLogical { false };
 };
 
 void RuleFeatureSet::collectFeaturesFromSelector(SelectorFeatures& selectorFeatures, const CSSSelector& selector, MatchElement matchElement)
@@ -265,6 +271,10 @@ void RuleFeatureSet::recursivelyCollectFeaturesFromSelector(SelectorFeatures& se
     const CSSSelector* selector = &firstSelector;
     bool isRightmostCompound = true;
     bool crossedScopeBreakingCombinator = context.crossedScopeBreakingCombinator;
+    // Tracks whether this walk has crossed any non-Subselector relation. Used at :has() entry
+    // to detect whether :has() sits in the subject compound of an enclosing :is()/:not()
+    // argument (no crossing → subject compound; crossed → non-subject/ancestor compound).
+    bool crossedCombinator = false;
 
     // When walking a :has() argument chain, emit hasPseudoClasses entries for compounds
     // at sibling combinator boundaries or containing positional pseudo-classes.
@@ -293,6 +303,8 @@ void RuleFeatureSet::recursivelyCollectFeaturesFromSelector(SelectorFeatures& se
         // inside :is when :has() itself is in sibling/subject position). Otherwise the matched
         // element is always within the scope subtree and the scope selector can bound traversal.
         auto scopeSources = [&] -> Vector<const CSSSelector*> {
+            if (context.hasInNonSubjectCompoundOfLogical)
+                return { };
             if (context.isNestedInLogicalCombination && crossedScopeBreakingCombinator)
                 return { };
             auto result = context.outerCompoundSelectors;
@@ -334,19 +346,29 @@ void RuleFeatureSet::recursivelyCollectFeaturesFromSelector(SelectorFeatures& se
             for (auto& subSelector : *selectorList) {
                 auto subResult = computeSubSelectorMatchElement(matchElement, *selector, subSelector);
 
-                RecursiveCollectionContext subContext { subResult, subSelectorIsNegation, context.outerCompoundSelectors, context.hasPseudoClass, context.isNestedInLogicalCombination, crossedScopeBreakingCombinator };
+                RecursiveCollectionContext subContext { subResult, subSelectorIsNegation, context.outerCompoundSelectors, context.hasPseudoClass, context.isNestedInLogicalCombination, crossedScopeBreakingCombinator, context.hasInNonSubjectCompoundOfLogical };
 
                 // When entering a logical combination (not :has() itself), record the outer compound
-                // so nested :has() can use it for scope selector extraction.
-                // Mark as nested so only sibling boundary entries are emitted, not rightmost.
+                // so nested :has() can use it for scope selector extraction. Only do this for
+                // :is()/:not() appearing outside :has(); :is()/:not() inside a :has() argument
+                // describes descendants of the has-bearer, not ancestors, and must not be merged
+                // into the scope compound.
                 if (selector->match() == CSSSelector::Match::PseudoClass && isLogicalCombinationPseudoClass(selector->pseudoClass()) && selector->pseudoClass() != CSSSelector::PseudoClass::Has) {
-                    subContext.outerCompoundSelectors.append(selector);
                     if (subContext.hasPseudoClass)
                         subContext.isNestedInLogicalCombination = true;
+                    else
+                        subContext.outerCompoundSelectors.append(selector);
                 }
 
-                if (selector->match() == CSSSelector::Match::PseudoClass && selector->pseudoClass() == CSSSelector::PseudoClass::Has)
+                if (selector->match() == CSSSelector::Match::PseudoClass && selector->pseudoClass() == CSSSelector::PseudoClass::Has) {
                     subContext.hasPseudoClass = selector;
+                    // If :has() is inside a :is()/:not() argument and the walk has crossed a
+                    // combinator before reaching :has(), :has() sits in an ancestor compound
+                    // of that argument's subject. The has-bearer is then ancestral to the
+                    // :is() subject and outerCompoundSelectors no longer constrain it.
+                    if (!context.outerCompoundSelectors.isEmpty() && crossedCombinator)
+                        subContext.hasInNonSubjectCompoundOfLogical = true;
+                }
 
                 recursivelyCollectFeaturesFromSelector(selectorFeatures, subSelector, subContext);
             }
@@ -357,6 +379,8 @@ void RuleFeatureSet::recursivelyCollectFeaturesFromSelector(SelectorFeatures& se
 
         auto relation = selector->relation();
         isRightmostCompound = false;
+        if (relation != CSSSelector::Relation::Subselector)
+            crossedCombinator = true;
 
         if (context.isNestedInLogicalCombination && matchElement.hasRelation && isHasScopeBreakingCombinator(relation, *matchElement.hasRelation))
             crossedScopeBreakingCombinator = true;
