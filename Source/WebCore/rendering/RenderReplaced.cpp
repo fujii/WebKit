@@ -1012,11 +1012,6 @@ void RenderReplaced::layoutShadowContent(const LayoutSize& oldSize)
     clearChildNeedsLayout();
 }
 
-FloatSize RenderReplaced::intrinsicRatio() const
-{
-    return preferredAspectRatio();
-}
-
 void RenderReplaced::computeReplacedOutOfFlowPositionedLogicalWidth(LogicalExtentComputedValues& computedValues) const
 {
     PositionedLayoutConstraints inlineConstraints(*this, LogicalBoxAxis::Inline);

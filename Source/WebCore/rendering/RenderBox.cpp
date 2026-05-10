@@ -711,7 +711,7 @@ void RenderBox::constrainLogicalMinMaxSizesByAspectRatio(LayoutUnit& computedMin
     // a size of the initial containing block and the “stretch-fit” sizing of non-replaced blocks if they have definite values.
     // See https://www.w3.org/TR/css-sizing-3/#definite
     const RenderStyle& styleToUse = style();
-    ASSERT(styleToUse.aspectRatio().hasRatio() || isReplacedWithPreferredAspectRatio());
+    ASSERT(styleToUse.aspectRatio().hasRatio() || (is<RenderReplaced>(*this) && downcast<RenderReplaced>(*this).preferredAspectRatio().aspectRatioDouble()));
     auto logicalSize = dimension == ConstrainDimension::Width ? styleToUse.logicalWidth() : styleToUse.logicalHeight();
     // https://www.w3.org/TR/css-sizing-4/#aspect-ratio-minimum
     if (minimumSizeType == MinimumSizeIsAutomaticContentBased::Yes) {
@@ -2921,7 +2921,6 @@ LayoutUnit RenderBox::fillAvailableMeasure(LayoutUnit availableLogicalWidth, Lay
     return availableLogicalWidth - marginStart - marginEnd;
 }
 
-
 template<typename Keyword> void RenderBox::computeIntrinsicKeywordLogicalWidths(Keyword, LayoutUnit borderAndPadding, LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const
 {
     if constexpr (std::same_as<Keyword, CSS::Keyword::MinIntrinsic>)
@@ -2936,14 +2935,17 @@ template<typename Keyword> void RenderBox::computeIntrinsicKeywordLogicalWidths(
                 minLogicalWidth = std::max(minLogicalWidth, minChildrenLogicalWidth);
                 maxLogicalWidth = std::max(maxLogicalWidth, maxChildrenLogicalWidth);
             }
-        } else if (isReplacedWithPreferredAspectRatio() && style().logicalHeight().isSpecified()) {
+        } else if (CheckedPtr renderReplaced = dynamicDowncast<RenderReplaced>(*this)) {
             // For replaced elements with an intrinsic aspect ratio (e.g. <img>) and a
             // specified block size, compute the transferred min/max-content inline size
             // through the intrinsic ratio rather than using the raw natural width.
-            auto intrinsicRatio = downcast<RenderReplaced>(*this).preferredAspectRatio().aspectRatioDouble();
-            auto computedValues = computeLogicalHeight(logicalHeight(), logicalTop());
-            auto contentBlockSize = std::max(0_lu, computedValues.extent - borderAndPaddingLogicalHeight());
-            minLogicalWidth = maxLogicalWidth = LayoutUnit(contentBlockSize * intrinsicRatio);
+            auto preferredRatio = renderReplaced->preferredAspectRatio().aspectRatioDouble();
+            if (preferredRatio && style().logicalHeight().isSpecified()) {
+                auto computedValues = computeLogicalHeight(logicalHeight(), logicalTop());
+                auto contentBlockSize = std::max(0_lu, computedValues.extent - borderAndPaddingLogicalHeight());
+                minLogicalWidth = maxLogicalWidth = LayoutUnit(contentBlockSize * preferredRatio);
+            } else
+                computeIntrinsicKeywordLogicalWidths(minLogicalWidth, maxLogicalWidth);
         } else
             computeIntrinsicKeywordLogicalWidths(minLogicalWidth, maxLogicalWidth);
     }
@@ -3659,15 +3661,15 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computeSizingKe
     auto minMaxContent = [&] -> std::optional<LayoutUnit> {
         // FIXME: The CSS sizing spec is considering changing what min-content/max-content should resolve to.
         // If that happens, this code will have to change.
-        if (auto* renderImage = dynamicDowncast<RenderImage>(this)) {
+        if (CheckedPtr renderImage = dynamicDowncast<RenderImage>(this)) {
             auto computedFixedLogicalWidth = style().logicalWidth().tryFixed();
             if (computedFixedLogicalWidth && !style().aspectRatio().hasRatio()) {
-                auto intrinsicRatio = renderImage->intrinsicRatio();
+                auto preferredRatio = renderImage->preferredAspectRatio();
                 return resolveHeightForRatio(
                     borderAndPaddingLogicalWidth(),
                     borderAndPaddingLogicalHeight(),
                     LayoutUnit { computedFixedLogicalWidth->resolveZoom(style().usedZoomForLength()) },
-                    intrinsicRatio.transposedSize().aspectRatio(),
+                    preferredRatio.transposedSize().aspectRatio(),
                     BoxSizing::ContentBox
                 );
             }
@@ -3677,8 +3679,8 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computeSizingKe
                 // the aspect ratio.
                 if (!isFlexItem() || downcast<RenderFlexibleBox>(parent())->isHorizontalFlow())
                     return { };
-                if (auto overridingWidth = overridingBorderBoxLogicalWidth(); overridingWidth && !renderImage->intrinsicRatio().isEmpty())
-                    return resolveHeightForRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), contentBoxLogicalWidth(*overridingWidth), renderImage->intrinsicRatio().transposedSize().aspectRatio(), BoxSizing::ContentBox);
+                if (auto overridingWidth = overridingBorderBoxLogicalWidth(); overridingWidth && !renderImage->preferredAspectRatio().isEmpty())
+                    return resolveHeightForRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), contentBoxLogicalWidth(*overridingWidth), renderImage->preferredAspectRatio().transposedSize().aspectRatio(), BoxSizing::ContentBox);
                 return { };
             };
             if (auto height = heightFromCrossAxisOverrideAndAspectRatio())
@@ -5256,12 +5258,6 @@ LayoutUnit RenderBox::computeLogicalWidthFromAspectRatio() const
     return constrainLogicalWidthByMinMax(logicalWidth, containerWidthInInlineDirection, *containingBlock(), AllowIntrinsic::No);
 }
 
-bool RenderBox::isReplacedWithPreferredAspectRatio() const
-{
-    if (auto* replaced = dynamicDowncast<RenderReplaced>(this))
-        return replaced->preferredAspectRatio().aspectRatioDouble();
-    return false;
-}
 
 std::optional<double> RenderBox::aspectRatioValue() const
 {

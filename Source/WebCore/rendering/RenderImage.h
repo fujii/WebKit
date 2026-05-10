@@ -84,6 +84,8 @@ public:
     bool isMultiRepresentationHEIC() const;
 #endif
 
+    FloatSize preferredAspectRatio() const final;
+
 protected:
     RenderImage(Type, Element&, RenderStyle&&, OptionSet<ReplacedFlag>, Style::Image* = nullptr, const float imageDevicePixelRatio = 1.0f);
     void willBeDestroyed() override;
@@ -91,7 +93,6 @@ protected:
     bool shouldInvalidatePreferredWidths() const final;
     RenderReplaced* embeddedSVGRoot() const final;
     FloatSize computeIntrinsicSize() const final;
-    FloatSize preferredAspectRatio() const final;
     bool foregroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect, unsigned maxDepthToTest) const override;
 
     void styleWillChange(Style::Difference, const RenderStyle& newStyle) override;

@@ -685,7 +685,6 @@ protected:
 
     std::optional<double> aspectRatioValue() const;
     bool NODELETE shouldIgnoreAspectRatio() const;
-    bool isReplacedWithPreferredAspectRatio() const;
     bool shouldComputeLogicalWidthFromAspectRatio() const;
     bool isResolveableStretchSize(const auto& size) const { return size.isStretch() && containingBlockHasDefiniteBlockSize(); }
     bool isUnresolveableStretchSize(const auto& size) const { return size.isStretch() && !containingBlockHasDefiniteBlockSize(); }
