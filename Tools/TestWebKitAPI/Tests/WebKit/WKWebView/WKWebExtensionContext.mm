@@ -33,9 +33,12 @@
 #import <WebKit/WKFoundation.h>
 #import <WebKit/WKWebExtensionCommand.h>
 #import <WebKit/WKWebExtensionContextPrivate.h>
+#import <WebKit/WKWebExtensionControllerConfigurationPrivate.h>
 #import <WebKit/WKWebExtensionMatchPatternPrivate.h>
 #import <WebKit/WKWebExtensionPermission.h>
 #import <WebKit/WKWebExtensionPrivate.h>
+#import <WebKit/WKWebsiteDataRecord.h>
+#import <WebKit/WKWebsiteDataStorePrivate.h>
 #import <wtf/cocoa/TypeCastsCocoa.h>
 
 #if PLATFORM(IOS_FAMILY)
@@ -1493,6 +1496,79 @@ TEST(WKWebExtensionContext, ConsoleAssertWithoutMessage)
     auto *error = manager.get().context.errors.firstObject;
     EXPECT_EQ(error.code, WKWebExtensionContextErrorScriptExecutionError);
     EXPECT_NS_EQUAL(error.localizedDescription, @"(background.js:2:15)");
+}
+
+TEST(WKWebExtensionContext, CleanUpOldOriginDataAfterMigration)
+{
+    auto *manifest = @{
+        @"manifest_version": @3,
+        @"name": @"Test Extension",
+        @"description": @"Test",
+        @"version": @"1.0",
+        @"background": @{
+            @"scripts": @[ @"background.js" ],
+            @"type": @"module",
+            @"persistent": @NO,
+        },
+    };
+    auto *backgroundScript = Util::constructScript(@[
+        @"localStorage.setItem('testkey', 'testvalue')",
+        @"browser.test.sendMessage('Ready')",
+    ]);
+
+    auto *configuration = WKWebExtensionControllerConfiguration._temporaryConfiguration;
+    auto manager = Util::parseExtension(manifest, @{ @"background.js": backgroundScript }, configuration);
+    manager.get().context.uniqueIdentifier = @"org.webkit.test.extension (76C788B8)";
+
+    [manager load];
+    [manager runUntilTestMessage:@"Ready"];
+
+    auto *oldOriginURL = manager.get().context.baseURL;
+    auto *dataStore = manager.get().controller.configuration.defaultWebsiteDataStore;
+
+    __block NSString *oldLocalStorageDirectoryPath;
+    __block bool done = false;
+    [dataStore _originDirectoryForTesting:oldOriginURL topOrigin:oldOriginURL type:WKWebsiteDataTypeLocalStorage completionHandler:^(NSString *result) {
+        oldLocalStorageDirectoryPath = [result copy];
+        done = true;
+    }];
+    Util::run(&done);
+    EXPECT_TRUE([[NSFileManager defaultManager] fileExistsAtPath:oldLocalStorageDirectoryPath]);
+
+    __block NSString *oldServiceWorkerDirectoryPath;
+    done = false;
+    [dataStore _originDirectoryForTesting:oldOriginURL topOrigin:oldOriginURL type:WKWebsiteDataTypeServiceWorkerRegistrations completionHandler:^(NSString *result) {
+        oldServiceWorkerDirectoryPath = [result copy];
+        done = true;
+    }];
+    Util::run(&done);
+    EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:oldServiceWorkerDirectoryPath]);
+
+    [manager.get().controller unloadExtensionContext:manager.get().context error:nil];
+    manager.get().context = nil;
+
+    auto *readLocalStorageBackgroundScript = Util::constructScript(@[
+        @"browser.test.assertEq(localStorage.getItem('testkey'), 'testvalue')",
+        @"browser.test.sendMessage('Migrated')",
+    ]);
+
+    auto *newExtension = [[WKWebExtension alloc] _initWithManifestDictionary:manifest resources:@{ @"background.js": readLocalStorageBackgroundScript }];
+    auto *newContext = [[WKWebExtensionContext alloc] initForExtension:newExtension];
+    newContext.uniqueIdentifier = @"org.webkit.test.extension (76C788B8)";
+    EXPECT_FALSE([newContext.baseURL isEqual:oldOriginURL]);
+
+    NSError *error;
+    [manager.get().controller loadExtensionContext:newContext error:&error];
+    EXPECT_NULL(error);
+
+    manager.get().context = newContext;
+    [manager runUntilTestMessage:@"Migrated"];
+
+    EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:oldLocalStorageDirectoryPath]);
+    EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:oldServiceWorkerDirectoryPath]);
+
+    auto *oldOriginDirectory = [oldLocalStorageDirectoryPath stringByDeletingLastPathComponent];
+    EXPECT_FALSE([[NSFileManager defaultManager] fileExistsAtPath:oldOriginDirectory]);
 }
 
 } // namespace TestWebKitAPI
