@@ -47,7 +47,6 @@ public:
     bool isContentLikelyVisibleInViewport();
     bool shouldInvalidatePreferredWidths() const override;
 
-    double computeIntrinsicAspectRatio() const;
 
     virtual bool paintsContent() const { return true; }
 

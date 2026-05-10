@@ -879,7 +879,7 @@ static bool isSVGRootWithIntrinsicAspectRatio(const RenderBox& flexItem)
         return false;
     // It's common for some replaced elements, such as SVGs, to have intrinsic aspect ratios but no intrinsic sizes.
     // That's why it isn't enough just to check for intrinsic sizes in those cases.
-    return downcast<RenderReplaced>(flexItem).computeIntrinsicAspectRatio() > 0;
+    return downcast<RenderReplaced>(flexItem).preferredAspectRatio().aspectRatioDouble() > 0;
 };
 
 static bool flexItemHasAspectRatio(const RenderBox& flexItem)
@@ -1262,11 +1262,11 @@ double RenderFlexibleBox::preferredAspectRatioForFlexItem(const RenderBox& flexI
     auto flexItemAspectRatio = [&] {
         auto flexItemIntrinsicSize = LayoutSize { flexItem.intrinsicLogicalWidth(), flexItem.intrinsicLogicalHeight() };
         if (flexItem.isRenderOrLegacyRenderSVGRoot())
-            return downcast<RenderReplaced>(flexItem).computeIntrinsicAspectRatio();
+            return downcast<RenderReplaced>(flexItem).preferredAspectRatio().aspectRatioDouble();
         if (flexItem.style().aspectRatio().isRatio() || (flexItem.style().aspectRatio().isAutoAndRatio() && flexItemIntrinsicSize.isEmpty()))
             return flexItem.style().logicalAspectRatio();
         if (auto* replacedElement = dynamicDowncast<RenderReplaced>(flexItem))
-            return replacedElement->computeIntrinsicAspectRatio();
+            return replacedElement->preferredAspectRatio().aspectRatioDouble();
 
         ASSERT(flexItem.intrinsicLogicalHeight());
         return flexItem.intrinsicLogicalWidth().toDouble() / flexItem.intrinsicLogicalHeight().toDouble();

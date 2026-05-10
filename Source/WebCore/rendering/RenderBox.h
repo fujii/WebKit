@@ -683,9 +683,9 @@ protected:
 
     void incrementVisuallyNonEmptyPixelCountIfNeeded(const IntSize&);
 
-    std::optional<double> resolveAspectRatio() const;
+    std::optional<double> aspectRatioValue() const;
     bool NODELETE shouldIgnoreAspectRatio() const;
-    bool isRenderReplacedWithIntrinsicRatio() const;
+    bool isReplacedWithPreferredAspectRatio() const;
     bool shouldComputeLogicalWidthFromAspectRatio() const;
     bool isResolveableStretchSize(const auto& size) const { return size.isStretch() && containingBlockHasDefiniteBlockSize(); }
     bool isUnresolveableStretchSize(const auto& size) const { return size.isStretch() && !containingBlockHasDefiniteBlockSize(); }

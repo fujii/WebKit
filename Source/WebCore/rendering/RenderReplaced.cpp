@@ -558,11 +558,6 @@ LayoutRect RenderReplaced::replacedContentRect(const LayoutSize& intrinsicSize) 
     return finalRect;
 }
 
-double RenderReplaced::computeIntrinsicAspectRatio() const
-{
-    return preferredAspectRatio().aspectRatioDouble();
-}
-
 FloatSize RenderReplaced::computeIntrinsicSize() const
 {
     return { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
@@ -629,7 +624,7 @@ void RenderReplaced::computeAspectRatioAdjustedIntrinsicLogicalWidths(LayoutUnit
         return;
 
     auto& style = this->style();
-    auto computedAspectRatio = computeIntrinsicAspectRatio();
+    auto computedAspectRatio = preferredAspectRatio().aspectRatioDouble();
     auto computedIntrinsicLogicalWidth = minLogicalWidth;
 
     if (auto fixedLogicalHeight = style.logicalHeight().tryFixed())
@@ -806,7 +801,7 @@ void RenderReplaced::computeIntrinsicKeywordLogicalWidths(LayoutUnit& minLogical
 {
     if (hasIntrinsicAspectRatio() && !style().logicalHeight().isAuto()) {
         if (auto fixedHeight = style().logicalHeight().tryFixed()) {
-            auto heightDerivedWidth = LayoutUnit { fixedHeight->resolveZoom(style().usedZoomForLength()) * computeIntrinsicAspectRatio() };
+            auto heightDerivedWidth = LayoutUnit { fixedHeight->resolveZoom(style().usedZoomForLength()) * preferredAspectRatio().aspectRatioDouble() };
             minLogicalWidth = heightDerivedWidth;
             maxLogicalWidth = heightDerivedWidth;
             return;
