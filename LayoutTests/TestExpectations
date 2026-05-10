@@ -1379,27 +1379,36 @@ webkit.org/b/247290 imported/w3c/web-platform-tests/fetch/api/basic/response-nul
 webkit.org/b/247290 imported/w3c/web-platform-tests/fetch/api/basic/response-null-body.any.serviceworker.html [ Pass Failure ]
 imported/w3c/web-platform-tests/fetch/api/redirect/redirect-count.any.html [ Pass Failure ]
 imported/w3c/web-platform-tests/fetch/api/redirect/redirect-count.any.worker.html [ Pass Failure ]
-imported/w3c/web-platform-tests/fetch/content-encoding/bad-gzip-body.any.html [ Pass Failure ]
 
 webkit.org/b/247283 imported/w3c/web-platform-tests/fetch/metadata/generated/css-images.https.sub.tentative.html [ Skip ]
 
 # Fetch features that are not implemented.
 imported/w3c/web-platform-tests/fetch/corb [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata [ Skip ]
-imported/w3c/web-platform-tests/fetch/private-network-access/mixed-content-fetch.tentative.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/fetch-later [ Skip ]
 
-# These fetch tests time out on ports without web-platform.test domain working (not glib).
-imported/w3c/web-platform-tests/fetch/api/request/destination/fetch-destination.https.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/api/request/destination/fetch-destination-prefetch.https.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/content-type/response.window.html [ Skip ]
+# ReadableStream upload is not supported.
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.sharedworker.html [ Skip ]
+
+# This fetch test crashes.
+[ Debug ] imported/w3c/web-platform-tests/fetch/api/crashtests/huge-fetch.any.serviceworker.html [ Skip ]
+
+# These fetch tests time out.
+imported/w3c/web-platform-tests/fetch/metadata/generated/script-text-module-import-static.https.sub.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/metadata/generated/script-text-module-import-static.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/object.https.sub.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/metadata/window-open.https.sub.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/orb/tentative/status.sub.html [ Skip ]
+
+# These fetch tests are non-deterministic.
+imported/w3c/web-platform-tests/fetch/http-cache/pragma-no-cache-with-cache-control.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/preload.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/report.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/embed.https.sub.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/style.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/redirect/redirect-http-upgrade.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/window-open.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/redirect/ [ Skip ]
+
+# zstd decoding is not available on all bot configurations.
+imported/w3c/web-platform-tests/fetch/content-encoding/zstd [ Pass Failure ]
 
 # These tests have unreliable ordering and are flakey
 
@@ -6205,7 +6214,6 @@ imported/w3c/web-platform-tests/fetch/corb/script-html-correctly-labeled.tentati
 imported/w3c/web-platform-tests/fetch/corb/script-html-js-polyglot.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/corb/script-html-via-cross-origin-blob-url.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/corb/script-resource-with-json-parser-breaker.tentative.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/generated/appcache-manifest.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/css-images.sub.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-a.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-area.https.sub.html [ Skip ]
@@ -6239,14 +6247,6 @@ imported/w3c/web-platform-tests/fetch/metadata/generated/window-location.https.s
 imported/w3c/web-platform-tests/fetch/metadata/redirect/redirect-https-downgrade.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/track.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/range/sw.https.window.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/embed.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/iframe.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/object.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/redirect/multiple-redirect-cross-site.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/redirect/multiple-redirect-same-site.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/redirect/same-origin-redirect.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/track.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/sec-metadata/window-open.tentative.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fullscreen/api/element-request-fullscreen-cross-origin.sub.html [ Skip ]
 # Geolocation tests
 # Bug 291197: WebDriver BiDi not implemented - tests require test_driver.bidi.permissions/emulation APIs
