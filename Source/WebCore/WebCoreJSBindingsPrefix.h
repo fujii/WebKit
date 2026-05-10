@@ -36,11 +36,8 @@
 #include <JavaScriptCore/SubspaceInlines.h>
 
 #include <pal/SessionID.h>
-#include <unicode/uscript.h>
-#include <wtf/Logger.h>
 #include <wtf/PointerPreparations.h>
 #include <wtf/Range.h>
-#include <wtf/RobinHoodHashSet.h>
 #include <wtf/persistence/PersistentCoders.h>
 #include <wtf/persistence/PersistentDecoder.h>
 #include <wtf/persistence/PersistentEncoder.h>
@@ -57,7 +54,6 @@
 #include "ContextDestructionObserverInlines.h"
 #include "DOMHighResTimeStamp.h"
 #include "Document.h"
-#include "EventTarget.h"
 #include "EventTargetInlines.h"
 #include "ExtendedDOMClientIsoSubspaces.h"
 #include "ExtendedDOMIsoSubspaces.h"
@@ -85,17 +81,13 @@
 #include "JSDOMOperation.h"
 #include "JSDOMWrapperCache.h"
 #include "JSValueInWrappedObject.h"
-#include "LayoutPoint.h"
 #include "NetworkLoadMetrics.h"
 #include "Node.h"
 #include "ParsedContentRange.h"
 #include "PolicyContainer.h"
 #include "ResourceLoadPriority.h"
 #include "ResourceRequest.h"
-#include "ResourceRequestBase.h"
 #include "ResourceResponse.h"
-#include "ResourceResponseBase.h"
-#include "ScriptExecutionContext.h"
 #include "SecurityOrigin.h"
 #include "TrustedFonts.h"
 #include "WebCoreJSClientData.h"

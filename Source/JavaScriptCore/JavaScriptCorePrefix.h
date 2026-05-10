@@ -59,17 +59,28 @@
 #endif
 
 #ifdef __cplusplus
+#include "B3ValueRep.h"
 #include "Bytecodes.h"
 #include "CodeBlock.h"
 #include "Heap.h"
+#include "JSArray.h"
+#include "JSArrayBufferView.h"
 #include "JSCJSValue.h"
+#include "JSCJSValueInlines.h"
 #include "JSCJSValuePropertyInlines.h"
+#include "JSDataView.h"
 #include "JSGlobalObject.h"
+#include "JSLexicalEnvironment.h"
 #include "JSObject.h"
+#include "JSObjectRef.h"
 #include "JSString.h"
+#include "JSStringInlines.h"
 #include "MarkedBlockInlines.h"
+#include "Operations.h"
 #include "OptionsList.h"
+#include "Strong.h"
 #include "Structure.h"
+#include "StructureChain.h"
 #include "VM.h"
 #include <chrono>
 #include <functional>
@@ -80,6 +91,8 @@
 #include <typeinfo>
 #include <wtf/HashMap.h>
 #include <wtf/HashSet.h>
+#include <wtf/MediaTime.h>
+#include <wtf/RefCountedFixedVector.h>
 #include <wtf/SIMDHelpers.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/TZoneMallocInlines.h>
@@ -101,7 +114,9 @@
 #endif
 
 #if ENABLE(WEBASSEMBLY)
+#include "WasmCallee.h"
 #include "WasmCallingConvention.h"
+#include "WebAssemblyFunction.h"
 #endif
 #endif
 

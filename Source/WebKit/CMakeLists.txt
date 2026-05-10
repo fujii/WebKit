@@ -1166,11 +1166,25 @@ endif ()
 list(APPEND WebKit_SOURCES ${WebKit_DERIVED_SOURCES})
 
 WEBKIT_COMPUTE_SOURCES(WebKit)
+
+WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(WebKit WebKitUIProcess
+    PREFIX WebKitUIProcessPrefix.h
+    PREFIX_LANGUAGES CXX OBJCXX
+    DIRS UIProcess)
+WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(WebKit WebKitWebProcess
+    PREFIX WebKitWebProcessPrefix.h
+    PREFIX_LANGUAGES CXX OBJCXX
+    DIRS WebProcess)
+WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(WebKit WebKitMessageReceivers
+    PREFIX WebKitMessageReceiversPrefix.h
+    PREFIX_LANGUAGES CXX OBJCXX
+    DIRS DerivedSources)
+
 WEBKIT_FRAMEWORK(WebKit)
 WEBKIT_ADD_PREFIX_HEADER(WebKit WebKitPrefix.h)
 
 if (WebKit_ARC_SOURCES)
-    WEBKIT_ADD_OBJECT_SUBTARGET(WebKitARC WebKit ${WebKit_ARC_SOURCES})
+    WEBKIT_DEFINE_SUBTARGET(WebKitARC WebKit ${WebKit_ARC_SOURCES})
     target_compile_options(WebKitARC PRIVATE -fobjc-arc)
     WEBKIT_ADD_PREFIX_HEADER(WebKitARC WebKitPrefix.h)
     target_sources(WebKit PRIVATE $<TARGET_OBJECTS:WebKitARC>)

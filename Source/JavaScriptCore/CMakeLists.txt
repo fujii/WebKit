@@ -1820,8 +1820,9 @@ endif ()
 
 WEBKIT_COMPUTE_SOURCES(JavaScriptCore)
 
-WEBKIT_DEFINE_SUBTARGET(JavaScriptCore JavaScriptCoreJIT
+WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(JavaScriptCore JavaScriptCoreJIT
     PREFIX JavaScriptCoreJITPrefix.h
+    PREFIX_LANGUAGES CXX
     DIRS jit dfg ftl bytecode bytecompiler llint lol tools)
 
 WEBKIT_FRAMEWORK(JavaScriptCore)
