@@ -91,7 +91,7 @@ private:
     void element() const = delete;
 
     bool shouldInvalidatePreferredWidths() const final;
-    RenderBox* embeddedContentBox() const final;
+    RenderReplaced* embeddedSVGRoot() const final;
 
     void setSelectionState(HighlightState) final;
     void setOverlapTestResult(bool) final;

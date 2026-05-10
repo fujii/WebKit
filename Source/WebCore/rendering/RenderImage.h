@@ -89,7 +89,7 @@ protected:
     void willBeDestroyed() override;
 
     bool shouldInvalidatePreferredWidths() const final;
-    RenderBox* embeddedContentBox() const final;
+    RenderReplaced* embeddedSVGRoot() const final;
     FloatSize computeIntrinsicSize() const final;
     FloatSize preferredAspectRatio() const final;
     bool foregroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect, unsigned maxDepthToTest) const override;

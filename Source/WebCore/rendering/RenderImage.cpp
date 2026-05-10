@@ -973,14 +973,14 @@ bool RenderImage::shouldInvalidatePreferredWidths() const
 {
     if (RenderReplaced::shouldInvalidatePreferredWidths())
         return true;
-    return embeddedContentBox();
+    return embeddedSVGRoot();
 }
 
-RenderBox* RenderImage::embeddedContentBox() const
+RenderReplaced* RenderImage::embeddedSVGRoot() const
 {
     if (RefPtr cachedImage = this->cachedImage()) {
         if (RefPtr image = dynamicDowncast<SVGImage>(cachedImage->image()))
-            return image->embeddedContentBox();
+            return image->embeddedSVGRoot();
     }
     return nullptr;
 }

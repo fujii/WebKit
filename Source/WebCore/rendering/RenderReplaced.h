@@ -106,7 +106,7 @@ private:
 
     void computeAspectRatioAdjustedIntrinsicLogicalWidths(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const;
 
-    virtual RenderBox* embeddedContentBox() const { return 0; }
+    virtual RenderReplaced* embeddedSVGRoot() const { return 0; }
     ASCIILiteral renderName() const override { return "RenderReplaced"_s; }
 
     bool canHaveChildren() const override { return false; }
@@ -121,8 +121,8 @@ private:
     bool canBeSelectionLeaf() const override { return true; }
 
     LayoutRect selectionRectForRepaint(const RenderLayerModelObject* repaintContainer, bool clipToVisibleContent = true) final;
-    void computeAspectRatioInformationForRenderBox(RenderBox*, FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
-    void computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(RenderBox* contentRenderer, FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
+    void computeAspectRatioInformationForRenderBox(RenderReplaced*, FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
+    void computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(RenderReplaced* svgRoot, FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
 
     virtual bool shouldDrawSelectionTint() const;
     

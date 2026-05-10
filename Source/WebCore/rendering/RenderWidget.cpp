@@ -487,15 +487,15 @@ bool RenderWidget::shouldInvalidatePreferredWidths() const
 {
     if (RenderReplaced::shouldInvalidatePreferredWidths())
         return true;
-    return embeddedContentBox();
+    return embeddedSVGRoot();
 }
 
-RenderBox* RenderWidget::embeddedContentBox() const
+RenderReplaced* RenderWidget::embeddedSVGRoot() const
 {
     if (!is<RenderEmbeddedObject>(this))
         return nullptr;
     RefPtr frameView = dynamicDowncast<LocalFrameView>(widget());
-    return frameView ? frameView->embeddedContentBox() : nullptr;
+    return frameView ? frameView->embeddedSVGRoot() : nullptr;
 }
 
 } // namespace WebCore
