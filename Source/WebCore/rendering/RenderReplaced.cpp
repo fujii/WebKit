@@ -470,61 +470,25 @@ static bool isVideoWithDefaultObjectSize(const RenderReplaced* maybeVideo)
     return false;
 } 
 
-void RenderReplaced::computeAspectRatioInformationForRenderBox(RenderReplaced* svgRoot, FloatSize& constrainedSize, FloatSize& preferredAspectRatio) const
+void RenderReplaced::computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(FloatSize& intrinsicSize, FloatSize& intrinsicRatio) const
 {
-    FloatSize intrinsicSize;
     if (shouldApplySizeOrInlineSizeContainment()) {
         intrinsicSize = RenderReplaced::computeIntrinsicSize();
-        preferredAspectRatio = RenderReplaced::preferredAspectRatio();
-    } else if (svgRoot) {
-        intrinsicSize = svgRoot->computeIntrinsicSize();
-        preferredAspectRatio = svgRoot->preferredAspectRatio();
+        intrinsicRatio = RenderReplaced::preferredAspectRatio();
+    } else {
+        intrinsicSize = computeIntrinsicSize();
+        intrinsicRatio = preferredAspectRatio();
 
-        if (style().aspectRatio().isRatio() || (style().aspectRatio().isAutoAndRatio() && preferredAspectRatio.isEmpty()))
-            preferredAspectRatio = FloatSize::narrowPrecision(style().aspectRatio().width().value, style().aspectRatio().height().value);
-
-        // Handle zoom & vertical writing modes here, as the embedded document doesn't know about them.
-        intrinsicSize.scale(style().usedZoom());
-
-        if (auto* image = dynamicDowncast<RenderImage>(*this))
-            intrinsicSize.scale(image->imageDevicePixelRatio());
-
-        // Update our intrinsic size to match what the content renderer has computed, so that when we
-        // constrain the size below, the correct intrinsic size will be obtained for comparison against
-        // min and max widths.
-        if (isRenderWidget()) {
-            // For RenderWidget content (e.g. <object> embedding an SVG document), always update
-            // m_intrinsicSize to reflect current intrinsic dimensions, applying CSS default fallback
-            // values (300x150) for dimensions with no intrinsic value (e.g. percentage-sized or
-            // removed attributes). This prevents stale cached sizes when attributes like width/height
-            // are removed. Note: this does not apply to RenderImage (<img src="svg">), which manages
-            // its own intrinsic size via setIntrinsicSize() during image load.
-            auto sizeToCache = intrinsicSize;
+        auto sizeToCache = isHorizontalWritingMode() ? intrinsicSize : intrinsicSize.transposedSize();
+        if (embeddedSVGRoot() && isRenderWidget()) {
             if (!sizeToCache.width())
                 sizeToCache.setWidth(cDefaultWidth);
             if (!sizeToCache.height())
                 sizeToCache.setHeight(cDefaultHeight);
             m_intrinsicSize = LayoutSize(sizeToCache);
-        } else if (!preferredAspectRatio.isEmpty() && !intrinsicSize.isZero())
-            m_intrinsicSize = LayoutSize(intrinsicSize);
-
-        if (!isHorizontalWritingMode()) {
-            if (!preferredAspectRatio.isEmpty())
-                preferredAspectRatio = preferredAspectRatio.transposedSize();
-            intrinsicSize = intrinsicSize.transposedSize();
-        }
-    } else {
-        intrinsicSize = computeIntrinsicSize();
-        preferredAspectRatio = this->preferredAspectRatio();
-        if (!preferredAspectRatio.isEmpty() && !intrinsicSize.isZero())
-            m_intrinsicSize = LayoutSize(isHorizontalWritingMode() ? intrinsicSize : intrinsicSize.transposedSize());
+        } else if (!intrinsicRatio.isEmpty() && !intrinsicSize.isZero())
+            m_intrinsicSize = LayoutSize(sizeToCache);
     }
-    constrainedSize = intrinsicSize;
-}
-
-void RenderReplaced::computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(RenderReplaced* svgRoot, FloatSize& intrinsicSize, FloatSize& intrinsicRatio) const
-{
-    computeAspectRatioInformationForRenderBox(svgRoot, intrinsicSize, intrinsicRatio);
 
     // Now constrain the intrinsic size along each axis according to minimum and maximum width/heights along the
     // opposite axis. So for example a maximum width that shrinks our width will result in the height we compute here
@@ -596,23 +560,16 @@ LayoutRect RenderReplaced::replacedContentRect(const LayoutSize& intrinsicSize) 
 
 double RenderReplaced::computeIntrinsicAspectRatio() const
 {
-    FloatSize intrinsicRatio;
-    FloatSize intrinsicSize;
-    computeAspectRatioInformationForRenderBox(embeddedSVGRoot(), intrinsicSize, intrinsicRatio);
-    return intrinsicRatio.aspectRatioDouble();
+    return preferredAspectRatio().aspectRatioDouble();
 }
 
 FloatSize RenderReplaced::computeIntrinsicSize() const
 {
-    // If there's an embeddedSVGRoot() of a remote, referenced document available, this code-path should never be used.
-    ASSERT(!embeddedSVGRoot() || shouldApplySizeOrInlineSizeContainment());
     return { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
 }
 
 FloatSize RenderReplaced::preferredAspectRatio() const
 {
-    // If there's an embeddedSVGRoot() of a remote, referenced document available, this code-path should never be used.
-    ASSERT(!embeddedSVGRoot() || shouldApplySizeOrInlineSizeContainment());
     auto intrinsicSize = FloatSize(intrinsicLogicalWidth(), intrinsicLogicalHeight());
     FloatSize preferredAspectRatio;
 
@@ -711,7 +668,7 @@ LayoutUnit RenderReplaced::computeReplacedLogicalWidth(ShouldComputePreferred sh
     // 10.3.2 Inline, replaced elements: http://www.w3.org/TR/CSS21/visudet.html#inline-replaced-width
     FloatSize intrinsicRatio;
     FloatSize constrainedSize;
-    computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(embeddedSVGRoot(), constrainedSize, intrinsicRatio);
+    computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(constrainedSize, intrinsicRatio);
 
     if (style.logicalWidth().isAuto()) {
         bool computedHeightIsAuto = style.logicalHeight().isAuto();
@@ -807,7 +764,7 @@ LayoutUnit RenderReplaced::computeReplacedLogicalHeight(std::optional<LayoutUnit
     // 10.6.2 Inline, replaced elements: http://www.w3.org/TR/CSS21/visudet.html#inline-replaced-height
     FloatSize intrinsicRatio;
     FloatSize constrainedSize;
-    computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(embeddedSVGRoot(), constrainedSize, intrinsicRatio);
+    computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(constrainedSize, intrinsicRatio);
 
     bool widthIsAuto = style().logicalWidth().isAuto();
     bool hasIntrinsicWidth = constrainedSize.width() > 0 || (!constrainedSize.width() && shouldRespectZeroIntrinsicWidth()) || shouldApplySizeOrInlineSizeContainment();
@@ -1062,10 +1019,7 @@ void RenderReplaced::layoutShadowContent(const LayoutSize& oldSize)
 
 FloatSize RenderReplaced::intrinsicRatio() const
 {
-    FloatSize intrinsicRatio;
-    FloatSize constrainedSize;
-    computeAspectRatioInformationForRenderBox(embeddedSVGRoot(), constrainedSize, intrinsicRatio);
-    return intrinsicRatio;
+    return preferredAspectRatio();
 }
 
 void RenderReplaced::computeReplacedOutOfFlowPositionedLogicalWidth(LogicalExtentComputedValues& computedValues) const

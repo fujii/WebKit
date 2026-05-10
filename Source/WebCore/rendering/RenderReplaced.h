@@ -61,6 +61,9 @@ public:
     bool replacedMinLogicalHeightComputesAsNone() const;
     bool replacedMaxLogicalHeightComputesAsNone() const;
 
+    virtual FloatSize computeIntrinsicSize() const;
+    virtual FloatSize preferredAspectRatio() const;
+
 protected:
     RenderReplaced(Type, Element&, RenderStyle&&, OptionSet<ReplacedFlag> = { });
     RenderReplaced(Type, Element&, RenderStyle&&, const LayoutSize& intrinsicSize, OptionSet<ReplacedFlag> = { });
@@ -76,9 +79,6 @@ protected:
     bool NODELETE isSelected() const;
 
     void styleDidChange(Style::Difference, const RenderStyle* oldStyle) override;
-
-    virtual FloatSize computeIntrinsicSize() const;
-    virtual FloatSize preferredAspectRatio() const;
 
     void setIntrinsicSize(const LayoutSize& intrinsicSize) { m_intrinsicSize = intrinsicSize; }
     virtual void intrinsicSizeChanged();
@@ -121,8 +121,7 @@ private:
     bool canBeSelectionLeaf() const override { return true; }
 
     LayoutRect selectionRectForRepaint(const RenderLayerModelObject* repaintContainer, bool clipToVisibleContent = true) final;
-    void computeAspectRatioInformationForRenderBox(RenderReplaced*, FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
-    void computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(RenderReplaced* svgRoot, FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
+    void computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(FloatSize& constrainedSize, FloatSize& intrinsicRatio) const;
 
     virtual bool shouldDrawSelectionTint() const;
     

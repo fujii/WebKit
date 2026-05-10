@@ -86,7 +86,10 @@ bool LegacyRenderSVGRoot::hasIntrinsicAspectRatio() const
 
 FloatSize LegacyRenderSVGRoot::computeIntrinsicSize() const
 {
-    ASSERT_IMPLIES(view().frameView().layoutContext().isInRenderTreeLayout(), !shouldApplySizeContainment());
+    // Size containment suppresses intrinsic dimensions from content.
+    // The base class returns values from the cache / contain-intrinsic-size without querying image data.
+    if (shouldApplySizeContainment())
+        return RenderReplaced::computeIntrinsicSize();
     FloatSize intrinsicSize = { svgSVGElement().intrinsicWidth(), svgSVGElement().intrinsicHeight() };
     // Transpose for vertical writing mode
     if (!isHorizontalWritingMode())
@@ -96,7 +99,11 @@ FloatSize LegacyRenderSVGRoot::computeIntrinsicSize() const
 
 FloatSize LegacyRenderSVGRoot::preferredAspectRatio() const
 {
-    ASSERT(!shouldApplySizeContainment());
+    // Size containment suppresses intrinsic dimensions from content, but the
+    // aspect ratio from the CSS aspect-ratio property is still available via the
+    // base class (which doesn't query image data).
+    if (shouldApplySizeContainment())
+        return RenderReplaced::preferredAspectRatio();
 
     if (style().aspectRatio().isRatio())
         return FloatSize::narrowPrecision(style().aspectRatioLogicalWidth().value, style().aspectRatioLogicalHeight().value);
