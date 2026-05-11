@@ -1397,10 +1397,6 @@ Ref<WebPageProxy> WebProcessPool::createWebPage(PageClient& pageClient, Ref<API:
     }
 #endif
 
-#if ENABLE(LAUNCHSERVICES_SANDBOX_EXTENSION_BLOCKING)
-    NetworkProcessProxy::ensureDefaultNetworkProcess();
-#endif
-
     return page;
 }
 
