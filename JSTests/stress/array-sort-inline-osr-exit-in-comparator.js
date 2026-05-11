@@ -1,3 +1,6 @@
+//@ runDefault
+//@ requireOptions("--useConcurrentJIT=0")
+//
 // Verifies that triggering OSR exit inside the comparator (mid-sort, after the
 // DFG ArraySortIntrinsic's inlined body has started rearranging the receiver)
 // still produces a correctly sorted array with the original multiset intact.

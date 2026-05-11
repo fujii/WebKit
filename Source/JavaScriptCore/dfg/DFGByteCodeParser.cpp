@@ -11832,7 +11832,9 @@ auto ByteCodeParser::handleArraySort(Node* callee, Operand resultOperand, CallVa
     //           if (j < 0) goto placePivot;                       //   CompareLess(j, 0) -> innerExit / innerCmpBlock
     //           JSValue current = scratch[j];                     // innerCmpBlock
     //           JSValue cmp = comparator(pivot, current);         //   inlined or Call
-    //           if (!(cmp < 0)) goto placePivot;                  //   CompareLess(cmp, 0) -> innerShift / innerExit
+    //           if (cmp === false) goto shift;                    //   CompareStrictEq(cmp, false) -> innerShift / numericBlock
+    //           if (ToNumber(cmp) < 0) goto shift;                //   numericBlock: ToNumber -> CompareLess -> innerShift / innerExit
+    //           else goto placePivot;
     //           scratch[j + 1] = current;                         // innerShift
     //           j = j - 1;                                        // innerShift
     //           continue;                                         //   Jump -> innerHeader
@@ -11985,30 +11987,30 @@ auto ByteCodeParser::handleArraySort(Node* callee, Operand resultOperand, CallVa
         flush(tmpCmpResult);
         emitExitOK();
 
-        // Match StableSort.h's coerceComparatorResultToBoolean: shift when `cmp < 0`
-        // (numeric path) OR when `cmp === false` (legacy boolean special-case,
-        // webkit.org/b/47825). CompareLess(cmp, 0) alone misses the boolean-false case
-        // because `false` coerces to 0 (not `< 0`), so a second branch on
-        // CompareStrictEq(cmp, false) recovers that case.
-        Node* cmpIsNeg = addToGraph(CompareLess, Edge(cmpResult), Edge(jsConstant(jsNumber(0))));
-        BasicBlock* checkFalseBlock = allocateUntargetableBlock();
+        // Match StableSort's coerceComparatorResultToBoolean:
+        //   if cmp === false           -> shift (legacy boolean special-case, webkit.org/b/47825)
+        //   else                       -> shift iff ToNumber(cmp) < 0
+        Node* cmpIsFalse = addToGraph(CompareStrictEq, Edge(cmpResult), Edge(jsConstant(jsBoolean(false))));
+        BasicBlock* numericBlock = allocateUntargetableBlock();
         {
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(innerShift);
-            branchData->notTaken = BranchTarget(checkFalseBlock);
-            addToGraph(Branch, OpInfo(branchData), cmpIsNeg);
+            branchData->notTaken = BranchTarget(numericBlock);
+            addToGraph(Branch, OpInfo(branchData), cmpIsFalse);
             flushForTerminal();
         }
 
-        m_currentBlock = checkFalseBlock;
+        m_currentBlock = numericBlock;
         clearCaches();
         emitExitOK();
         keepUsesOfCurrentInstructionAlive(m_currentInstruction, m_currentIndex.checkpoint());
-        Node* cmpIsFalse = addToGraph(CompareStrictEq, Edge(get(tmpCmpResult)), Edge(jsConstant(jsBoolean(false))));
+        Node* numericCmp = addToGraph(ToNumber, OpInfo(0), OpInfo(), get(tmpCmpResult));
+        emitExitOK();
+        Node* cmpIsNeg = addToGraph(CompareLess, Edge(numericCmp), Edge(jsConstant(jsNumber(0))));
         BranchData* branchData = m_graph.m_branchData.add();
         branchData->taken = BranchTarget(innerShift);
         branchData->notTaken = BranchTarget(innerExit);
-        addToGraph(Branch, OpInfo(branchData), cmpIsFalse);
+        addToGraph(Branch, OpInfo(branchData), cmpIsNeg);
         flushForTerminal();
     }
 
@@ -12026,6 +12028,7 @@ auto ByteCodeParser::handleArraySort(Node* callee, Operand resultOperand, CallVa
         Node* jMinusOne = addToGraph(ArithAdd, OpInfo(Arith::Unchecked), OpInfo(SpecInt32Only), Edge(j, Int32Use), Edge(jsConstant(jsNumber(-1)), Int32Use));
         set(tmpJ, jMinusOne, ImmediateNakedSet);
         addToGraph(Jump, OpInfo(innerHeader));
+        flushForTerminal();
     }
 
     {
@@ -12042,6 +12045,7 @@ auto ByteCodeParser::handleArraySort(Node* callee, Operand resultOperand, CallVa
         Node* nextI = addToGraph(ArithAdd, OpInfo(Arith::Unchecked), OpInfo(SpecInt32Only), Edge(i, Int32Use), Edge(jsConstant(jsNumber(1)), Int32Use));
         set(tmpI, nextI, ImmediateNakedSet);
         addToGraph(Jump, OpInfo(outerHeader));
+        flushForTerminal();
     }
 
     // Commit: verify length stability (current butterfly length == the stashed pre-sort

@@ -10563,7 +10563,10 @@ IGNORE_CLANG_WARNINGS_END
         m_out.appendTo(loopBody, storeSlot);
         LValue value = m_out.load64(m_out.baseIndex(sourceHeap, butterfly, index));
         ValueFromBlock holeResult = m_out.anchor(m_out.constIntPtr(std::bit_cast<void*>(vm().m_sortScratchSentinel.get())));
-        m_out.branch(m_out.isZero64(value), rarely(continuation), usually(storeSlot));
+        LValue isHole = m_out.isZero64(value);
+        if (m_node->arrayMode().type() == Array::Contiguous)
+            isHole = m_out.bitOr(isHole, m_out.equal(value, m_out.constInt64(JSValue::encode(jsUndefined()))));
+        m_out.branch(isHole, rarely(continuation), usually(storeSlot));
 
         m_out.appendTo(storeSlot, continuation);
         m_out.store64(value, m_out.baseIndex(m_heaps.indexedContiguousProperties, scratch, index, JSValue(), JSCellButterfly::offsetOfData()));

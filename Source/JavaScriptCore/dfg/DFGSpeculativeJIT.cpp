@@ -15444,11 +15444,14 @@ void SpeculativeJIT::compileArraySortCompact(Node* node)
     auto loop = label();
     auto done = branchSub32(Signed, counterGPR, TrustedImm32(1), counterGPR);
     load64(BaseIndex(butterflyGPR, counterGPR, TimesEight, 0), valueGPR);
-    Jump hole = branchTest64(Zero, valueGPR);
+    JumpList holes;
+    holes.append(branchTest64(Zero, valueGPR));
+    if (node->arrayMode().type() == Array::Contiguous)
+        holes.append(branch64(Equal, valueGPR, TrustedImm64(JSValue::encode(jsUndefined()))));
     store64(valueGPR, BaseIndex(scratchGPR, counterGPR, TimesEight, JSCellButterfly::offsetOfData()));
     jump().linkTo(loop, this);
 
-    hole.link(this);
+    holes.link(this);
     move(TrustedImmPtr(std::bit_cast<void*>(vm().m_sortScratchSentinel.get())), scratchGPR);
 
     done.link(this);

@@ -1,3 +1,6 @@
+//@ runDefault
+//@ requireOptions("--useConcurrentJIT=0")
+//
 // A single sort call site that alternates between small (length <= 16,
 // inlined insertion sort) and large (length > 16, inlined slow-path
 // DirectCall to arrayProtoFuncSort) arrays must compile once and stay
