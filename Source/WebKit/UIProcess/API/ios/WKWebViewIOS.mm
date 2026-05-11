@@ -3711,6 +3711,8 @@ static WebCore::UserInterfaceLayoutDirection toUserInterfaceLayoutDirection(UISe
 #if ENABLE(RESPONSIVE_LIVE_RESIZE_UPDATE)
             UNUSED_PARAM(liveResizeSnapshotView);
             RetainPtr strongSelf = weakSelf.get();
+            if (!strongSelf)
+                return;
             [strongSelf->_liveResizeSnapshotContainerView removeFromSuperview];
             strongSelf->_liveResizeSnapshotContainerView = nil;
 #else
@@ -3725,6 +3727,8 @@ static WebCore::UserInterfaceLayoutDirection toUserInterfaceLayoutDirection(UISe
 #if ENABLE(RESPONSIVE_LIVE_RESIZE_UPDATE)
         UNUSED_PARAM(liveResizeSnapshotView);
         RetainPtr strongSelf = weakSelf.get();
+        if (!strongSelf)
+            return;
         [strongSelf->_liveResizeSnapshotContainerView removeFromSuperview];
         strongSelf->_liveResizeSnapshotContainerView = nil;
 #else
