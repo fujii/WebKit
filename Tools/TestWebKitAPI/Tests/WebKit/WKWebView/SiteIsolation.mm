@@ -8799,4 +8799,40 @@ TEST(SiteIsolation, MultiProcessBFCacheSameSiteWithCrossSiteIframeBlocked)
     EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker ? true : false"] boolValue]);
 }
 
+TEST(SiteIsolation, ClearSiteDataClearsRemoteProcessMemoryCache)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<script src='https://example.com/resource'></script>"
+            "<script>window.onmessage = e => {"
+            "   var s = document.createElement('script');"
+            "   s.onload = function() { alert('reloaded'); };"
+            "   s.src = 'https://example.com/resource';"
+            "   document.body.appendChild(s);"
+            "};</script>"_s } },
+        { "/resource"_s, { { { "Content-Type"_s, "application/javascript"_s }, { "Cache-Control"_s, "max-age=3600"_s } }, "/* script */"_s } },
+        { "/clear"_s, { { { "Content-Type"_s, "text/html"_s }, { "Clear-Site-Data"_s, "\"cache\""_s } }, "cleared"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    checkFrameTreesInProcesses(webView.get(), {
+        { "https://example.com"_s,
+            { { RemoteFrame } }
+        }, { RemoteFrame,
+            { { "https://webkit.org"_s } }
+        },
+    });
+
+    auto requestCountAfterLoad = server.totalRequests();
+
+    [webView callAsyncJavaScript:@"await fetch('/clear'); document.querySelector('iframe').contentWindow.postMessage('reload', '*');" arguments:nil inFrame:nil inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "reloaded");
+
+    EXPECT_EQ(server.totalRequests(), requestCountAfterLoad + 2u);
+}
+
 }
