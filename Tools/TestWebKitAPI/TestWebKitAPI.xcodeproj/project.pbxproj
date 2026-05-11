@@ -593,7 +593,6 @@
 				cocoa/HTTPServer.swift,
 				cocoa/JavaScriptMessages.swift,
 				cocoa/JavaScriptTypes.swift,
-				cocoa/SmartListsSupport.swift,
 				cocoa/StdLibExtras.swift,
 				"cocoa/SwiftUI+Extras.swift",
 				cocoa/TestCocoaImageAndCocoaColor.mm,
