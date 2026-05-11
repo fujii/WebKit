@@ -9242,6 +9242,13 @@ bool HTMLMediaElement::supportsSeeking() const
     return !protect(document())->quirks().needsSeekingSupportDisabled();
 }
 
+#if ENABLE(MEDIA_STREAM)
+static bool isCameraTrack(const MediaStreamTrack& track)
+{
+    return track.isCaptureTrack() && track.isVideo();
+}
+#endif
+
 bool HTMLMediaElement::shouldOverrideBackgroundPlaybackRestriction(PlatformMediaSession::InterruptionType type) const
 {
     if (type == PlatformMediaSession::InterruptionType::EnteringBackground) {
@@ -9268,6 +9275,10 @@ bool HTMLMediaElement::shouldOverrideBackgroundPlaybackRestriction(PlatformMedia
         }
 #endif
 #if ENABLE(MEDIA_STREAM)
+        if (protect(document())->quirks().shouldEnableCameraBackgroundPlayback() && mediaState().containsAny(MediaProducerMediaState::IsPlayingVideo) && m_mediaStreamSrcObject && m_mediaStreamSrcObject->hasMatchingTrack(isCameraTrack)) {
+            INFO_LOG(LOGIDENTIFIER, "returning true because playing a camera MediaStreamTrack");
+            return true;
+        }
         if (hasMediaStreamSrcObject() && mediaState().containsAny(MediaProducerMediaState::IsPlayingAudio) && document().mediaState().containsAny(MediaProducerMediaState::HasActiveAudioCaptureDevice)) {
             INFO_LOG(LOGIDENTIFIER, "returning true because playing an audio MediaStreamTrack");
             return true;
