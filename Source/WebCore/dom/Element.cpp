@@ -2661,7 +2661,7 @@ URL Element::absoluteLinkURL() const
     if (linkAttribute.isEmpty())
         return URL();
 
-    return document().completeURL(linkAttribute);
+    return document().completeURL(linkAttribute, ScriptExecutionContext::ForceUTF8::No);
 }
 
 void Element::setIsLink(bool flag)
@@ -5094,7 +5094,7 @@ URL Element::getURLAttribute(const QualifiedName& name) const
             ASSERT(isURLAttribute(*attribute));
     }
 #endif
-    return document().completeURL(getAttribute(name));
+    return document().completeURL(getAttribute(name), ScriptExecutionContext::ForceUTF8::No);
 }
 
 URL Element::getNonEmptyURLAttribute(const QualifiedName& name) const
@@ -5108,7 +5108,7 @@ URL Element::getNonEmptyURLAttribute(const QualifiedName& name) const
     auto value = getAttribute(name).string().trim(isASCIIWhitespace);
     if (value.isEmpty())
         return URL();
-    return document().completeURL(value);
+    return document().completeURL(value, ScriptExecutionContext::ForceUTF8::No);
 }
 
 int Element::integralAttribute(const QualifiedName& attributeName) const
@@ -5991,7 +5991,7 @@ String Element::resolveURLStringIfNeeded(const String& urlString, ResolveURLs re
         return urlString;
 
     static MainThreadNeverDestroyed<const AtomString> maskedURLStringForBindings(document().maskedURLStringForBindings());
-    URL completeURL = base.isNull() ? document().completeURL(urlString) : URL(base, urlString);
+    URL completeURL = base.isNull() ? document().completeURL(urlString, ScriptExecutionContext::ForceUTF8::No) : URL(base, urlString);
 
     switch (resolveURLs) {
     case ResolveURLs::Yes:
@@ -6161,7 +6161,7 @@ RefPtr<Element> Element::findAnchorElementForLink(String& outAnchorName)
         return nullptr;
 
     Ref document = this->document();
-    URL url = document->completeURL(href);
+    URL url = document->completeURL(href, ScriptExecutionContext::ForceUTF8::No);
     if (!url.isValid())
         return nullptr;
 

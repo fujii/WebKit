@@ -242,7 +242,7 @@ static void imagePositionInformation(WebPage& page, WebCore::Element& element, c
 
     auto& [renderImage, image] = *rendererAndImage;
     info.isImage = true;
-    info.imageURL = page.applyLinkDecorationFiltering(protect(element.document())->completeURL(protect(renderImage.cachedImage())->url().string()), WebCore::LinkDecorationFilteringTrigger::Unspecified);
+    info.imageURL = page.applyLinkDecorationFiltering(protect(element.document())->completeURL(protect(renderImage.cachedImage())->url().string(), WebCore::ScriptExecutionContext::ForceUTF8::No), WebCore::LinkDecorationFilteringTrigger::Unspecified);
     info.imageMIMEType = image.mimeType();
     info.isAnimatedImage = image.isAnimated();
     info.isAnimating = image.isAnimating();
@@ -295,7 +295,7 @@ static void elementPositionInformation(WebPage& page, WebCore::Element& element,
 
     if (linkElement && !info.isImageOverlayText) {
         info.isLink = true;
-        info.url = page.applyLinkDecorationFiltering(document->completeURL(linkElement->getAttribute(WebCore::HTMLNames::hrefAttr)), WebCore::LinkDecorationFilteringTrigger::Unspecified);
+        info.url = page.applyLinkDecorationFiltering(document->completeURL(linkElement->getAttribute(WebCore::HTMLNames::hrefAttr), WebCore::ScriptExecutionContext::ForceUTF8::No), WebCore::LinkDecorationFilteringTrigger::Unspecified);
 
         linkIndicatorPositionInformation(page, *linkElement, request, info);
 #if ENABLE(DATA_DETECTION) && PLATFORM(IOS_FAMILY)
@@ -321,7 +321,7 @@ static void elementPositionInformation(WebPage& page, WebCore::Element& element,
             if (request.includeImageData) {
                 if (auto rendererAndImage = imageRendererAndImage(element)) {
                     auto& [renderImage, image] = *rendererAndImage;
-                    info.imageURL = page.applyLinkDecorationFiltering(document->completeURL(protect(renderImage.cachedImage())->url().string()), WebCore::LinkDecorationFilteringTrigger::Unspecified);
+                    info.imageURL = page.applyLinkDecorationFiltering(document->completeURL(protect(renderImage.cachedImage())->url().string(), WebCore::ScriptExecutionContext::ForceUTF8::No), WebCore::LinkDecorationFilteringTrigger::Unspecified);
                     info.imageMIMEType = image.mimeType();
                     info.image = createShareableBitmap(renderImage, { WebCore::screenSize() * page.corePage()->deviceScaleFactor(), AllowAnimatedImages::Yes, UseSnapshotForTransparentImages::Yes });
                 }
