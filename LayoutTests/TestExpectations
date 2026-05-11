@@ -2152,6 +2152,7 @@ imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished-op-3-4.html [ ImageOnlyFailure Pass ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished-op-3-5.html [ ImageOnlyFailure Pass ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished-op-5-1.html [ ImageOnlyFailure ]
+webkit.org/b/308410 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/operator-dictionary-arabic-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-form-dynamic.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/legacy-mrow-like-elements-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/semantics-002.html [ ImageOnlyFailure ]
