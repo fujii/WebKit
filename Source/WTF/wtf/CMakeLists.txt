@@ -222,6 +222,9 @@ set(WTF_PUBLIC_HEADERS
     OptionalOrReference.h
     OptionSetHash.h
     OrderMaker.h
+    OrderedHashMap.h
+    OrderedHashSet.h
+    OrderedHashTable.h
     OverflowHandler.h
     OverflowPolicy.h
     Packed.h

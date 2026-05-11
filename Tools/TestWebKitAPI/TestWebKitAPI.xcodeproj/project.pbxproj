@@ -1219,6 +1219,8 @@
 				WTF/Observer.cpp,
 				WTF/OptionCountedSet.cpp,
 				WTF/OptionSet.cpp,
+				WTF/OrderedHashMap.cpp,
+				WTF/OrderedHashSet.cpp,
 				WTF/Packed.cpp,
 				WTF/PackedRef.cpp,
 				WTF/PackedRefPtr.cpp,

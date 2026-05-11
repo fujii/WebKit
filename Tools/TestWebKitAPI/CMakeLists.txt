@@ -89,6 +89,8 @@ set(TestWTF_SOURCES
     Tests/WTF/NeverDestroyed.cpp
     Tests/WTF/OptionCountedSet.cpp
     Tests/WTF/OptionSet.cpp
+    Tests/WTF/OrderedHashMap.cpp
+    Tests/WTF/OrderedHashSet.cpp
     Tests/WTF/Packed.cpp
     Tests/WTF/PackedRef.cpp
     Tests/WTF/PackedRefPtr.cpp
