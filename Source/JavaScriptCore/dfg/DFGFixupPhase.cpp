@@ -2619,6 +2619,31 @@ private:
             node->remove(m_graph);
             break;
 
+        case GetCellButterflySlot: {
+            fixEdge<KnownCellUse>(node->child1());
+            fixEdge<Int32Use>(node->child2());
+            break;
+        }
+
+        case PutCellButterflySlot: {
+            fixEdge<KnownCellUse>(node->child1());
+            fixEdge<Int32Use>(node->child2());
+            break;
+        }
+
+        case ArraySortCompact: {
+            fixEdge<KnownCellUse>(node->child1());
+            fixEdge<KnownInt32Use>(node->child2());
+            break;
+        }
+
+        case ArraySortCommit: {
+            fixEdge<KnownCellUse>(node->child1());
+            fixEdge<KnownCellUse>(node->child2());
+            fixEdge<KnownInt32Use>(node->child3());
+            break;
+        }
+
         case FiatInt52: {
             RELEASE_ASSERT(enableInt52());
             node->convertToIdentity();

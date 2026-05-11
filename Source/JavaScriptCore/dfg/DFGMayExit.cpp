@@ -207,6 +207,8 @@ ExitMode mayExitImpl(Graph& graph, Node* node, StateType& state)
     case NewArray:
     case NewArrayWithButterfly:
     case NewButterflyWithSize:
+    case GetCellButterflySlot:
+    case PutCellButterflySlot:
     case ToNumber:
     case ToNumeric:
     case ToObject:

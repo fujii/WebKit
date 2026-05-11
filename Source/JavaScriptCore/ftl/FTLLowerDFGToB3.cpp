@@ -1284,6 +1284,18 @@ private:
         case NewButterflyWithSize:
             compileNewButterflyWithSize();
             break;
+        case GetCellButterflySlot:
+            compileGetCellButterflySlot();
+            break;
+        case PutCellButterflySlot:
+            compilePutCellButterflySlot();
+            break;
+        case ArraySortCompact:
+            compileArraySortCompact();
+            break;
+        case ArraySortCommit:
+            compileArraySortCommit();
+            break;
         case NewArrayWithSpecies:
             compileNewArrayWithSpecies();
             break;
@@ -10497,6 +10509,105 @@ IGNORE_CLANG_WARNINGS_END
 
         setStorage(butterfly);
         // No mutator fence is needed. Butterflies are only scanned when the GC discovers them in an object not on the stack.
+    }
+
+    void compileGetCellButterflySlot()
+    {
+        LValue scratch = lowCell(m_node->child1());
+        LValue index = lowInt32(m_node->child2());
+        setJSValue(m_out.load64(m_out.baseIndex(m_heaps.indexedContiguousProperties, scratch, m_out.zeroExt(index, pointerType()), JSValue(), JSCellButterfly::offsetOfData())));
+    }
+
+    void compilePutCellButterflySlot()
+    {
+        LValue scratch = lowCell(m_node->child1());
+        LValue index = lowInt32(m_node->child2());
+        LValue value = lowJSValue(m_node->child3());
+        m_out.store64(value, m_out.baseIndex(m_heaps.indexedContiguousProperties, scratch, m_out.zeroExt(index, pointerType()), JSValue(), JSCellButterfly::offsetOfData()));
+    }
+
+    void compileArraySortCompact()
+    {
+        LValue array = lowCell(m_node->child1());
+        LValue length = m_out.zeroExt(lowInt32(m_node->child2()), pointerType());
+
+        IndexedAbstractHeap& sourceHeap = m_node->arrayMode().type() == Array::Int32 ? m_heaps.indexedInt32Properties : m_heaps.indexedContiguousProperties;
+
+        LBasicBlock slowCase = m_out.newBlock();
+        LBasicBlock acquired = m_out.newBlock();
+        LBasicBlock loopHeader = m_out.newBlock();
+        LBasicBlock loopBody = m_out.newBlock();
+        LBasicBlock storeSlot = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        LValue cached = m_out.loadPtr(m_out.absolute(&vm().m_cachedSortScratch));
+        m_out.storePtr(m_out.intPtrZero, m_out.absolute(&vm().m_cachedSortScratch));
+        ValueFromBlock fastResult = m_out.anchor(cached);
+        m_out.branch(m_out.isNull(cached), rarely(slowCase), usually(acquired));
+
+        LBasicBlock lastNext = m_out.appendTo(slowCase, acquired);
+        ValueFromBlock slowResult = m_out.anchor(vmCall(pointerType(), operationAcquireSortScratch, m_vmValue));
+        m_out.jump(acquired);
+
+        m_out.appendTo(acquired, loopHeader);
+        LValue scratch = m_out.phi(pointerType(), fastResult, slowResult);
+        LValue butterfly = m_out.loadPtr(array, m_heaps.JSObject_butterfly);
+        ValueFromBlock startIndex = m_out.anchor(m_out.intPtrZero);
+        m_out.jump(loopHeader);
+
+        m_out.appendTo(loopHeader, loopBody);
+        LValue index = m_out.phi(pointerType(), startIndex);
+        ValueFromBlock successResult = m_out.anchor(scratch);
+        m_out.branch(m_out.aboveOrEqual(index, length), unsure(continuation), unsure(loopBody));
+
+        m_out.appendTo(loopBody, storeSlot);
+        LValue value = m_out.load64(m_out.baseIndex(sourceHeap, butterfly, index));
+        ValueFromBlock holeResult = m_out.anchor(m_out.constIntPtr(std::bit_cast<void*>(vm().m_sortScratchSentinel.get())));
+        m_out.branch(m_out.isZero64(value), rarely(continuation), usually(storeSlot));
+
+        m_out.appendTo(storeSlot, continuation);
+        m_out.store64(value, m_out.baseIndex(m_heaps.indexedContiguousProperties, scratch, index, JSValue(), JSCellButterfly::offsetOfData()));
+        LValue nextIndex = m_out.add(index, m_out.intPtrOne);
+        m_out.addIncomingToPhi(index, m_out.anchor(nextIndex));
+        m_out.jump(loopHeader);
+
+        m_out.appendTo(continuation, lastNext);
+        setJSValue(m_out.phi(pointerType(), successResult, holeResult));
+    }
+
+    void compileArraySortCommit()
+    {
+        LValue array = lowCell(m_node->child1());
+        LValue scratch = lowCell(m_node->child2());
+        LValue length = m_out.zeroExt(lowInt32(m_node->child3()), pointerType());
+
+        IndexedAbstractHeap& targetHeap = m_node->arrayMode().type() == Array::Int32 ? m_heaps.indexedInt32Properties : m_heaps.indexedContiguousProperties;
+
+        LBasicBlock commitHeader = m_out.newBlock();
+        LBasicBlock commitBody = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        LValue butterfly = m_out.loadPtr(array, m_heaps.JSObject_butterfly);
+        LValue currentLength = m_out.zeroExt(m_out.load32NonNegative(butterfly, m_heaps.Butterfly_publicLength), pointerType());
+        speculate(BadIndexingType, noValue(), nullptr, m_out.notEqual(currentLength, length));
+
+        ValueFromBlock startCommit = m_out.anchor(m_out.intPtrZero);
+        m_out.jump(commitHeader);
+
+        LBasicBlock lastNext = m_out.appendTo(commitHeader, commitBody);
+        LValue index = m_out.phi(pointerType(), startCommit);
+        m_out.branch(m_out.aboveOrEqual(index, length), unsure(continuation), unsure(commitBody));
+
+        m_out.appendTo(commitBody, continuation);
+        LValue value = m_out.load64(m_out.baseIndex(m_heaps.indexedContiguousProperties, scratch, index, JSValue(), JSCellButterfly::offsetOfData()));
+        m_out.store64(value, m_out.baseIndex(targetHeap, butterfly, index));
+        LValue nextIndex = m_out.add(index, m_out.intPtrOne);
+        m_out.addIncomingToPhi(index, m_out.anchor(nextIndex));
+        m_out.jump(commitHeader);
+
+        m_out.appendTo(continuation, lastNext);
+        splatWords(m_out.add(scratch, m_out.constIntPtr(JSCellButterfly::offsetOfData())), m_out.int32Zero, m_out.constInt32(sortScratchSlotCount), m_out.int64Zero, m_heaps.indexedContiguousProperties.atAnyIndex());
+        m_out.storePtr(scratch, m_out.absolute(&vm().m_cachedSortScratch));
     }
 
     void compileNewArrayWithButterfly()
