@@ -38,6 +38,7 @@
 #include "InlineIteratorBox.h"
 #include "InlineIteratorLineBoxInlines.h"
 #include "LayoutRepainter.h"
+#include "LegacyRenderSVGRoot.h"
 #include "LineSelection.h"
 #include "LocalFrame.h"
 #include "PositionedLayoutConstraints.h"
@@ -56,6 +57,7 @@
 #include "RenderObjectInlines.h"
 #include "RenderStyle+GettersInlines.h"
 #include "RenderStyle+SettersInlines.h"
+#include "RenderSVGRoot.h"
 #include "RenderTheme.h"
 #include "RenderVideo.h"
 #include "RenderView.h"
@@ -468,15 +470,59 @@ static bool isVideoWithDefaultObjectSize(const RenderReplaced* maybeVideo)
     UNUSED_PARAM(maybeVideo);
 #endif
     return false;
-} 
+}
+
+static FloatSize computeIntrinsicSizeForRenderer(const RenderReplaced& replacedRenderer)
+{
+    ASSERT(!replacedRenderer.shouldApplySizeOrInlineSizeContainment());
+
+    if (CheckedPtr svgRoot = replacedRenderer.embeddedSVGRoot()) {
+        auto intrinsicSize = [&] {
+            if (CheckedPtr root = dynamicDowncast<RenderSVGRoot>(*svgRoot))
+                return root->computeIntrinsicSize();
+            return downcast<LegacyRenderSVGRoot>(*svgRoot).computeIntrinsicSize();
+        }();
+
+        intrinsicSize.scale(replacedRenderer.style().usedZoom());
+        if (CheckedPtr renderImage = dynamicDowncast<RenderImage>(replacedRenderer))
+            intrinsicSize.scale(renderImage->imageDevicePixelRatio());
+        if (!replacedRenderer.isHorizontalWritingMode())
+            intrinsicSize = intrinsicSize.transposedSize();
+        return intrinsicSize;
+    }
+
+    if (CheckedPtr renderImage = dynamicDowncast<RenderImage>(replacedRenderer)) {
+        auto intrinsicSize = FloatSize { renderImage->intrinsicLogicalWidth(), renderImage->intrinsicLogicalHeight() };
+        // Our intrinsicSize is empty if we're rendering generated images with relative width/height. Figure out the right intrinsic size to use.
+        if (intrinsicSize.isEmpty() && (renderImage->imageResource().imageHasRelativeWidth() || renderImage->imageResource().imageHasRelativeHeight())) {
+            CheckedPtr containingBlock = renderImage->isOutOfFlowPositioned() ? renderImage->container() : renderImage->containingBlock();
+            if (CheckedPtr renderBox = dynamicDowncast<RenderBox>(containingBlock)) {
+                intrinsicSize.setWidth(renderBox->contentBoxLogicalWidth());
+                intrinsicSize.setHeight(renderBox->availableLogicalHeight(AvailableLogicalHeightType::IncludeMarginBorderPadding));
+            }
+        }
+        return intrinsicSize;
+    }
+
+    if (CheckedPtr renderWidget =dynamicDowncast<RenderWidget>(replacedRenderer))
+        return { replacedRenderer.intrinsicLogicalWidth(), replacedRenderer.intrinsicLogicalHeight() };
+
+    if (CheckedPtr svgRoot = dynamicDowncast<RenderSVGRoot>(replacedRenderer))
+        return svgRoot->computeIntrinsicSize();
+
+    if (CheckedPtr legacySVGRoot = dynamicDowncast<LegacyRenderSVGRoot>(replacedRenderer))
+        return legacySVGRoot->computeIntrinsicSize();
+
+    return { replacedRenderer.intrinsicLogicalWidth(), replacedRenderer.intrinsicLogicalHeight() };
+}
 
 void RenderReplaced::computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(FloatSize& intrinsicSize, FloatSize& intrinsicRatio) const
 {
     if (shouldApplySizeOrInlineSizeContainment()) {
-        intrinsicSize = RenderReplaced::computeIntrinsicSize();
+        intrinsicSize = FloatSize { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
         intrinsicRatio = RenderReplaced::preferredAspectRatio();
     } else {
-        intrinsicSize = computeIntrinsicSize();
+        intrinsicSize = computeIntrinsicSizeForRenderer(*this);
         intrinsicRatio = preferredAspectRatio();
 
         auto sizeToCache = isHorizontalWritingMode() ? intrinsicSize : intrinsicSize.transposedSize();
@@ -556,11 +602,6 @@ LayoutRect RenderReplaced::replacedContentRect(const LayoutSize& intrinsicSize) 
     finalRect.move(xOffset, yOffset);
 
     return finalRect;
-}
-
-FloatSize RenderReplaced::computeIntrinsicSize() const
-{
-    return { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
 }
 
 FloatSize RenderReplaced::preferredAspectRatio() const

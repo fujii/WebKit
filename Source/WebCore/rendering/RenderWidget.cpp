@@ -498,26 +498,6 @@ RenderReplaced* RenderWidget::embeddedSVGRoot() const
     return frameView ? frameView->embeddedSVGRoot() : nullptr;
 }
 
-FloatSize RenderWidget::computeIntrinsicSize() const
-{
-    // Size containment suppresses intrinsic dimensions from content.
-    // The base class returns values from the cache / contain-intrinsic-size without querying image data.
-    if (shouldApplySizeOrInlineSizeContainment())
-        return RenderReplaced::computeIntrinsicSize();
-
-    CheckedPtr svgRoot = embeddedSVGRoot();
-    if (!svgRoot)
-        return RenderReplaced::computeIntrinsicSize();
-
-    auto intrinsicSize = svgRoot->computeIntrinsicSize();
-    intrinsicSize.scale(style().usedZoom());
-
-    if (!isHorizontalWritingMode())
-        intrinsicSize = intrinsicSize.transposedSize();
-
-    return intrinsicSize;
-}
-
 FloatSize RenderWidget::preferredAspectRatio() const
 {
     // Size containment suppresses intrinsic dimensions from content, but the

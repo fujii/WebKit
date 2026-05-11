@@ -92,7 +92,6 @@ private:
 
     bool shouldInvalidatePreferredWidths() const final;
     RenderReplaced* embeddedSVGRoot() const final;
-    FloatSize computeIntrinsicSize() const final;
     FloatSize preferredAspectRatio() const final;
 
     void setSelectionState(HighlightState) final;

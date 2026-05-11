@@ -58,7 +58,7 @@ public:
     bool replacedMinLogicalHeightComputesAsNone() const;
     bool replacedMaxLogicalHeightComputesAsNone() const;
 
-    virtual FloatSize computeIntrinsicSize() const;
+    virtual RenderReplaced* embeddedSVGRoot() const { return nullptr; }
     virtual FloatSize preferredAspectRatio() const;
 
 protected:
@@ -103,7 +103,6 @@ private:
 
     void computeAspectRatioAdjustedIntrinsicLogicalWidths(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const;
 
-    virtual RenderReplaced* embeddedSVGRoot() const { return 0; }
     ASCIILiteral renderName() const override { return "RenderReplaced"_s; }
 
     bool canHaveChildren() const override { return false; }

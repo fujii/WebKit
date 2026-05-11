@@ -92,7 +92,6 @@ protected:
 
     bool shouldInvalidatePreferredWidths() const final;
     RenderReplaced* embeddedSVGRoot() const final;
-    FloatSize computeIntrinsicSize() const final;
     bool foregroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect, unsigned maxDepthToTest) const override;
 
     void styleWillChange(Style::Difference, const RenderStyle& newStyle) override;

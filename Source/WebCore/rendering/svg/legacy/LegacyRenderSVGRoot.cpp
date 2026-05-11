@@ -89,7 +89,7 @@ FloatSize LegacyRenderSVGRoot::computeIntrinsicSize() const
     // Size containment suppresses intrinsic dimensions from content.
     // The base class returns values from the cache / contain-intrinsic-size without querying image data.
     if (shouldApplySizeOrInlineSizeContainment())
-        return RenderReplaced::computeIntrinsicSize();
+        return { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
     FloatSize intrinsicSize = { svgSVGElement().intrinsicWidth(), svgSVGElement().intrinsicHeight() };
     // Transpose for vertical writing mode
     if (!isHorizontalWritingMode())

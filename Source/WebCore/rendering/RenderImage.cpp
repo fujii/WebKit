@@ -938,36 +938,6 @@ void RenderImage::layout()
     }
 }
 
-FloatSize RenderImage::computeIntrinsicSize() const
-{
-    // Size containment suppresses intrinsic dimensions from content.
-    // The base class returns values from the cache / contain-intrinsic-size without querying image data.
-    if (shouldApplySizeOrInlineSizeContainment())
-        return RenderReplaced::computeIntrinsicSize();
-
-    if (CheckedPtr svgRoot = embeddedSVGRoot()) {
-        auto intrinsicSize = svgRoot->computeIntrinsicSize();
-        intrinsicSize.scale(style().usedZoom());
-        intrinsicSize.scale(imageDevicePixelRatio());
-        if (!isHorizontalWritingMode())
-            intrinsicSize = intrinsicSize.transposedSize();
-        return intrinsicSize;
-    }
-
-    auto intrinsicSize = RenderReplaced::computeIntrinsicSize();
-
-    // Our intrinsicSize is empty if we're rendering generated images with relative width/height. Figure out the right intrinsic size to use.
-    if (intrinsicSize.isEmpty() && (imageResource().imageHasRelativeWidth() || imageResource().imageHasRelativeHeight())) {
-        RenderObject* containingBlock = isOutOfFlowPositioned() ? container() : this->containingBlock();
-        if (auto* box = dynamicDowncast<RenderBox>(*containingBlock)) {
-            intrinsicSize.setWidth(box->contentBoxLogicalWidth());
-            intrinsicSize.setHeight(box->availableLogicalHeight(AvailableLogicalHeightType::IncludeMarginBorderPadding));
-        }
-    }
-
-    return intrinsicSize;
-}
-
 FloatSize RenderImage::preferredAspectRatio() const
 {
     // Size containment suppresses intrinsic dimensions from content, but the
