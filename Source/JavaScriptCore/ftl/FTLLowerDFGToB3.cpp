@@ -10366,6 +10366,7 @@ IGNORE_CLANG_WARNINGS_END
         } else if (m_node->child1().useKind() == SetObjectUse) {
             using Helper = JSSet::Helper;
 
+            LBasicBlock storageCheck = m_out.newBlock();
             LBasicBlock obsoleteCheck = m_out.newBlock();
             LBasicBlock deletedCheck = m_out.newBlock();
             LBasicBlock sizeCheck = m_out.newBlock();
@@ -10374,12 +10375,31 @@ IGNORE_CLANG_WARNINGS_END
             LBasicBlock slowPath = m_out.newBlock();
             LBasicBlock continuation = m_out.newBlock();
 
+            // Guard: route prototype-mutated or own-Symbol.iterator Sets to slowPath.
+            // The check can be folded when an upstream CheckStructure has already
+            // proven that the operand carries the original Set structure.
+            Structure* originalSetStructure = globalObject->setStructureConcurrently();
+            if (!originalSetStructure)
+                m_out.jump(slowPath);
+            else {
+                RegisteredStructure registeredSetStructure = m_graph.registerStructure(originalSetStructure);
+                if (m_state.forNode(m_node->child1()).m_structure.isSubsetOf(RegisteredStructureSet { registeredSetStructure }))
+                    m_out.jump(storageCheck);
+                else {
+                    LValue structureID = m_out.load32(argument, m_heaps.JSCell_structureID);
+                    m_out.branch(m_out.notEqual(structureID,
+                        weakStructureID(registeredSetStructure)),
+                        rarely(slowPath), usually(storageCheck));
+                }
+            }
+            LBasicBlock lastNext = m_out.appendTo(storageCheck, obsoleteCheck);
+
             // Load Set storage pointer.
             LValue storage = m_out.loadPtr(argument, m_heaps.JSSet_storage);
             m_out.branch(m_out.isNull(storage), rarely(slowPath), usually(obsoleteCheck));
 
             // Check storage is not obsolete (slot 0 must be Int32).
-            LBasicBlock lastNext = m_out.appendTo(obsoleteCheck, deletedCheck);
+            m_out.appendTo(obsoleteCheck, deletedCheck);
             LValue storageButterfly = toButterfly(storage);
             LValue aliveEntryCountValue = m_out.load64(m_out.baseIndex(m_heaps.indexedContiguousProperties, storageButterfly, m_out.constIntPtr(Helper::aliveEntryCountIndex())));
             m_out.branch(isNotInt32(aliveEntryCountValue), rarely(slowPath), usually(deletedCheck));

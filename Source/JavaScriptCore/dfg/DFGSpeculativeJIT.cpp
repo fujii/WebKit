@@ -9411,6 +9411,24 @@ void SpeculativeJIT::compileSpread(Node* node)
 
         using Helper = JSSet::Helper;
 
+        // Guard: any non-default structure (changed prototype, or own properties
+        // including Symbol.iterator) means we cannot assume the standard iterator
+        // protocol applies to this instance. Route such sets to the slow path,
+        // which performs the authoritative isIteratorProtocolFastAndNonObservable
+        // check. The check can be folded when an upstream CheckStructure has
+        // already proven that the operand carries the original Set structure.
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(node->origin.semantic);
+        Structure* originalSetStructure = globalObject->setStructureConcurrently();
+        if (!originalSetStructure)
+            slowPath.append(jump());
+        else {
+            RegisteredStructure registeredSetStructure = m_graph.registerStructure(originalSetStructure);
+            if (!m_state.forNode(node->child1()).m_structure.isSubsetOf(RegisteredStructureSet { registeredSetStructure })) {
+                load32(Address(argument, JSCell::structureIDOffset()), scratch2GPR);
+                slowPath.append(branch32(NotEqual, scratch2GPR, TrustedImm32(registeredSetStructure->id().bits())));
+            }
+        }
+
         // Load Set storage pointer.
         loadPtr(Address(argument, JSSet::offsetOfStorage()), scratch1GPR);
         slowPath.append(branchTestPtr(Zero, scratch1GPR));

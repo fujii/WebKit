@@ -5145,6 +5145,19 @@ JSC_DEFINE_JIT_OPERATION(operationSpreadSet, JSCell*, (JSGlobalObject* globalObj
     ASSERT(is<JSSet>(cell));
     JSSet* set = uncheckedDowncast<JSSet>(cell);
 
+    if (!set->isIteratorProtocolFastAndNonObservable()) [[unlikely]] {
+        JSFunction* iterationFunction = globalObject->iteratorProtocolFunction();
+        auto callData = JSC::getCallData(iterationFunction);
+        ASSERT(callData.type != CallData::Type::None);
+        MarkedArgumentBuffer arguments;
+        arguments.append(set);
+        ASSERT(!arguments.hasOverflowed());
+        JSValue arrayResult = call(globalObject, iterationFunction, callData, jsNull(), arguments);
+        OPERATION_RETURN_IF_EXCEPTION(scope, nullptr);
+        JSArray* array = uncheckedDowncast<JSArray>(arrayResult);
+        OPERATION_RETURN(scope, JSCellButterfly::createFromArray(globalObject, vm, array));
+    }
+
     OPERATION_RETURN(scope, JSCellButterfly::createFromSet(globalObject, set));
 }
 
