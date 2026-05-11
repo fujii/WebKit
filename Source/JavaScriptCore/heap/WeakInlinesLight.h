@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 Apple Inc. All rights reserved.
+ * Copyright (C) 2012-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,27 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "WeakHandleOwner.h"
+#pragma once
+
+#include <JavaScriptCore/Weak.h>
+#include <JavaScriptCore/WeakImpl.h>
 
 namespace JSC {
 
-class SlotVisitor;
-template<typename T> class Handle;
-
-WeakHandleOwner::WeakHandleOwner(ClangVTableWorkaroundTag)
+template<typename T> inline void Weak<T>::clear()
 {
-}
-
-WeakHandleOwner::~WeakHandleOwner() = default;
-
-bool WeakHandleOwner::isReachableFromOpaqueRoots(Handle<Unknown>, void*, AbstractSlotVisitor&, ASCIILiteral*)
-{
-    return false;
-}
-
-void WeakHandleOwner::finalize(Handle<Unknown>, void*)
-{
+    auto* pointer = impl();
+    if (!pointer)
+        return;
+    pointer->clear();
+    m_impl = nullptr;
 }
 
 } // namespace JSC

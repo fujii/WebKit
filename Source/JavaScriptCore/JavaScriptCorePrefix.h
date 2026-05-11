@@ -60,9 +60,14 @@
 
 #ifdef __cplusplus
 #include "B3ValueRep.h"
+#include "ButterflyInlinesLight.h"
 #include "Bytecodes.h"
+#include "CacheableIdentifierInlines.h"
 #include "CodeBlock.h"
+#include "GCSegmentedArrayInlines.h"
+#include "GenericArgumentsImplInlines.h"
 #include "Heap.h"
+#include "IsoCellSetInlines.h"
 #include "JSArray.h"
 #include "JSArrayBufferView.h"
 #include "JSCJSValue.h"
@@ -72,16 +77,22 @@
 #include "JSGlobalObject.h"
 #include "JSLexicalEnvironment.h"
 #include "JSObject.h"
+#include "JSObjectInlines.h"
 #include "JSObjectRef.h"
 #include "JSString.h"
 #include "JSStringInlines.h"
 #include "MarkedBlockInlines.h"
 #include "Operations.h"
+#include "OperationsInlines.h"
+#include "OperandsInlines.h"
 #include "OptionsList.h"
 #include "Strong.h"
 #include "Structure.h"
 #include "StructureChain.h"
+#include "StructureInlinesLight.h"
+#include "UnlinkedMetadataTableInlines.h"
 #include "VM.h"
+#include "WeakGCMapInlines.h"
 #include <chrono>
 #include <functional>
 #include <list>

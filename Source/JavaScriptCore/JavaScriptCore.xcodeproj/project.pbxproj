@@ -1800,6 +1800,7 @@
 		ADE802991E08F1DE0058DE78 /* JSWebAssemblyLinkError.h in Headers */ = {isa = PBXBuildFile; fileRef = ADE802941E08F1C90058DE78 /* JSWebAssemblyLinkError.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		ADE8029A1E08F1DE0058DE78 /* WebAssemblyLinkErrorConstructor.h in Headers */ = {isa = PBXBuildFile; fileRef = ADE802951E08F1C90058DE78 /* WebAssemblyLinkErrorConstructor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		ADE8029C1E08F1DE0058DE78 /* WebAssemblyLinkErrorPrototype.h in Headers */ = {isa = PBXBuildFile; fileRef = ADE802971E08F1C90058DE78 /* WebAssemblyLinkErrorPrototype.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AEDA37D0C69F462084E47143 /* WeakInlinesLight.h in Headers */ = {isa = PBXBuildFile; fileRef = AEDA37D0C69F462084E47142 /* WeakInlinesLight.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B1D7736A1D0A42A4B9017DE0 /* JSCTimeZone.h in Headers */ = {isa = PBXBuildFile; fileRef = 24FF4DFDAD3D4D97BE486930 /* JSCTimeZone.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B4C7A5933E61498DAF3D7C12 /* StructureInlinesLight.h in Headers */ = {isa = PBXBuildFile; fileRef = D8E1F0A2B3C94D7E8F1A2B3C /* StructureInlinesLight.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC02E90D0E1839DB000F9297 /* ErrorConstructor.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02E9050E1839DB000F9297 /* ErrorConstructor.h */; };
@@ -5673,6 +5674,7 @@
 		ADE802961E08F1C90058DE78 /* WebAssemblyLinkErrorPrototype.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebAssemblyLinkErrorPrototype.cpp; path = js/WebAssemblyLinkErrorPrototype.cpp; sourceTree = "<group>"; };
 		ADE802971E08F1C90058DE78 /* WebAssemblyLinkErrorPrototype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebAssemblyLinkErrorPrototype.h; path = js/WebAssemblyLinkErrorPrototype.h; sourceTree = "<group>"; };
 		ADE8029D1E08F2260058DE78 /* WebAssemblyLinkErrorConstructor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebAssemblyLinkErrorConstructor.cpp; path = js/WebAssemblyLinkErrorConstructor.cpp; sourceTree = "<group>"; };
+		AEDA37D0C69F462084E47142 /* WeakInlinesLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeakInlinesLight.h; sourceTree = "<group>"; };
 		BC021BF2136900C300FC5467 /* ToolExecutable.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = ToolExecutable.xcconfig; sourceTree = "<group>"; };
 		BC02E9040E1839DB000F9297 /* ErrorConstructor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ErrorConstructor.cpp; sourceTree = "<group>"; };
 		BC02E9050E1839DB000F9297 /* ErrorConstructor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ErrorConstructor.h; sourceTree = "<group>"; };
@@ -7736,6 +7738,7 @@
 				14F7256414EE265E00B1652B /* WeakHandleOwner.h */,
 				14E84F9D14EE1ACC00D6D5D4 /* WeakImpl.h */,
 				14BE7D3217135CF400D1807A /* WeakInlines.h */,
+				AEDA37D0C69F462084E47142 /* WeakInlinesLight.h */,
 				14E84F9B14EE1ACC00D6D5D4 /* WeakSet.cpp */,
 				14E84F9C14EE1ACC00D6D5D4 /* WeakSet.h */,
 				14150132154BB13F005D8C98 /* WeakSetInlines.h */,
@@ -12851,6 +12854,7 @@
 				14F7256614EE265E00B1652B /* WeakHandleOwner.h in Headers */,
 				14E84FA214EE1ACC00D6D5D4 /* WeakImpl.h in Headers */,
 				14BE7D3317135CF400D1807A /* WeakInlines.h in Headers */,
+				AEDA37D0C69F462084E47143 /* WeakInlinesLight.h in Headers */,
 				A7CA3AE417DA41AE006538AF /* WeakMapConstructor.h in Headers */,
 				276B389F2A71D1A900252F4E /* WeakMapConstructorInlines.h in Headers */,
 				E3A32BC71FC83147007D7E76 /* WeakMapImpl.h in Headers */,

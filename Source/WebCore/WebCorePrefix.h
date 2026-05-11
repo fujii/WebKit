@@ -170,6 +170,7 @@
 #include <JavaScriptCore/OptionsList.h>
 #include <JavaScriptCore/SourceID.h>
 #include <JavaScriptCore/Weak.h>
+#include <JavaScriptCore/WeakInlinesLight.h>
 #include <set>
 #include <unicode/uscript.h>
 #include <wtf/AbstractRefCountedAndCanMakeWeakPtr.h>
