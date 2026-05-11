@@ -3849,7 +3849,15 @@ JSC_DEFINE_JIT_OPERATION(operationStringProtoFuncReplaceAllGeneric, JSCell*, (JS
     JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    OPERATION_RETURN(scope, replace<StringReplaceMode::Global>(vm, globalObject, JSValue::decode(thisValue), JSValue::decode(searchValue), JSValue::decode(replaceValue)));
+    JSValue decodedSearchValue = JSValue::decode(searchValue);
+    if (decodedSearchValue.inherits<RegExpObject>()) [[unlikely]] {
+        if (!uncheckedDowncast<RegExpObject>(decodedSearchValue)->regExp()->global()) {
+            throwTypeError(globalObject, scope, "String.prototype.replaceAll argument must not be a non-global regular expression"_s);
+            OPERATION_RETURN(scope, nullptr);
+        }
+    }
+
+    OPERATION_RETURN(scope, replace<StringReplaceMode::Global>(vm, globalObject, JSValue::decode(thisValue), decodedSearchValue, JSValue::decode(replaceValue)));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationStringProtoFuncReplaceRegExpEmptyStr, JSCell*, (JSGlobalObject* globalObject, JSString* thisValue, RegExpObject* searchValue))
