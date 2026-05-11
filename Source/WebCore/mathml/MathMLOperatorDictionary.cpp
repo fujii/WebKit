@@ -277,7 +277,7 @@ static constexpr std::array<Entry, dictionarySize> dictionary {
     Entry { 0x21FF, Infix, 5, 5, Stretchy | Accent }, // LEFT RIGHT OPEN-HEADED ARROW
     Entry { 0x2200, Prefix, 2, 1, 0 }, // FOR ALL
     Entry { 0x2201, Infix, 1, 2, 0 }, // COMPLEMENT
-    Entry { 0x2202, Prefix, 2, 1, 0 }, // PARTIAL DIFFERENTIAL
+    Entry { 0x2202, Prefix, 3, 0, 0 }, // PARTIAL DIFFERENTIAL
     Entry { 0x2203, Prefix, 2, 1, 0 }, // THERE EXISTS
     Entry { 0x2204, Prefix, 2, 1, 0 }, // THERE DOES NOT EXIST
     Entry { 0x2206, Infix, 3, 3, 0 }, // INCREMENT
