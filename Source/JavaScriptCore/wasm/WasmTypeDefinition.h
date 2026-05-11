@@ -46,6 +46,7 @@
 #include <wtf/ReferenceWrapperVector.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/ThreadSafeLazyUniquePtr.h>
 #include <wtf/ThreadSafeRefCounted.h>
 #include <wtf/Vector.h>
 
@@ -867,8 +868,8 @@ public:
     CodePtr<JSEntryPtrTag> jsToWasmICEntrypoint() const;
 #endif
 
-    // Function-kind only. Lazy-install under m_ipintBytecodeLock; buffer is
-    // immutable once published.
+    // Function-kind only. Lazy-installed via a CAS in ThreadSafeLazyUniquePtr;
+    // buffer is immutable once published.
     void ensureArgumINTBytecode(const CallInformation&) const;
     void ensureUINTBytecode(const CallInformation&) const;
 
@@ -1030,11 +1031,10 @@ private:
     mutable RefPtr<JSToWasmICCallee> m_jsToWasmICCallee;
     mutable Lock m_jitCodeLock;
 #endif
-    mutable Lock m_ipintBytecodeLock;
-    mutable std::unique_ptr<const IPIntSharedBytecode> m_argumINTBytecode;
-    mutable std::unique_ptr<const IPIntSharedBytecode> m_uINTBytecode;
-    mutable std::unique_ptr<const IPIntSharedBytecode> m_callBytecode;
-    mutable std::unique_ptr<const IPIntSharedBytecode> m_tailCallBytecode;
+    mutable ThreadSafeLazyUniquePtr<const IPIntSharedBytecode> m_argumINTBytecode;
+    mutable ThreadSafeLazyUniquePtr<const IPIntSharedBytecode> m_uINTBytecode;
+    mutable ThreadSafeLazyUniquePtr<const IPIntSharedBytecode> m_callBytecode;
+    mutable ThreadSafeLazyUniquePtr<const IPIntSharedBytecode> m_tailCallBytecode;
     Variant<RTTFunctionPayload, RTTStructPayload, RTTArrayPayload> m_payload;
 };
 
