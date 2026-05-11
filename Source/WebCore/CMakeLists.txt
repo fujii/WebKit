@@ -2780,8 +2780,16 @@ set(WebCoreTestSupport_INTERFACE_INCLUDE_DIRECTORIES
     ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport
 )
 
+if (ENABLE_LAYOUT_TESTS OR ENABLE_API_TESTS)
+    set(ENABLE_WEBCORE_TEST_SUPPORT ON)
+else ()
+    set(ENABLE_WEBCORE_TEST_SUPPORT OFF)
+endif ()
+
 WEBKIT_FRAMEWORK_DECLARE(WebCore)
-WEBKIT_LIBRARY_DECLARE(WebCoreTestSupport)
+if (ENABLE_WEBCORE_TEST_SUPPORT)
+    WEBKIT_LIBRARY_DECLARE(WebCoreTestSupport)
+endif ()
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
 if (PORT STREQUAL GTK OR PORT STREQUAL WPE)
@@ -2958,11 +2966,16 @@ list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/Settings.cpp)
 list(APPEND WebCoreTestSupport_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/InternalSettingsGenerated.cpp)
 list(APPEND WebCoreTestSupport_IDL_FILES ${WebCore_DERIVED_SOURCES_DIR}/InternalSettingsGenerated.idl)
 
+set(WebCore_BINDINGS_PP_INPUT_FILES ${WebCore_IDL_FILES} ${WebCore_SUPPLEMENTAL_IDL_FILES})
+if (ENABLE_WEBCORE_TEST_SUPPORT)
+    list(APPEND WebCore_BINDINGS_PP_INPUT_FILES ${WebCoreTestSupport_IDL_FILES})
+endif ()
+
 GENERATE_BINDINGS(WebCoreBindings
     OUTPUT_SOURCE WebCore_SOURCES
     INPUT_FILES ${WebCore_IDL_FILES}
     SUPPLEMENTAL_IDL_FILES ${WebCore_SUPPLEMENTAL_IDL_FILES}
-    PP_INPUT_FILES ${WebCore_IDL_FILES} ${WebCore_SUPPLEMENTAL_IDL_FILES} ${WebCoreTestSupport_IDL_FILES}
+    PP_INPUT_FILES ${WebCore_BINDINGS_PP_INPUT_FILES}
     BASE_DIR ${WEBCORE_DIR}
     FEATURES ${FEATURE_DEFINES_JAVASCRIPT}
     DESTINATION ${WebCore_DERIVED_SOURCES_DIR}
@@ -2989,20 +3002,22 @@ if (ENABLE_WEBINSPECTORUI)
     list(APPEND WebCore_DEPENDENCIES WebInspectorUI)
 endif ()
 
-GENERATE_BINDINGS(WebCoreTestSupportBindings
-    OUTPUT_SOURCE WebCoreTestSupport_SOURCES
-    INPUT_FILES ${WebCoreTestSupport_IDL_FILES}
-    BASE_DIR ${WEBCORE_DIR}
-    INCLUDED_FILES ${WebCore_IDL_FILES} ${WebCore_SUPPLEMENTAL_IDL_FILES}
-    FEATURES ${FEATURE_DEFINES_JAVASCRIPT}
-    DESTINATION ${WebCore_DERIVED_SOURCES_DIR}
-    GENERATOR JS)
+if (ENABLE_WEBCORE_TEST_SUPPORT)
+    GENERATE_BINDINGS(WebCoreTestSupportBindings
+        OUTPUT_SOURCE WebCoreTestSupport_SOURCES
+        INPUT_FILES ${WebCoreTestSupport_IDL_FILES}
+        BASE_DIR ${WEBCORE_DIR}
+        INCLUDED_FILES ${WebCore_IDL_FILES} ${WebCore_SUPPLEMENTAL_IDL_FILES}
+        FEATURES ${FEATURE_DEFINES_JAVASCRIPT}
+        DESTINATION ${WebCore_DERIVED_SOURCES_DIR}
+        GENERATOR JS)
 
-# WebCoreTestSupportBindings needs to have a direct or indirect
-# dependency to WebCoreBindings for CMake Visual Studio generator to
-# eliminate duplicated custom commands. Otherwise,
-# GenerateSettings.rb will be triggered in both projects.
-add_dependencies(WebCoreTestSupportBindings WebCoreBindings)
+    # WebCoreTestSupportBindings needs to have a direct or indirect
+    # dependency to WebCoreBindings for CMake Visual Studio generator to
+    # eliminate duplicated custom commands. Otherwise,
+    # GenerateSettings.rb will be triggered in both projects.
+    add_dependencies(WebCoreTestSupportBindings WebCoreBindings)
+endif ()
 
 # WebCore JS Builtins
 
@@ -3172,7 +3187,9 @@ WEBKIT_SYMLINK_FILES(WebCore_CopyPrivateHeaders
     FLATTENED
 )
 list(APPEND WebCore_INTERFACE_DEPENDENCIES WebCore_CopyPrivateHeaders)
-list(APPEND WebCoreTestSupport_INTERFACE_DEPENDENCIES WebCore_CopyPrivateHeaders)
+if (ENABLE_WEBCORE_TEST_SUPPORT)
+    list(APPEND WebCoreTestSupport_INTERFACE_DEPENDENCIES WebCore_CopyPrivateHeaders)
+endif ()
 
 WEBKIT_FRAMEWORK(WebCore)
 
@@ -3219,20 +3236,22 @@ if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
         SKIP_PRECOMPILE_HEADERS ON)
 endif ()
 
-WEBKIT_ADD_PREFIX_HEADER(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h)
+if (ENABLE_WEBCORE_TEST_SUPPORT)
+    WEBKIT_ADD_PREFIX_HEADER(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h)
 
-WEBKIT_COPY_FILES(Copy_WebCoreTestSupportPrivateHeaders
-    DESTINATION ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport
-    FILES ${WebCoreTestSupport_PRIVATE_HEADERS}
-    FLATTENED
-)
-list(APPEND WebCoreTestSupport_INTERFACE_DEPENDENCIES Copy_WebCoreTestSupportPrivateHeaders)
+    WEBKIT_COPY_FILES(Copy_WebCoreTestSupportPrivateHeaders
+        DESTINATION ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport
+        FILES ${WebCoreTestSupport_PRIVATE_HEADERS}
+        FLATTENED
+    )
+    list(APPEND WebCoreTestSupport_INTERFACE_DEPENDENCIES Copy_WebCoreTestSupportPrivateHeaders)
 
-list(APPEND WebCoreTestSupport_INCLUDE_DIRECTORIES ${WebCore_INCLUDE_DIRECTORIES})
-list(APPEND WebCoreTestSupport_PRIVATE_INCLUDE_DIRECTORIES ${WebCore_PRIVATE_INCLUDE_DIRECTORIES})
-list(APPEND WebCoreTestSupport_SYSTEM_INCLUDE_DIRECTORIES ${WebCore_SYSTEM_INCLUDE_DIRECTORIES})
+    list(APPEND WebCoreTestSupport_INCLUDE_DIRECTORIES ${WebCore_INCLUDE_DIRECTORIES})
+    list(APPEND WebCoreTestSupport_PRIVATE_INCLUDE_DIRECTORIES ${WebCore_PRIVATE_INCLUDE_DIRECTORIES})
+    list(APPEND WebCoreTestSupport_SYSTEM_INCLUDE_DIRECTORIES ${WebCore_SYSTEM_INCLUDE_DIRECTORIES})
 
-WEBKIT_LIBRARY(WebCoreTestSupport)
+    WEBKIT_LIBRARY(WebCoreTestSupport)
+endif ()
 
 if (${WebCore_LIBRARY_TYPE} MATCHES "SHARED")
     # Unquoted empty PROJECT_VERSION_MAJOR makes CMake parse SOVERSION as VERSION's value
