@@ -386,6 +386,9 @@ inline bool equalFieldTypes(FieldType a, IntraLookupA&& aIntra, FieldType b, Int
 template<typename IntraLookup>
 unsigned hashRTTForRecGroup(const RTT& rtt, IntraLookup&& intra)
 {
+    if (unsigned hash = rtt.hashMayBeEmpty())
+        return hash;
+
     unsigned h = static_cast<unsigned>(rtt.kind());
     h = WTF::pairIntHash(h, rtt.isFinalType() ? 1 : 0);
     h = WTF::pairIntHash(h, rtt.displaySizeExcludingThis());
@@ -415,6 +418,8 @@ unsigned hashRTTForRecGroup(const RTT& rtt, IntraLookup&& intra)
         h = WTF::pairIntHash(h, hashFieldType(rtt.arrayPayload().elementType(), intra));
         break;
     }
+
+    rtt.setHash(h);
     return h;
 }
 
@@ -659,11 +664,16 @@ Ref<const RTT> TypeInformation::getCanonicalRTT(TypeIndex type)
 // =====================================================================
 unsigned CanonicalRecursionGroupEntryHash::hash(const CanonicalRecursionGroupEntry& entry)
 {
+    if (unsigned hash = entry.group->hashMayBeEmpty())
+        return hash;
+
     const auto& rtts = entry.group->rtts();
     GroupLookup lookup { entry.group };
     unsigned h = rtts.size();
     for (const auto& rtt : rtts)
         h = WTF::pairIntHash(h, hashRTTForRecGroup(rtt, lookup));
+
+    entry.group->setHash(h);
     return h;
 }
 
