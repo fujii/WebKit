@@ -870,7 +870,7 @@ private:
                 }
             }
 
-            if (!regExp->globalOrSticky())
+            if (!regExp->globalOrSticky() || m_node->op() == RegExpSearch)
                 lastIndex = 0;
 
             auto foldToConstant = [&] {
@@ -950,6 +950,7 @@ private:
 
                 m_changed = true;
 
+                bool wasSearch = m_node->op() == RegExpSearch;
                 NodeOrigin origin = m_node->origin;
 
                 m_insertionSet.insertNode(m_nodeIndex, SpecNone, Check, origin, m_node->children.justChecks());
@@ -1059,7 +1060,7 @@ private:
                 // Because SetRegExpObjectLastIndex may exit and it clobbers exit state, we do that
                 // first.
 
-                if (regExp->globalOrSticky()) {
+                if (regExp->globalOrSticky() && !wasSearch) {
                     ASSERT(regExpObjectNode);
                     m_insertionSet.insertNode(
                         m_nodeIndex, SpecNone, SetRegExpObjectLastIndex, origin,
