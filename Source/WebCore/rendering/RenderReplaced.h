@@ -59,7 +59,9 @@ public:
     bool replacedMaxLogicalHeightComputesAsNone() const;
 
     virtual RenderReplaced* embeddedSVGRoot() const { return nullptr; }
-    virtual FloatSize preferredAspectRatio() const;
+
+    std::optional<double> preferredAspectRatio() const override;
+    FloatSize preferredAspectRatioAsSize() const override;
 
 protected:
     RenderReplaced(Type, Element&, RenderStyle&&, OptionSet<ReplacedFlag> = { });

@@ -938,13 +938,13 @@ void RenderImage::layout()
     }
 }
 
-FloatSize RenderImage::preferredAspectRatio() const
+FloatSize RenderImage::preferredAspectRatioAsSize() const
 {
     // Size containment suppresses intrinsic dimensions from content, but the
     // aspect ratio from the CSS aspect-ratio property is still available via the
     // base class (which doesn't query image data).
     if (shouldApplySizeOrInlineSizeContainment())
-        return RenderReplaced::preferredAspectRatio();
+        return RenderReplaced::preferredAspectRatioAsSize();
 
     // Don't compute an intrinsic ratio to preserve historical WebKit behavior if we're painting alt text and/or a broken image.
     if (shouldDisplayBrokenImageIcon()) {
@@ -954,7 +954,7 @@ FloatSize RenderImage::preferredAspectRatio() const
     }
 
     if (CheckedPtr svgRoot = embeddedSVGRoot()) {
-        auto ratio = svgRoot->preferredAspectRatio();
+        auto ratio = svgRoot->preferredAspectRatioAsSize();
         if (!isHorizontalWritingMode() && !ratio.isEmpty())
             ratio = ratio.transposedSize();
 
@@ -964,7 +964,7 @@ FloatSize RenderImage::preferredAspectRatio() const
         return ratio;
     }
 
-    return RenderReplaced::preferredAspectRatio();
+    return RenderReplaced::preferredAspectRatioAsSize();
 }
 
 bool RenderImage::shouldInvalidatePreferredWidths() const

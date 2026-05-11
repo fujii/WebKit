@@ -92,7 +92,7 @@ private:
 
     bool shouldInvalidatePreferredWidths() const final;
     RenderReplaced* embeddedSVGRoot() const final;
-    FloatSize preferredAspectRatio() const final;
+    FloatSize preferredAspectRatioAsSize() const final;
 
     void setSelectionState(HighlightState) final;
     void setOverlapTestResult(bool) final;

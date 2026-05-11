@@ -84,7 +84,7 @@ public:
     bool isMultiRepresentationHEIC() const;
 #endif
 
-    FloatSize preferredAspectRatio() const final;
+    FloatSize preferredAspectRatioAsSize() const final;
 
 protected:
     RenderImage(Type, Element&, RenderStyle&&, OptionSet<ReplacedFlag>, Style::Image* = nullptr, const float imageDevicePixelRatio = 1.0f);

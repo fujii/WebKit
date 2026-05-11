@@ -637,6 +637,9 @@ public:
 
     virtual bool hasIntrinsicAspectRatio() const { return isBlockLevelReplacedOrAtomicInline() && (isImage() || isRenderVideo() || isRenderHTMLCanvas() || isRenderViewTransitionCapture()); }
 
+    virtual std::optional<double> preferredAspectRatio() const;
+    virtual FloatSize preferredAspectRatioAsSize() const;
+
 protected:
     RenderBox(Type, Element&, RenderStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
     RenderBox(Type, Document&, RenderStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
@@ -682,8 +685,6 @@ protected:
     bool skipContainingBlockForPercentHeightCalculation(const RenderBox& containingBlock, bool isPerpendicularWritingMode) const;
 
     void incrementVisuallyNonEmptyPixelCountIfNeeded(const IntSize&);
-
-    std::optional<double> aspectRatioValue() const;
     bool NODELETE shouldIgnoreAspectRatio() const;
     bool shouldComputeLogicalWidthFromAspectRatio() const;
     bool isResolveableStretchSize(const auto& size) const { return size.isStretch() && containingBlockHasDefiniteBlockSize(); }

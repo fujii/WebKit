@@ -520,10 +520,10 @@ void RenderReplaced::computeIntrinsicSizesConstrainedByTransferredMinMaxSizes(Fl
 {
     if (shouldApplySizeOrInlineSizeContainment()) {
         intrinsicSize = FloatSize { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
-        intrinsicRatio = RenderReplaced::preferredAspectRatio();
+        intrinsicRatio = RenderReplaced::preferredAspectRatioAsSize();
     } else {
         intrinsicSize = computeIntrinsicSizeForRenderer(*this);
-        intrinsicRatio = preferredAspectRatio();
+        intrinsicRatio = preferredAspectRatioAsSize();
 
         auto sizeToCache = isHorizontalWritingMode() ? intrinsicSize : intrinsicSize.transposedSize();
         if (embeddedSVGRoot() && isRenderWidget()) {
@@ -604,10 +604,15 @@ LayoutRect RenderReplaced::replacedContentRect(const LayoutSize& intrinsicSize) 
     return finalRect;
 }
 
-FloatSize RenderReplaced::preferredAspectRatio() const
+std::optional<double> RenderReplaced::preferredAspectRatio() const
 {
-    auto intrinsicSize = FloatSize(intrinsicLogicalWidth(), intrinsicLogicalHeight());
-    FloatSize preferredAspectRatio;
+    return preferredAspectRatioAsSize().aspectRatioDouble();
+}
+
+FloatSize RenderReplaced::preferredAspectRatioAsSize() const
+{
+    auto intrinsicSize = FloatSize { intrinsicLogicalWidth(), intrinsicLogicalHeight() };
+    auto preferredAspectRatio = FloatSize { };
 
     if (style().aspectRatio().hasRatio()) {
         preferredAspectRatio = FloatSize::narrowPrecision(style().aspectRatioLogicalWidth().value, style().aspectRatioLogicalHeight().value);
@@ -665,7 +670,7 @@ void RenderReplaced::computeAspectRatioAdjustedIntrinsicLogicalWidths(LayoutUnit
         return;
 
     auto& style = this->style();
-    auto computedAspectRatio = preferredAspectRatio().aspectRatioDouble();
+    auto computedAspectRatio = preferredAspectRatioAsSize().aspectRatioDouble();
     auto computedIntrinsicLogicalWidth = minLogicalWidth;
 
     if (auto fixedLogicalHeight = style.logicalHeight().tryFixed())
@@ -842,7 +847,7 @@ void RenderReplaced::computeIntrinsicKeywordLogicalWidths(LayoutUnit& minLogical
 {
     if (hasIntrinsicAspectRatio() && !style().logicalHeight().isAuto()) {
         if (auto fixedHeight = style().logicalHeight().tryFixed()) {
-            auto heightDerivedWidth = LayoutUnit { fixedHeight->resolveZoom(style().usedZoomForLength()) * preferredAspectRatio().aspectRatioDouble() };
+            auto heightDerivedWidth = LayoutUnit { fixedHeight->resolveZoom(style().usedZoomForLength()) * preferredAspectRatioAsSize().aspectRatioDouble() };
             minLogicalWidth = heightDerivedWidth;
             maxLogicalWidth = heightDerivedWidth;
             return;

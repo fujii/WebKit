@@ -498,19 +498,19 @@ RenderReplaced* RenderWidget::embeddedSVGRoot() const
     return frameView ? frameView->embeddedSVGRoot() : nullptr;
 }
 
-FloatSize RenderWidget::preferredAspectRatio() const
+FloatSize RenderWidget::preferredAspectRatioAsSize() const
 {
     // Size containment suppresses intrinsic dimensions from content, but the
     // aspect ratio from the CSS aspect-ratio property is still available via the
     // base class (which doesn't query image data).
     if (shouldApplySizeOrInlineSizeContainment())
-        return RenderReplaced::preferredAspectRatio();
+        return RenderReplaced::preferredAspectRatioAsSize();
 
     CheckedPtr svgRoot = embeddedSVGRoot();
     if (!svgRoot)
-        return RenderReplaced::preferredAspectRatio();
+        return RenderReplaced::preferredAspectRatioAsSize();
 
-    auto ratio = svgRoot->preferredAspectRatio();
+    auto ratio = svgRoot->preferredAspectRatioAsSize();
     if (!isHorizontalWritingMode() && !ratio.isEmpty())
         ratio = ratio.transposedSize();
 
