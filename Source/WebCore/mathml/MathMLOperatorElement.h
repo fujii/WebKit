@@ -43,7 +43,7 @@ public:
     };
     static OperatorChar parseOperatorChar(const String&);
     const OperatorChar& operatorChar() LIFETIME_BOUND;
-    void setOperatorFormDirty() { m_dictionaryProperty = std::nullopt; }
+    void setOperatorFormDirty();
     MathMLOperatorDictionary::Form form() { return dictionaryProperty().form; }
     bool hasProperty(MathMLOperatorDictionary::Flag);
     Length defaultLeadingSpace();

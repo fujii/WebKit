@@ -244,6 +244,23 @@ void MathMLOperatorElement::childrenChanged(const ChildChange& change)
     MathMLTokenElement::childrenChanged(change);
 }
 
+void MathMLOperatorElement::setOperatorFormDirty()
+{
+    // Nothing to invalidate if the dictionary entry has never been computed; the
+    // renderer will read the up-to-date value the first time it asks for it.
+    if (!m_dictionaryProperty)
+        return;
+
+    // Invalidate the cached dictionary entry and ensure the renderer re-reads it so
+    // that spacing changes from a sibling-triggered form switch take effect at layout.
+    m_dictionaryProperty = std::nullopt;
+    m_properties.dirtyFlags = MathMLOperatorDictionary::allFlags;
+    if (CheckedPtr renderOperator = dynamicDowncast<RenderMathMLOperator>(renderer())) {
+        renderOperator->updateFromElement();
+        renderOperator->setNeedsLayoutAndPreferredWidthsUpdate();
+    }
+}
+
 void MathMLOperatorElement::attributeChanged(const QualifiedName& name, const AtomString& oldValue, const AtomString& newValue, AttributeModificationReason attributeModificationReason)
 {
     bool affectsLayout = false;

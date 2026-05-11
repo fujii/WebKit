@@ -76,7 +76,7 @@ static constexpr std::array<Entry, dictionarySize> dictionary {
     Entry { 0x29, Postfix, 0, 0, Symmetric | Fence | Stretchy }, // RIGHT PARENTHESIS
     Entry { 0x2A, Infix, 3, 3, 0 }, // ASTERISK
     Entry { 0x2B, Infix, 4, 4, 0 }, // PLUS SIGN
-    Entry { 0x2B, Prefix, 0, 1, 0 }, // PLUS SIGN
+    Entry { 0x2B, Prefix, 0, 0, 0 }, // PLUS SIGN
     Entry { 0x2C, Infix, 0, 3, Separator }, // COMMA
     Entry { 0x2D, Infix, 4, 4, 0 }, // HYPHEN-MINUS
     Entry { 0x2D, Prefix, 0, 1, 0 }, // HYPHEN-MINUS
@@ -109,7 +109,7 @@ static constexpr std::array<Entry, dictionarySize> dictionary {
     Entry { 0xAF, Postfix, 0, 0, Accent | Stretchy }, // MACRON
     Entry { 0xB0, Postfix, 0, 0, 0 }, // DEGREE SIGN
     Entry { 0xB1, Infix, 4, 4, 0 }, // PLUS-MINUS SIGN
-    Entry { 0xB1, Prefix, 0, 1, 0 }, // PLUS-MINUS SIGN
+    Entry { 0xB1, Prefix, 0, 0, 0 }, // PLUS-MINUS SIGN
     Entry { 0xB2, Postfix, 0, 0, Accent }, // SUPERSCRIPT TWO
     Entry { 0xB3, Postfix, 0, 0, Accent }, // SUPERSCRIPT THREE
     Entry { 0xB4, Postfix, 0, 0, Accent }, // ACUTE ACCENT
@@ -281,7 +281,7 @@ static constexpr std::array<Entry, dictionarySize> dictionary {
     Entry { 0x2203, Prefix, 2, 1, 0 }, // THERE EXISTS
     Entry { 0x2204, Prefix, 2, 1, 0 }, // THERE DOES NOT EXIST
     Entry { 0x2206, Infix, 3, 3, 0 }, // INCREMENT
-    Entry { 0x2207, Prefix, 2, 1, 0 }, // NABLA
+    Entry { 0x2207, Prefix, 0, 0, 0 }, // NABLA
     Entry { 0x2208, Infix, 5, 5, 0 }, // ELEMENT OF
     Entry { 0x2209, Infix, 5, 5, 0 }, // NOT AN ELEMENT OF
     Entry { 0x220A, Infix, 5, 5, 0 }, // SMALL ELEMENT OF
@@ -293,9 +293,9 @@ static constexpr std::array<Entry, dictionarySize> dictionary {
     Entry { 0x2210, Prefix, 1, 2, Symmetric | LargeOp | MovableLimits }, // N-ARY COPRODUCT
     Entry { 0x2211, Prefix, 1, 2, Symmetric | LargeOp | MovableLimits }, // N-ARY SUMMATION
     Entry { 0x2212, Infix, 4, 4, 0 }, // MINUS SIGN
-    Entry { 0x2212, Prefix, 0, 1, 0 }, // MINUS SIGN
+    Entry { 0x2212, Prefix, 0, 0, 0 }, // MINUS SIGN
     Entry { 0x2213, Infix, 4, 4, 0 }, // MINUS-OR-PLUS SIGN
-    Entry { 0x2213, Prefix, 0, 1, 0 }, // MINUS-OR-PLUS SIGN
+    Entry { 0x2213, Prefix, 0, 0, 0 }, // MINUS-OR-PLUS SIGN
     Entry { 0x2214, Infix, 4, 4, 0 }, // DOT PLUS
     Entry { 0x2215, Infix, 4, 4, Stretchy }, // DIVISION SLASH
     Entry { 0x2216, Infix, 4, 4, 0 }, // SET MINUS
@@ -477,7 +477,7 @@ static constexpr std::array<Entry, dictionarySize> dictionary {
     Entry { 0x22C6, Infix, 4, 4, 0 }, // STAR OPERATOR
     Entry { 0x22C7, Infix, 4, 4, 0 }, // DIVISION TIMES
     Entry { 0x22C8, Infix, 5, 5, 0 }, // BOWTIE
-    Entry { 0x22C9, Infix, 4, 4, 0 }, // LEFT NORMAL FACTOR SEMIDIRECT PRODUCT
+    Entry { 0x22C9, Infix, 3, 3, 0 }, // LEFT NORMAL FACTOR SEMIDIRECT PRODUCT
     Entry { 0x22CA, Infix, 4, 4, 0 }, // RIGHT NORMAL FACTOR SEMIDIRECT PRODUCT
     Entry { 0x22CB, Infix, 4, 4, 0 }, // LEFT SEMIDIRECT PRODUCT
     Entry { 0x22CC, Infix, 4, 4, 0 }, // RIGHT SEMIDIRECT PRODUCT
