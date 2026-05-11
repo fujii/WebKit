@@ -662,30 +662,6 @@ LayoutUnit RenderReplaced::computeConstrainedLogicalWidth() const
     return std::max(0_lu, (logicalWidth - (marginStart + marginEnd + borderLeft() + borderRight() + paddingLeft() + paddingRight())));
 }
 
-void RenderReplaced::computeAspectRatioAdjustedIntrinsicLogicalWidths(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const
-{
-    computeIntrinsicLogicalWidths(minLogicalWidth, maxLogicalWidth);
-
-    if (!hasIntrinsicAspectRatio())
-        return;
-
-    auto& style = this->style();
-    auto computedAspectRatio = preferredAspectRatioAsSize().aspectRatioDouble();
-    auto computedIntrinsicLogicalWidth = minLogicalWidth;
-
-    if (auto fixedLogicalHeight = style.logicalHeight().tryFixed())
-        computedIntrinsicLogicalWidth = fixedLogicalHeight->resolveZoom(style.usedZoomForLength()) * computedAspectRatio;
-
-    if (auto fixedLogicalMaxHeight = style.logicalMaxHeight().tryFixed())
-        computedIntrinsicLogicalWidth = std::min(computedIntrinsicLogicalWidth, LayoutUnit { fixedLogicalMaxHeight->resolveZoom(style.usedZoomForLength()) * computedAspectRatio });
-
-    if (auto fixedLogicalMinHeight = style.logicalMinHeight().tryFixed())
-        computedIntrinsicLogicalWidth = std::max(computedIntrinsicLogicalWidth, LayoutUnit { fixedLogicalMinHeight->resolveZoom(style.usedZoomForLength()) * computedAspectRatio });
-
-    minLogicalWidth = computedIntrinsicLogicalWidth;
-    maxLogicalWidth = minLogicalWidth;
-}
-
 static inline LayoutUnit NODELETE resolveWidthForRatio(LayoutUnit borderAndPaddingLogicalHeight, LayoutUnit borderAndPaddingLogicalWidth, LayoutUnit logicalHeight, double aspectRatio, BoxSizing boxSizing)
 {
     if (boxSizing == BoxSizing::BorderBox)
@@ -856,16 +832,55 @@ void RenderReplaced::computeIntrinsicKeywordLogicalWidths(LayoutUnit& minLogical
     RenderBox::computeIntrinsicKeywordLogicalWidths(minLogicalWidth, maxLogicalWidth);
 }
 
+static bool canDerivePreferredWidthFromAspectRatio(const RenderReplaced& replacedRenderer)
+{
+    // Determines whether a replaced element with a percentage width can derive its
+    // preferred width from its aspect ratio and a definite block size.
+    // This mirrors shouldComputeLogicalWidthFromAspectRatio() on RenderBox, but also
+    // covers replaced elements that have an intrinsic aspect ratio without a CSS
+    // aspect-ratio property (shouldIgnoreAspectRatio blocks those on the RenderBox path).
+
+    if (!replacedRenderer.hasIntrinsicAspectRatio())
+        return false;
+
+    // Elements with a CSS aspect-ratio already go through shouldComputeLogicalWidthFromAspectRatio.
+    if (replacedRenderer.shouldComputeLogicalWidthFromAspectRatio())
+        return true;
+
+    // Flex/grid items may have an overriding cross-axis size set before preferred width computation.
+    if (replacedRenderer.overridingBorderBoxLogicalHeight())
+        return true;
+
+    // Fixed height is always definite regardless of layout context.
+    if (replacedRenderer.style().logicalHeight().isFixed())
+        return true;
+
+    // Percentage height that resolves against a definite containing block (via flex/grid override).
+    if (replacedRenderer.style().logicalHeight().isPercentOrCalculated() && replacedRenderer.percentageLogicalHeightIsResolvable())
+        return true;
+
+    return false;
+}
+
 void RenderReplaced::computePreferredLogicalWidths()
 {
     ASSERT(needsPreferredLogicalWidthsUpdate());
 
     // We cannot resolve any percent logical width here as the available logical
     // width may not be set on our containing block.
-    if (style().logicalWidth().isPercentOrCalculated())
-        computeAspectRatioAdjustedIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
-    else
-        m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth = computeReplacedLogicalWidth(ShouldComputePreferred::ComputePreferred);
+    if (style().logicalWidth().isPercentOrCalculated()) {
+        if (canDerivePreferredWidthFromAspectRatio(*this)) {
+            m_maxPreferredLogicalWidth = computeLogicalWidthFromAspectRatioInternal() - borderAndPaddingLogicalWidth();
+            m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+        } else {
+            computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
+            if (preferredAspectRatio())
+                applyTransferredMinMaxSizesFromAspectRatio();
+        }
+    } else {
+        m_maxPreferredLogicalWidth = computeReplacedLogicalWidth(ShouldComputePreferred::ComputePreferred);
+        m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+    }
 
     bool ignoreMinMaxSizes = shouldIgnoreLogicalMinMaxWidthSizes();
     const RenderStyle& styleToUse = style();

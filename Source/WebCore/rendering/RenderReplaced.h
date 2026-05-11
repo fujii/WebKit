@@ -103,7 +103,6 @@ private:
     template<typename T> LayoutUnit computeReplacedLogicalHeightRespectingMinMaxHeight(T logicalHeight) const { return computeReplacedLogicalHeightRespectingMinMaxHeight(LayoutUnit(logicalHeight)); }
     bool replacedMinMaxLogicalHeightComputesAsNone(const auto& logicalHeight, const auto& initialLogicalHeight) const;
 
-    void computeAspectRatioAdjustedIntrinsicLogicalWidths(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const;
 
     ASCIILiteral renderName() const override { return "RenderReplaced"_s; }
 

@@ -640,6 +640,8 @@ public:
     virtual std::optional<double> preferredAspectRatio() const;
     virtual FloatSize preferredAspectRatioAsSize() const;
 
+    bool shouldComputeLogicalWidthFromAspectRatio() const;
+
 protected:
     RenderBox(Type, Element&, RenderStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
     RenderBox(Type, Document&, RenderStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
@@ -686,11 +688,11 @@ protected:
 
     void incrementVisuallyNonEmptyPixelCountIfNeeded(const IntSize&);
     bool NODELETE shouldIgnoreAspectRatio() const;
-    bool shouldComputeLogicalWidthFromAspectRatio() const;
     bool isResolveableStretchSize(const auto& size) const { return size.isStretch() && containingBlockHasDefiniteBlockSize(); }
     bool isUnresolveableStretchSize(const auto& size) const { return size.isStretch() && !containingBlockHasDefiniteBlockSize(); }
     LayoutUnit computeLogicalWidthFromAspectRatioInternal() const;
     LayoutUnit computeLogicalWidthFromAspectRatio() const;
+    void applyTransferredMinMaxSizesFromAspectRatio();
     std::pair<LayoutUnit, LayoutUnit> computeMinMaxLogicalWidthFromAspectRatio() const;
     std::pair<LayoutUnit, LayoutUnit> computeMinMaxLogicalHeightFromAspectRatio() const;
     enum class ConstrainDimension { Width, Height };

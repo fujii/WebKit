@@ -4050,13 +4050,8 @@ void RenderBox::computePreferredLogicalWidths(const Style::MinimumSize& minLogic
         return { };
     }();
 
-    if (!style().logicalWidth().isFixed() && shouldComputeLogicalHeightFromAspectRatio()) {
-        auto [transferredMinLogicalWidth, transferredMaxLogicalWidth] = computeMinMaxLogicalWidthFromAspectRatio();
-        transferredMinLogicalWidth = std::max(transferredMinLogicalWidth - borderAndPaddingLogicalWidth, 0_lu);
-        transferredMaxLogicalWidth = std::max(transferredMaxLogicalWidth - borderAndPaddingLogicalWidth, 0_lu);
-        m_minPreferredLogicalWidth = std::clamp(m_minPreferredLogicalWidth, transferredMinLogicalWidth, transferredMaxLogicalWidth);
-        m_maxPreferredLogicalWidth = std::clamp(m_maxPreferredLogicalWidth, transferredMinLogicalWidth, transferredMaxLogicalWidth);
-    }
+    if (!style().logicalWidth().isFixed() && shouldComputeLogicalHeightFromAspectRatio())
+        applyTransferredMinMaxSizesFromAspectRatio();
 
     m_maxPreferredLogicalWidth = std::min(m_maxPreferredLogicalWidth, usedMaxLogicalWidth);
     m_minPreferredLogicalWidth = std::min(m_minPreferredLogicalWidth, usedMaxLogicalWidth);
@@ -5244,11 +5239,11 @@ bool RenderBox::shouldComputeLogicalWidthFromAspectRatio() const
 
 LayoutUnit RenderBox::computeLogicalWidthFromAspectRatioInternal() const
 {
-    ASSERT(shouldComputeLogicalWidthFromAspectRatio());
-    auto computedValues = computeLogicalHeight(logicalHeight(), logicalTop());
-    LayoutUnit logicalHeightforAspectRatio = computedValues.extent;
+    ASSERT(preferredAspectRatio());
 
-    return inlineSizeFromAspectRatio(horizontalBorderAndPaddingExtent(), verticalBorderAndPaddingExtent(), style().logicalAspectRatio(), style().boxSizingForAspectRatio(), logicalHeightforAspectRatio, style().aspectRatio(), isRenderReplaced());
+    auto computedValues = computeLogicalHeight(logicalHeight(), logicalTop());
+    auto logicalHeightforAspectRatio = computedValues.extent;
+    return inlineSizeFromAspectRatio(horizontalBorderAndPaddingExtent(), verticalBorderAndPaddingExtent(), preferredAspectRatio().value_or(0.f), style().boxSizingForAspectRatio(), logicalHeightforAspectRatio, style().aspectRatio(), isRenderReplaced());
 }
 
 LayoutUnit RenderBox::computeLogicalWidthFromAspectRatio() const
@@ -5272,6 +5267,17 @@ FloatSize RenderBox::preferredAspectRatioAsSize() const
     if (style().aspectRatio().hasRatio())
         return FloatSize::narrowPrecision(style().aspectRatioLogicalWidth().value, style().aspectRatioLogicalHeight().value);
     return { };
+}
+
+void RenderBox::applyTransferredMinMaxSizesFromAspectRatio()
+{
+    ASSERT(preferredAspectRatio());
+
+    auto [transferredMin, transferredMax] = computeMinMaxLogicalWidthFromAspectRatio();
+    transferredMin = std::max(transferredMin - borderAndPaddingLogicalWidth(), 0_lu);
+    transferredMax = std::max(transferredMax - borderAndPaddingLogicalWidth(), 0_lu);
+    m_minPreferredLogicalWidth = std::clamp(m_minPreferredLogicalWidth, transferredMin, transferredMax);
+    m_maxPreferredLogicalWidth = std::clamp(m_maxPreferredLogicalWidth, transferredMin, transferredMax);
 }
 
 std::pair<LayoutUnit, LayoutUnit> RenderBox::computeMinMaxLogicalWidthFromAspectRatio() const
