@@ -870,7 +870,7 @@ void RenderReplaced::computePreferredLogicalWidths()
     // width may not be set on our containing block.
     if (style().logicalWidth().isPercentOrCalculated()) {
         if (canDerivePreferredWidthFromAspectRatio(*this)) {
-            m_maxPreferredLogicalWidth = computeLogicalWidthFromAspectRatioInternal() - borderAndPaddingLogicalWidth();
+            m_maxPreferredLogicalWidth = computeLogicalWidthFromAspectRatio() - borderAndPaddingLogicalWidth();
             m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
         } else {
             computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
