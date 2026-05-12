@@ -287,14 +287,43 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Cocoa")
 # [NSBundle.test_resourcesBundle URLForResource:withExtension:].
 # For a non-.app executable, NSBundle.mainBundle is the directory containing
 # the binary, so the .bundle must sit next to the test executables.
+#
+# Directory structure under Resources/cocoa/ is preserved -- some tests
+# (e.g. WKWebExtension.mm) load entire subdirectories as nested bundles via
+# URLForResource:withExtension:@"", which requires web-extension/, *.appex/,
+# and *.mlmodelc/ to retain their layout.
 set(_resources_bundle_dir "${TESTWEBKITAPI_RUNTIME_OUTPUT_DIRECTORY}/TestWebKitAPIResources.bundle")
-file(GLOB _resources_top "${TESTWEBKITAPI_DIR}/Resources/*.*")
-file(GLOB _resources_cocoa "${TESTWEBKITAPI_DIR}/Resources/cocoa/*.*")
-WEBKIT_COPY_FILES(TestWebKitAPIResources
-    DESTINATION "${_resources_bundle_dir}"
-    FILES ${_resources_top} ${_resources_cocoa}
-    FLATTENED
-)
+set(_resources_dst_files)
+
+function(_testwebkitapi_stage_resources source_root skip_pattern)
+    file(GLOB_RECURSE _entries RELATIVE "${source_root}" "${source_root}/*")
+    foreach (_rel IN LISTS _entries)
+        if (skip_pattern AND _rel MATCHES "${skip_pattern}")
+            continue ()
+        endif ()
+        set(_src "${source_root}/${_rel}")
+        set(_dst "${_resources_bundle_dir}/${_rel}")
+        get_filename_component(_dst_dir "${_dst}" DIRECTORY)
+        file(MAKE_DIRECTORY "${_dst_dir}")
+        add_custom_command(OUTPUT "${_dst}"
+            COMMAND ${CMAKE_COMMAND} -E create_symlink "${_src}" "${_dst}"
+            MAIN_DEPENDENCY "${_src}"
+            VERBATIM
+        )
+        list(APPEND _resources_dst_files "${_dst}")
+    endforeach ()
+    set(_resources_dst_files "${_resources_dst_files}" PARENT_SCOPE)
+endfunction()
+
+# Top-level Resources/ files go to the bundle root. Skip platform subdirs
+# handled separately (cocoa/) or only built for other ports (glib/).
+_testwebkitapi_stage_resources("${TESTWEBKITAPI_DIR}/Resources" "^(cocoa|glib)/")
+# cocoa/ files (and nested subdirs like web-extension/, *.appex/, *.mlmodelc/)
+# are staged with the cocoa/ prefix stripped so paths match what tests pass to
+# URLForResource:.
+_testwebkitapi_stage_resources("${TESTWEBKITAPI_DIR}/Resources/cocoa" "")
+
+add_custom_target(TestWebKitAPIResources ALL DEPENDS ${_resources_dst_files})
 # Ensure all test targets depend on the resources bundle.
 foreach (_test_target TestWTF TestJavaScriptCore TestWebCore TestWebKitLegacy TestWebKit TestIPC TestWGSL)
     if (TARGET ${_test_target})
