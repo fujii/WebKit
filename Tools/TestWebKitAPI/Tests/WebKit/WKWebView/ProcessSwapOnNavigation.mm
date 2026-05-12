@@ -8155,7 +8155,8 @@ TEST(ProcessSwap, MultitabCOOPSwapSameOriginProcessPool)
     EXPECT_NE(pid3, pid6);
 }
 
-TEST(ProcessSwap, NavigateBackAfterNavigatingAwayFromCrossOriginOpenerPolicyUsingBackForwardCache2)
+// FIXME when webkit.org/b/314594 is resolved.
+TEST(ProcessSwap, DISABLED_NavigateBackAfterNavigatingAwayFromCrossOriginOpenerPolicyUsingBackForwardCache2)
 {
     using namespace TestWebKitAPI;
 
