@@ -1455,3 +1455,5 @@ webkit.org/b/313649 editing/pasteboard/paste-noscript.html [ Failure ]
 webkit.org/b/313649 editing/pasteboard/reveal-selection-after-pasting-images.html [ Failure ]
 
 webkit.org/b/313985 fullscreen/fullscreen-clears-hover-on-overlay.html [ Failure Pass ]
+
+webkit.org/b/303859 imported/w3c/web-platform-tests/html/canvas/element/manual/text/canvas.2d.disconnected.html [ Pass ImageOnlyFailure ]
