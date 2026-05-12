@@ -93,16 +93,8 @@ void CoordinatedPlatformLayerBufferRGB::paintToCanvas(SkCanvas& canvas, const Fl
     auto origin = m_flags.contains(TextureMapperFlags::ShouldFlipTexture) ? kBottomLeft_GrSurfaceOrigin : kTopLeft_GrSurfaceOrigin;
     sk_sp<SkImage> image = SkImages::BorrowTextureFrom(grContext, backendTexture, origin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 
-    auto imagePaint = paint;
-    if (m_texture && m_texture->colorConvertFlags().contains(TextureMapperFlags::ShouldConvertTextureBGRAToRGBA)) {
-        const auto matrix = swapRedBlueMatrix();
-        auto bgraFilter = SkColorFilters::Matrix(matrix.data().data());
-        if (auto* colorFilter = paint.getColorFilter())
-            imagePaint.setColorFilter(colorFilter->makeComposed(bgraFilter));
-        else
-            imagePaint.setColorFilter(bgraFilter);
-    }
-    canvas.drawImageRect(image, SkRect::MakeWH(m_size.width(), m_size.height()), SkRect(targetRect), SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), &imagePaint, SkCanvas::kFast_SrcRectConstraint);
+    ASSERT(!m_texture || !m_texture->colorConvertFlags().contains(TextureMapperFlags::ShouldConvertTextureBGRAToRGBA));
+    canvas.drawImageRect(image, SkRect::MakeWH(m_size.width(), m_size.height()), SkRect(targetRect), SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), &paint, SkCanvas::kFast_SrcRectConstraint);
 }
 #endif
 
