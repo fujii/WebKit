@@ -442,8 +442,7 @@ TEST(DragAndDropTests, DragSelectedTextInImageOverlay)
 
 #endif // ENABLE(IMAGE_ANALYSIS)
 
-// FIXME: Re-enable this test once webkit.org/b/314562 is resolved.
-TEST(DragAndDropTests, DISABLED_DoNotExposeCrossOriginImageData)
+TEST(DragAndDropTests, DoNotExposeCrossOriginImageData)
 {
     RetainPtr markupData = [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"drag-drop-cross-origin-image" withExtension:@"html"]];
     RetainPtr imageData = [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"icon" withExtension:@"png"]];
