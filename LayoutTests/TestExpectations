@@ -2091,7 +2091,6 @@ imported/w3c/web-platform-tests/css/selectors/case-insensitive-parent.html [ Ima
 imported/w3c/web-platform-tests/css/mediaqueries/mq-non-matching-lazy-load.tentative.html [ Skip ]
 
 # nth-child tests takes long time and Debug build sometimes timeouts because there are many test cases.
-webkit.org/b/137149 fast/selectors/nth-child-of-basics.html [ Slow ]
 
 # Promises/A+ 2.3.3 has many tests and it sometimes exceeds the time limit.
 webkit.org/b/136878 js/promises-tests/promises-tests-2-3-3.html [ Slow ]
@@ -2466,11 +2465,6 @@ webkit.org/b/139595 http/tests/xmlhttprequest/workers/abort-exception-assert.htm
 webkit.org/b/121628 [ Release ] fast/history/history-back-while-pdf-in-pagecache.html [ Pass ImageOnlyFailure ]
 [ Debug ] fullscreen/full-screen-iframe-legacy.html [ Pass Crash ]
 
-webkit.org/b/139634 [ Debug ] fast/selectors/is-backtracking.html [ Slow ]
-webkit.org/b/139634 [ Debug ] fast/selectors/matches-backtracking.html [ Slow ]
-webkit.org/b/139634 [ Debug ] fast/selectors/nth-child-of-register-requirement.html [ Slow ]
-webkit.org/b/139634 [ Debug ] fast/selectors/not-backtracking.html [ Slow ]
-
 webkit.org/b/224941 [ Debug ] editing/pasteboard/paste-as-quotation-then-paste-crash.html [ WontFix ]
 
 webkit.org/b/61932 [ Debug ] jquery/manipulation.html [ Slow ]
@@ -2708,9 +2702,6 @@ webkit.org/b/141267 http/tests/misc/detached-frame-console.html [ Pass Failure ]
 
 # The current expectations for this test only make sense for WebKit on iOS; other platforms can have very different behaviors.
 webkit.org/b/141488 fast/replaced/pdf-as-object-and-embed.html [ Skip ]
-
-webkit.org/b/141695 [ Debug ] fast/selectors/nth-last-child-of-register-requirement.html [ Slow ]
-[ Debug ] fast/selectors/case-insensitive-attribute-register-requirement-1.html [ Slow ]
 
 # Content extensions are Mac-WK2-only for now
 http/tests/contentextensions [ Skip ]
