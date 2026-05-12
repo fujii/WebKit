@@ -473,8 +473,15 @@ bool RenderBlockFlow::willCreateColumns(std::optional<unsigned> desiredColumnCou
     if (!style().hasInlineColumnAxis())
         return true;
 
-    // Non-auto column-width or column-count always initiates MultiColumnFlow.
-    if (!style().columnWidth().isAuto() || !style().columnCount().isAuto())
+    // Non-auto column-width always initiates MultiColumnFlow.
+    if (!style().columnWidth().isAuto())
+        return true;
+    // Non-auto column-count always initiates MultiColumnFlow (except in iBooks, see bug 314330).
+#if PLATFORM(COCOA)
+    if (!style().columnCount().isAuto() && (!WTF::CocoaApplication::isAppleBooks() || style().columnCount().tryValue().value() > 1))
+#else
+    if (!style().columnCount().isAuto())
+#endif
         return true;
 
     if (desiredColumnCount)
