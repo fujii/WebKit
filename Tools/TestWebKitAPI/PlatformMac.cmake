@@ -50,6 +50,7 @@ set(TestWebKit_DERIVED_SOURCES_DIR "${CMAKE_BINARY_DIR}/DerivedSources/TestWebKi
 
 list(APPEND TestWebKit_UNIFIED_SOURCE_LIST_FILES
     "SourcesCocoa.txt"
+    "SourcesMac.txt"
 )
 
 # Test files that reference ObjC classes from Swift-only helpers or private
@@ -111,7 +112,9 @@ list(APPEND TestWebKit_PRIVATE_INCLUDE_DIRECTORIES
     ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport
     ${TESTWEBKITAPI_DIR}/Tests/WebCore
     ${TESTWEBKITAPI_DIR}/Tests/WebCore/cocoa
+    ${TESTWEBKITAPI_DIR}/Tests/WebKit/WKWebView
     ${TESTWEBKITAPI_DIR}/Tests/WebKit/WKWebView/ios
+    ${TESTWEBKITAPI_DIR}/Tests/WebKit/WKWebView/mac
     ${CMAKE_SOURCE_DIR}/Source/ThirdParty/libwebrtc/Source
     ${WEBKIT_DIR}/Platform/spi/Cocoa
     ${WEBKIT_DIR}/Platform/IPC
@@ -127,6 +130,7 @@ list(APPEND TestWebKit_LIBRARIES
     "-framework LocalAuthentication"
     "-framework Network"
     "-framework QuartzCore"
+    "-framework Reveal"
     "-framework UniformTypeIdentifiers"
     JavaScriptCore
     WebCoreTestSupport
