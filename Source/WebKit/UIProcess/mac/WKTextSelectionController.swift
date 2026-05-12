@@ -139,7 +139,9 @@ extension WKTextSelectionController {
             return false
         }
 
-        Logger.viewGestures.log("[pageProxyID=\(page.logIdentifier())] \(#function) point: \(String(reflecting: point))")
+        Logger.viewGestures.log(
+            "[pageProxyID=\(page.logIdentifier())] \(#function) point: \(String(reflecting: point)) placeAtWordBoundary: \(placeAtWordBoundary)"
+        )
 
         let previousState = page.editorState
         let previousVisualData = Optional(fromCxx: previousState.visualData)
@@ -233,7 +235,7 @@ extension WKTextSelectionController {
 
         currentRangeSelectionGranularity = granularity
 
-        impl.cancelClick()
+        impl.beginSuppressingSingleClickGestureForTextSelection()
 
         Task.immediate {
             await page.selectText(
@@ -269,11 +271,13 @@ extension WKTextSelectionController {
 
     @objc(endRangeSelectionAtPoint:)
     func endRangeSelection(at point: NSPoint) {
-        guard let page = view._protectedPage().get() else {
+        guard let page = view._protectedPage().get(), let impl = view._impl() else {
             return
         }
 
         Logger.viewGestures.log("[pageProxyID=\(page.logIdentifier())] \(#function) point: \(String(reflecting: point))")
+
+        impl.endSuppressingSingleClickGestureForTextSelection()
 
         guard currentRangeSelectionGranularity != nil else {
             assertionFailure("endRangeSelection was called with a nil currentRangeSelectionGranularity")
