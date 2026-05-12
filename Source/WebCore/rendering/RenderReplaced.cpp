@@ -875,7 +875,7 @@ void RenderReplaced::computePreferredLogicalWidths()
         } else {
             computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
             if (preferredAspectRatio())
-                applyTransferredMinMaxSizesFromAspectRatio();
+                applyTransferredMinMaxSizesFromAspectRatio(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
         }
     } else {
         m_maxPreferredLogicalWidth = computeReplacedLogicalWidth(ShouldComputePreferred::ComputePreferred);

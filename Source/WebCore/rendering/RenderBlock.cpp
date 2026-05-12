@@ -2250,7 +2250,7 @@ void RenderBlock::computePreferredLogicalWidths()
     } else
         computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
 
-    RenderBox::computePreferredLogicalWidths(styleToUse.logicalMinWidth(), styleToUse.logicalMaxWidth(), borderAndPaddingLogicalWidth());
+    constrainPreferredLogicalWidthsByMinMax(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
 
     clearNeedsPreferredWidthsUpdate();
 }
