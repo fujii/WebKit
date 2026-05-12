@@ -141,6 +141,7 @@ void RemoteScrollingCoordinatorProxyIOS::selectOverlayRegionScrollViewIfNeeded()
         return;
 
     m_needsOverlayRegionScrollViewSelection = false;
+    bool needsBehaviorUpdate = std::exchange(m_needsOverlayRegionBehaviorUpdate, false);
 
     Ref page = webPageProxy();
 
@@ -195,8 +196,11 @@ void RemoteScrollingCoordinatorProxyIOS::selectOverlayRegionScrollViewIfNeeded()
         }
     }
 
-    if (newSelectedScrollView == m_selectedOverlayRegionScrollView)
+    if (newSelectedScrollView == m_selectedOverlayRegionScrollView) {
+        if (newSelectedScrollView && needsBehaviorUpdate)
+            [newSelectedScrollView _updateOverlayRegionsBehavior:YES];
         return;
+    }
 
     if (m_selectedOverlayRegionScrollView) {
         [m_selectedOverlayRegionScrollView _updateOverlayRegionsBehavior:NO];
@@ -530,6 +534,8 @@ void RemoteScrollingCoordinatorProxyIOS::connectStateNodeLayers(ScrollingStateTr
             || currNode->hasChangedProperty(ScrollingStateNode::Property::ScrollContainerLayer)
             || currNode->hasChangedProperty(ScrollingStateNode::Property::ScrolledContentsLayer))
             m_needsOverlayRegionScrollViewSelection = true;
+        if (currNode->hasChangedProperty(ScrollingStateNode::Property::TotalContentsSize))
+            m_needsOverlayRegionBehaviorUpdate = true;
 #endif
 
         switch (currNode->nodeType()) {
