@@ -680,6 +680,7 @@
 		2ADBEA4C2F358BEF00EDB398 /* WKWebView+WKBannerViewOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ADBEA4B2F358BEF00EDB398 /* WKWebView+WKBannerViewOverlay.swift */; };
 		2AE6D2B72F501404002BE327 /* WebViewRepresentable+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ADBEA4B2F358BEF00EDB399 /* WebViewRepresentable+Extras.swift */; };
 		2BBCCE242EB2B3F500FE7E5A /* RemotePageScreenOrientationManagerProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 2BBCCE232EB2B3F500FE7E5A /* RemotePageScreenOrientationManagerProxy.h */; };
+		F5AE074483234F46B7D93F3F /* RemotePageWebAuthenticatorCoordinatorProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 729F145827DA4BFB83A7C750 /* RemotePageWebAuthenticatorCoordinatorProxy.h */; };
 		2D0C56FD229F1DEA00BD33E7 /* DeviceManagementSoftLink.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D0C56FB229F1DEA00BD33E7 /* DeviceManagementSoftLink.h */; };
 		2D0C56FE229F1DEA00BD33E7 /* DeviceManagementSoftLink.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2D0C56FC229F1DEA00BD33E7 /* DeviceManagementSoftLink.mm */; };
 		2D0FD45E2F75127900B1A53C /* SwipeProgressTrackerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D0FD45C2F75126800B1A53C /* SwipeProgressTrackerMac.h */; };
@@ -4871,6 +4872,8 @@
 		2B1B1C3C2E3A86F400D7D9ED /* UnretainedLocalVarsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnretainedLocalVarsCheckerExpectations; sourceTree = "<group>"; };
 		2BBCCE222EB2B3DA00FE7E5A /* RemotePageScreenOrientationManagerProxy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemotePageScreenOrientationManagerProxy.cpp; sourceTree = "<group>"; };
 		2BBCCE232EB2B3F500FE7E5A /* RemotePageScreenOrientationManagerProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemotePageScreenOrientationManagerProxy.h; sourceTree = "<group>"; };
+		729F145827DA4BFB83A7C750 /* RemotePageWebAuthenticatorCoordinatorProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemotePageWebAuthenticatorCoordinatorProxy.h; sourceTree = "<group>"; };
+		729F145827DA4BFB83A7C751 /* RemotePageWebAuthenticatorCoordinatorProxy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemotePageWebAuthenticatorCoordinatorProxy.cpp; sourceTree = "<group>"; };
 		2D0035221BC7414800DA8716 /* PDFPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PDFPlugin.h; path = PDF/PDFPlugin.h; sourceTree = "<group>"; };
 		2D0035231BC7414800DA8716 /* PDFPlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = PDFPlugin.mm; path = PDF/PDFPlugin.mm; sourceTree = "<group>"; };
 		2D0440922D58810D00E98A2E /* RemoteImageBufferSetConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteImageBufferSetConfiguration.h; sourceTree = "<group>"; };
@@ -16066,6 +16069,8 @@
 				FA1A7DE52E012DB3005E394B /* RemotePageVideoPresentationManagerProxy.cpp */,
 				FA1A7DE42E012DB3005E394B /* RemotePageVideoPresentationManagerProxy.h */,
 				5CEB40A22A534EE100563C91 /* RemotePageVisitedLinkStoreRegistration.h */,
+				729F145827DA4BFB83A7C751 /* RemotePageWebAuthenticatorCoordinatorProxy.cpp */,
+				729F145827DA4BFB83A7C750 /* RemotePageWebAuthenticatorCoordinatorProxy.h */,
 				7BDE98AD2F0F33B20091DCA3 /* RemotePageWebDeviceOrientationUpdateProviderProxy.cpp */,
 				7BDE98AC2F0F33140091DCA3 /* RemotePageWebDeviceOrientationUpdateProviderProxy.h */,
 				BC111B08112F5E3C00337BAB /* ResponsivenessTimer.cpp */,
@@ -18639,6 +18644,7 @@
 				1AC1338018590AE400F3EC05 /* RemoteObjectRegistry.h in Headers */,
 				1AC1338618590C4600F3EC05 /* RemoteObjectRegistryMessages.h in Headers */,
 				2BBCCE242EB2B3F500FE7E5A /* RemotePageScreenOrientationManagerProxy.h in Headers */,
+				F5AE074483234F46B7D93F3F /* RemotePageWebAuthenticatorCoordinatorProxy.h in Headers */,
 				71C9ECA12CF9FB7100B8AF06 /* RemoteProgressBasedTimeline.h in Headers */,
 				71722EB22EA919E9004218E6 /* RemoteProgressBasedTimelineRegistry.h in Headers */,
 				46088A00261FA8BC00E2500D /* RemoteRenderingBackend.h in Headers */,
