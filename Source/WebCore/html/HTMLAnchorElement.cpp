@@ -41,6 +41,7 @@
 #include "FrameSelection.h"
 #include "HTMLCanvasElement.h"
 #include "HTMLImageElement.h"
+#include "HTMLModelElement.h"
 #include "HTMLParserIdioms.h"
 #include "HTMLPictureElement.h"
 #include "KeyboardEvent.h"
@@ -382,7 +383,11 @@ bool HTMLAnchorElement::isSystemPreviewLink()
         return false;
 
     if (auto* child = firstElementChild()) {
+#if ENABLE(GPU_PROCESS_MODEL) || ENABLE(MODEL_PROCESS)
+        if (isAnyOf<HTMLImageElement, HTMLPictureElement, HTMLModelElement>(child)) {
+#else
         if (isAnyOf<HTMLImageElement, HTMLPictureElement>(child)) {
+#endif
             auto numChildren = childElementCount();
             // FIXME: We've documented that it should be the only child, but some early demos have two children.
             return numChildren == 1 || numChildren == 2;

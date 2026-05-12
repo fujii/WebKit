@@ -627,6 +627,16 @@ InteractionInformationAtPosition positionInformationForWebPage(WebPage& page, co
         focusedElementPositionInformation(page, *page.focusedElement(), request, info);
 
     RefPtr hitTestNode = hitTestResult.innerNonSharedNode();
+
+#if ENABLE(MODEL_ELEMENT)
+    // If the hit lands on a draggable <model>, let the model take precedence over any ancestor
+    // <a rel="ar">. Without this, nodeRespondingToClickEvents walks up to the anchor (because
+    // <model> has no inherent click listeners), which would mark this as a link and trigger the
+    // link preview/context-menu interaction instead of the model's drag gesture on visionOS.
+    if (RefPtr modelElement = dynamicDowncast<WebCore::HTMLModelElement>(hitTestNode); modelElement && modelElement->supportsDragging() && modelElement->model())
+        nodeRespondingToClickEvents = WTF::move(modelElement);
+#endif
+
     if (RefPtr element = dynamicDowncast<WebCore::Element>(nodeRespondingToClickEvents)) {
         elementPositionInformation(page, *element, request, hitTestNode.get(), info);
 

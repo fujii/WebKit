@@ -4348,7 +4348,7 @@ class WebCore::SpeechRecognitionUpdate {
 
 #if USE(SYSTEM_PREVIEW)
 [RefCounted, AdditionalEncoder=StreamConnectionEncoder] class WebCore::ARKitBadgeSystemImage {
-    WebCore::RenderingResourceIdentifier imageIdentifier();
+    std::optional<WebCore::RenderingResourceIdentifier> imageIdentifier();
     WebCore::FloatSize m_imageSize;
 };
 #endif
