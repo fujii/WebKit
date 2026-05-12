@@ -284,24 +284,34 @@ private:
             if (foldPurifyNaNOnBinary(m_node))
                 m_changed = true;
 
-            // On Integers
-            // In: ArithMod(ArithMod(x, const1), const2)
-            // Out: Identity(ArithMod(x, const1))
-            //     if const1 <= const2.
-            if (m_node->binaryUseKind() == Int32Use
-                && m_node->child2()->isInt32Constant()
-                && m_node->child1()->op() == ArithMod
-                && m_node->child1()->binaryUseKind() == Int32Use
-                && m_node->child1()->child2()->isInt32Constant()) {
+            if (m_node->isBinaryInt32UseKind()) {
+                if (m_node->child2()->isInt32Constant()) {
+                    int32_t const2 = m_node->child2()->asInt32();
+                    if (m_node->arithMode() == Arith::CheckOverflow) {
+                        if (const2 != 0 && const2 != -1) {
+                            m_node->setArithMode(Arith::Unchecked);
+                            m_changed = true;
+                        }
+                    }
 
-                int32_t const1 = m_node->child1()->child2()->asInt32();
-                int32_t const2 = m_node->child2()->asInt32();
+                    // On Integers
+                    // In: ArithMod(ArithMod(x, const1), const2)
+                    // Out: Identity(ArithMod(x, const1))
+                    //     if const1 <= const2.
+                    if (m_node->child1()->op() == ArithMod
+                        && m_node->child1()->binaryUseKind() == Int32Use
+                        && m_node->child1()->child2()->isInt32Constant()) {
+                        int32_t const1 = m_node->child1()->child2()->asInt32();
 
-                if (const1 == INT_MIN || const2 == INT_MIN)
-                    break; // std::abs(INT_MIN) is undefined.
+                        if (const1 == INT_MIN || const2 == INT_MIN)
+                            break; // std::abs(INT_MIN) is undefined.
 
-                if (std::abs(const1) <= std::abs(const2))
-                    convertToIdentityOverChild1();
+                        if (std::abs(const1) <= std::abs(const2)) {
+                            convertToIdentityOverChild1();
+                            break;
+                        }
+                    }
+                }
             }
             break;
         }
