@@ -149,9 +149,6 @@ list(APPEND WebKit_SOURCES
 list(APPEND WebKit_PRIVATE_LIBRARIES
     "-weak_framework PowerLog"
 )
-# FIXME: Replace with targeted -U flags or explicit stubs.
-# https://bugs.webkit.org/show_bug.cgi?id=312067
-list(APPEND WebKit_PRIVATE_LIBRARIES "-Wl,-undefined,dynamic_lookup")
 
 list(APPEND WebKit_PUBLIC_FRAMEWORK_HEADERS
     Shared/WebPushDaemonConstants.h
