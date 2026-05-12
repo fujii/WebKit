@@ -93,8 +93,15 @@ MathMLOperatorElement::OperatorChar MathMLOperatorElement::parseOperatorChar(con
         constexpr UChar combiningLongSolidusOverlay = 0x0338;
         constexpr UChar combiningLongVerticalLineOverlay = 0x20D2;
         UChar second = trimmed[1];
-        if (second == combiningLongSolidusOverlay || second == combiningLongVerticalLineOverlay)
+        if (second == combiningLongSolidusOverlay || second == combiningLongVerticalLineOverlay) {
             setOperatorChar(trimmed[0]);
+            return operatorChar;
+        }
+        // Otherwise, a multi-character operator such as "&&", "!=" or "->".
+        // Store both code units for a second-pass lookup in the multi-character
+        // operator dictionary.
+        operatorChar.hasTwoCharacters = true;
+        operatorChar.characters = { trimmed[0], trimmed[1] };
     }
 
     return operatorChar;
@@ -132,7 +139,10 @@ Property MathMLOperatorElement::computeDictionaryProperty()
     }
 
     // We then try and find an entry in the operator dictionary to override the default values.
-    if (auto entry = search(operatorChar().character, dictionaryProperty.form, explicitForm))
+    if (!operatorChar().hasTwoCharacters) {
+        if (auto entry = search(operatorChar().character, dictionaryProperty.form, explicitForm))
+            dictionaryProperty = entry.value();
+    } else if (auto entry = search(operatorChar().characters, dictionaryProperty.form, explicitForm))
         dictionaryProperty = entry.value();
 
     return dictionaryProperty;

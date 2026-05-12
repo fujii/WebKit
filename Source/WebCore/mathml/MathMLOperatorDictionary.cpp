@@ -29,6 +29,7 @@
 #if ENABLE(MATHML)
 
 #include <array>
+#include <tuple>
 #include <utility>
 
 namespace WebCore {
@@ -1256,6 +1257,84 @@ std::optional<Property> MathMLOperatorDictionary::search(char32_t character, For
 bool MathMLOperatorDictionary::isVertical(char32_t textContent)
 {
     return !tryBinarySearch<const char32_t, char32_t>(horizontalOperators, std::size(horizontalOperators), textContent, ExtractKeyHorizontal);
+}
+
+// Multi-character operator dictionary entries from MathML Core. These are all
+// UTF-16 length 2 and ASCII-only, requiring a separate lookup since the main
+// dictionary is keyed by a single char32_t. The table is sorted by
+// (firstCharacter, secondCharacter, form) to allow binary search.
+struct MultiCharEntry {
+    char16_t firstCharacter;
+    char16_t secondCharacter;
+    unsigned form : 2;
+    unsigned lspace : 3;
+    unsigned rspace : 3;
+    unsigned flags : 8;
+};
+
+typedef std::tuple<char16_t, char16_t, uint8_t> MultiCharKey;
+static inline MultiCharKey ExtractMultiCharKey(const MultiCharEntry* entry)
+{
+    return MultiCharKey(entry->firstCharacter, entry->secondCharacter, entry->form);
+}
+
+static constexpr unsigned multiCharDictionarySize = 20;
+static constexpr std::array<MultiCharEntry, multiCharDictionarySize> multiCharDictionary { {
+    { '!', '!', Postfix, 0, 0, 0 }, // DOUBLE EXCLAMATION
+    { '!', '=', Infix,   5, 5, 0 }, // NOT EQUAL TO
+    { '&', '&', Infix,   4, 4, 0 }, // LOGICAL AND
+    { '*', '*', Infix,   3, 3, 0 }, // POWER
+    { '*', '=', Infix,   5, 5, 0 }, // TIMES EQUALS
+    { '+', '+', Postfix, 0, 0, 0 }, // INCREMENT
+    { '+', '=', Infix,   5, 5, 0 }, // PLUS EQUALS
+    { '-', '-', Postfix, 0, 0, 0 }, // DECREMENT
+    { '-', '=', Infix,   5, 5, 0 }, // MINUS EQUALS
+    { '-', '>', Infix,   5, 5, 0 }, // MAPS TO
+    { '/', '/', Infix,   5, 5, 0 }, // DOUBLE SOLIDUS
+    { '/', '=', Infix,   5, 5, 0 }, // DIVIDE EQUALS
+    { ':', '=', Infix,   5, 5, 0 }, // COLON EQUALS
+    { '<', '=', Infix,   5, 5, 0 }, // LESS-THAN OR EQUAL
+    { '<', '>', Infix,   3, 3, 0 }, // NOT EQUAL TO (alt)
+    { '=', '=', Infix,   5, 5, 0 }, // DOUBLE EQUALS
+    { '>', '=', Infix,   5, 5, 0 }, // GREATER-THAN OR EQUAL
+    { '|', '|', Infix,   5, 5, 0 }, // LOGICAL OR
+    { '|', '|', Prefix,  0, 0, 0 }, // LOGICAL OR (prefix)
+    { '|', '|', Postfix, 0, 0, 0 }, // LOGICAL OR (postfix)
+} };
+
+static inline Property NODELETE ExtractMultiCharProperty(const MultiCharEntry& entry)
+{
+    Property property;
+    property.form = static_cast<Form>(entry.form);
+    property.leadingSpaceInMathUnit = entry.lspace;
+    property.trailingSpaceInMathUnit = entry.rspace;
+    property.flags = entry.flags;
+    return property;
+}
+
+std::optional<Property> MathMLOperatorDictionary::search(std::array<char16_t, 2> characters, Form form, bool explicitForm)
+{
+    char16_t firstCharacter = characters[0];
+    char16_t secondCharacter = characters[1];
+
+    MultiCharKey key(firstCharacter, secondCharacter, std::to_underlying(form));
+    if (auto* entry = tryBinarySearch<const MultiCharEntry, MultiCharKey>(multiCharDictionary, multiCharDictionarySize, key, ExtractMultiCharKey))
+        return ExtractMultiCharProperty(*entry);
+
+    if (explicitForm)
+        return std::nullopt;
+
+    // If we did not find the desired operator form and it was not set explicitly,
+    // return the lowest-enum form entry for the same string (Infix < Prefix < Postfix).
+    for (auto fallbackForm : { Form::Infix, Form::Prefix, Form::Postfix }) {
+        if (fallbackForm == form)
+            continue;
+        MultiCharKey fallbackKey(firstCharacter, secondCharacter, std::to_underlying(fallbackForm));
+        if (auto* entry = tryBinarySearch<const MultiCharEntry, MultiCharKey>(multiCharDictionary, multiCharDictionarySize, fallbackKey, ExtractMultiCharKey))
+            return ExtractMultiCharProperty(*entry);
+    }
+
+    return std::nullopt;
 }
 
 }

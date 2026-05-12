@@ -29,6 +29,7 @@
 
 #include "MathMLOperatorDictionary.h"
 #include "MathMLTokenElement.h"
+#include <array>
 
 namespace WebCore {
 
@@ -38,8 +39,20 @@ class MathMLOperatorElement final : public MathMLTokenElement {
 public:
     static Ref<MathMLOperatorElement> create(const QualifiedName&, Document&);
     struct OperatorChar {
-        char32_t character { 0 };
+        // Exactly one of character or characters is valid, determined by
+        // hasTwoCharacters. For multi-character operators (e.g. "&&", "!=",
+        // "->") the two code units are stored in characters and used for
+        // multi-character dictionary lookup.
+        union {
+            char32_t character;
+            std::array<char16_t, 2> characters;
+        };
         bool isVertical { true };
+        bool hasTwoCharacters { false };
+        OperatorChar()
+            : character(0)
+            {
+            }
     };
     static OperatorChar parseOperatorChar(const String&);
     const OperatorChar& operatorChar() LIFETIME_BOUND;
