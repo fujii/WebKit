@@ -692,6 +692,7 @@ protected:
     bool isUnresolveableStretchSize(const auto& size) const { return size.isStretch() && !containingBlockHasDefiniteBlockSize(); }
     LayoutUnit computeLogicalWidthFromAspectRatioInternal() const;
     LayoutUnit computeLogicalWidthFromAspectRatio() const;
+    void applyAutomaticContentBasedMinimumSize(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const;
     void applyTransferredMinMaxSizesFromAspectRatio();
     std::pair<LayoutUnit, LayoutUnit> computeMinMaxLogicalWidthFromAspectRatio() const;
     std::pair<LayoutUnit, LayoutUnit> computeMinMaxLogicalHeightFromAspectRatio() const;
