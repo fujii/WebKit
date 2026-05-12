@@ -96,11 +96,11 @@ void LockAlgorithm<LockType, isHeldBit, hasParkedBit, Hooks>::lockSlow(Atomic<Lo
     // appendix.
 #if CPU(ARM64) && OS(MACOS)
     static constexpr unsigned spinLimit = 80;
-    static constexpr unsigned nopCount = 512;
+    static constexpr unsigned nopCount = 8;
     static constexpr unsigned yieldInterval = 16;
 #elif CPU(ARM64) && OS(IOS_FAMILY)
     static constexpr unsigned spinLimit = 40;
-    static constexpr unsigned nopCount = 1024;
+    static constexpr unsigned nopCount = 16;
     static constexpr unsigned yieldInterval = 4;
 #else
     static constexpr unsigned spinLimit = 40;
@@ -133,15 +133,8 @@ void LockAlgorithm<LockType, isHeldBit, hasParkedBit, Hooks>::lockSlow(Atomic<Lo
             // without having depressed our own priority beforehand.
             if (!(spinCount % yieldInterval))
                 Thread::yield();
-            for (unsigned i = 0; i < nopCount; i++) {
-#if CPU(ARM64)
-                // FIXME: replace with simde_mm_pause and recompute the
-                // nopCount to match.
-                asm volatile ("yield");
-#else
+            for (unsigned i = 0; i < nopCount; i++)
                 simde_mm_pause();
-#endif
-            }
             continue;
         }
 
