@@ -182,6 +182,10 @@
 #include <wtf/text/MakeString.h>
 #include <wtf/text/TextStream.h>
 
+#if ENABLE(MATHML)
+#include "MathMLElement.h"
+#endif
+
 #if PLATFORM(COCOA)
 #include <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
 #endif
@@ -2357,7 +2361,11 @@ void Element::attributeChanged(const QualifiedName& name, const AtomString& oldV
         elementData()->setHasNameAttribute(!newValue.isNull());
         break;
     case AttributeNames::nonceAttr:
+#if ENABLE(MATHML)
+        if (isAnyOf<HTMLElement, SVGElement, MathMLElement>(*this))
+#else
         if (isAnyOf<HTMLElement, SVGElement>(*this))
+#endif
             setNonce(newValue.isNull() ? emptyAtom() : newValue);
         break;
     case AttributeNames::useragentpartAttr:

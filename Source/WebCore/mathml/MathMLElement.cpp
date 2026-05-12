@@ -371,6 +371,13 @@ int MathMLElement::defaultTabIndex() const
     return localName() == HTMLNames::aTag ? 0 : -1;
 }
 
+Node::NeedsPostConnectionSteps MathMLElement::insertionSteps(InsertionType insertionType, ContainerNode& parentOfInsertedTree)
+{
+    auto result = StyledElement::insertionSteps(insertionType, parentOfInsertedTree);
+    hideNonce();
+    return result;
+}
+
 }
 
 #endif // ENABLE(MATHML)
