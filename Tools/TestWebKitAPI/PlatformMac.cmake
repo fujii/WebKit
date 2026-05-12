@@ -288,6 +288,56 @@ target_link_libraries(TestWebKitAPIInjectedBundle PRIVATE
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework Cocoa")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Cocoa")
 
+# TestWebKitAPI.wkbundle -- modern Cocoa WKWebProcessPlugIn bundle loaded via
+# [_WKProcessPoolConfiguration setInjectedBundleURL:] in
+# WKWebViewConfigurationExtras._test_configurationWithTestPlugInClassName:.
+# This is a separate product from InjectedBundleTestWebKitAPI.bundle above,
+# which implements the legacy C-API injected bundle.
+add_library(TestWebKitAPIWebProcessPlugIn MODULE
+    ${TESTWEBKITAPI_DIR}/InjectedBundle/cocoa/WebProcessPlugIn/WebProcessPlugIn.mm
+    ${TESTWEBKITAPI_DIR}/InjectedBundle/cocoa/WebProcessPlugIn/WebProcessPlugInWithInternals.mm
+)
+
+target_include_directories(TestWebKitAPIWebProcessPlugIn PRIVATE
+    ${CMAKE_BINARY_DIR}
+    ${_testapi_framework_headers}
+    ${TESTWEBKITAPI_DIR}
+    ${TESTWEBKITAPI_DIR}/InjectedBundle/cocoa/WebProcessPlugIn
+)
+
+# configure_file substitutes ${EXECUTABLE_NAME}/${PRODUCT_NAME}/
+# ${PRODUCT_BUNDLE_IDENTIFIER} in the Info.plist shared with the Xcode build.
+set(EXECUTABLE_NAME TestWebKitAPI)
+set(PRODUCT_NAME TestWebKitAPI)
+set(PRODUCT_BUNDLE_IDENTIFIER com.apple.TestWebKitAPI)
+configure_file(
+    "${TESTWEBKITAPI_DIR}/InjectedBundle/cocoa/WebProcessPlugIn/Info.plist"
+    "${CMAKE_CURRENT_BINARY_DIR}/WebProcessPlugIn-Info.plist"
+)
+
+set_target_properties(TestWebKitAPIWebProcessPlugIn PROPERTIES
+    BUNDLE TRUE
+    BUNDLE_EXTENSION wkbundle
+    OUTPUT_NAME TestWebKitAPI
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/WebProcessPlugIn-Info.plist"
+)
+
+# Same rationale as TestWebKitAPIInjectedBundle: WebCoreTestSupport references
+# WTF symbols that the hosting WebContent process provides.
+target_link_options(TestWebKitAPIWebProcessPlugIn PRIVATE "LINKER:-undefined,dynamic_lookup")
+target_link_libraries(TestWebKitAPIWebProcessPlugIn PRIVATE
+    JavaScriptCore
+    WebCoreTestSupport
+    WebKit
+    WebKit::gtest
+    "-framework Cocoa"
+    "-framework Foundation"
+)
+
+# TestWebKit loads this bundle via NSBundle lookup at runtime, so it must be
+# built and staged next to the TestWebKitAPI executable.
+add_dependencies(TestWebKit TestWebKitAPIWebProcessPlugIn)
+
 # TestWebKitAPIResources.bundle -- test resource files loaded via
 # [NSBundle.test_resourcesBundle URLForResource:withExtension:].
 # For a non-.app executable, NSBundle.mainBundle is the directory containing
