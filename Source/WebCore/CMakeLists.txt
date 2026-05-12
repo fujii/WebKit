@@ -3156,7 +3156,7 @@ WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(WebCore WebCoreAVFoundation
     PREFIX_LANGUAGES OBJCXX
     DIRS avfoundation)
 
-WEBKIT_ADD_PREFIX_HEADER(WebCore WebCorePrefix.h)
+WEBKIT_ADD_PREFIX_HEADER(WebCore WebCorePrefix.h PREFIX_LANGUAGES CXX OBJCXX)
 
 list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/DocumentSyncData.serialization.in
@@ -3238,7 +3238,7 @@ if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
 endif ()
 
 if (ENABLE_WEBCORE_TEST_SUPPORT)
-    WEBKIT_ADD_PREFIX_HEADER(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h)
+    WEBKIT_ADD_PREFIX_HEADER(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h PREFIX_LANGUAGES CXX)
 
     WEBKIT_COPY_FILES(Copy_WebCoreTestSupportPrivateHeaders
         DESTINATION ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport

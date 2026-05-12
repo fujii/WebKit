@@ -138,6 +138,11 @@ set_source_files_properties(Helpers/cocoa/WebExtensionUtilities.mm PROPERTIES
     COMPILE_FLAGS "-fobjc-arc -include ${CMAKE_CURRENT_SOURCE_DIR}/Helpers/TestWebKitAPIPrefix.h"
     SKIP_PRECOMPILE_HEADERS ON)
 
+set_source_files_properties(
+    Helpers/cocoa/TestNSBundleExtras.m
+    Helpers/mac/SyntheticBackingScaleFactorWindow.m
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
 # NSWindow.autodisplay is deprecated since 10.14 but still used in OffscreenWindow.mm.
 WEBKIT_ADD_TARGET_CXX_FLAGS(TestWebKit -Wno-deprecated-declarations)
 

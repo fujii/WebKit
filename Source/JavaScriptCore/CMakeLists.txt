@@ -1828,7 +1828,7 @@ WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(JavaScriptCore JavaScriptCoreJIT
 
 WEBKIT_FRAMEWORK(JavaScriptCore)
 
-WEBKIT_ADD_PREFIX_HEADER(JavaScriptCore JavaScriptCorePrefix.h)
+WEBKIT_ADD_PREFIX_HEADER(JavaScriptCore JavaScriptCorePrefix.h PREFIX_LANGUAGES CXX)
 
 if (NOT "${PORT}" STREQUAL "Mac")
     if (${JavaScriptCore_LIBRARY_TYPE} STREQUAL "SHARED")
