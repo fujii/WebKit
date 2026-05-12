@@ -751,4 +751,130 @@ TEST(WTF_OrderedHashMap, HashTranslatorFindContainsGet)
     EXPECT_EQ(0u, map.get<StringViewHashTranslator>(StringView { "missing"_s }));
 }
 
+namespace {
+
+// Mirrors TrackedValue in OrderedHashSet.cpp — a value type whose operator=
+// requires the LHS to be in a constructed state (one of the known sentinels).
+// Used as the key in a map-shaped OrderedHashTable to exercise the same
+// translator-on-raw-storage path for KeyValuePair entries.
+class TrackedKey {
+public:
+    enum State : uint32_t { Garbage = 0xDEADBEEF, Empty = 0xE11E, Deleted = 0xDEAD, Live = 0xA11E };
+
+    static int liveCount;
+
+    TrackedKey() : m_state(Empty), m_value(0) { }
+    explicit TrackedKey(int v) : m_state(Live), m_value(v) { ++liveCount; }
+    TrackedKey(const TrackedKey& other) : m_state(other.m_state), m_value(other.m_value)
+    {
+        if (m_state == Live)
+            ++liveCount;
+    }
+    TrackedKey(TrackedKey&& other) noexcept : m_state(other.m_state), m_value(other.m_value)
+    {
+        if (m_state == Live)
+            ++liveCount;
+    }
+    TrackedKey(WTF::HashTableDeletedValueType) : m_state(Deleted), m_value(0) { }
+
+    ~TrackedKey()
+    {
+        if (m_state == Live)
+            --liveCount;
+        m_state = Garbage;
+    }
+
+    TrackedKey& operator=(const TrackedKey& other)
+    {
+        EXPECT_TRUE(m_state == Empty || m_state == Live || m_state == Deleted);
+        if (m_state == Live)
+            --liveCount;
+        m_state = other.m_state;
+        m_value = other.m_value;
+        if (m_state == Live)
+            ++liveCount;
+        return *this;
+    }
+
+    bool isHashTableDeletedValue() const { return m_state == Deleted; }
+    bool operator==(const TrackedKey& other) const { return m_state == other.m_state && m_value == other.m_value; }
+
+    int value() const { return m_value; }
+
+private:
+    uint32_t m_state;
+    int m_value;
+};
+
+int TrackedKey::liveCount = 0;
+
+struct TrackedKeyHash {
+    static unsigned hash(const TrackedKey& k) { return IntHash<int>::hash(k.value()); }
+    static bool equal(const TrackedKey& a, const TrackedKey& b) { return a == b; }
+};
+
+struct TrackedKeyTraits : WTF::SimpleClassHashTraits<TrackedKey> {
+    static constexpr bool emptyValueIsZero = false;
+};
+
+using TrackedKVP = KeyValuePair<TrackedKey, int>;
+
+// KeyValuePairHashTraits already computes emptyValueIsZero = KeyTraits::emptyValueIsZero &&
+// ValueTraits::emptyValueIsZero, which is false for TrackedKey, so constructEmptyValue runs.
+using TrackedKVPTraits = WTF::KeyValuePairHashTraits<TrackedKeyTraits, HashTraits<int>>;
+
+struct TrackedKVPTranslator {
+    static unsigned hash(int v) { return IntHash<int>::hash(v); }
+    static bool equal(const TrackedKey& a, int b) { return a.value() == b; }
+    static void translate(TrackedKVP& location, int v, NOESCAPE const auto&)
+    {
+        // Standard WTF translator convention: assign. Both key and value
+        // assignments require the LHS to be a constructed KeyValuePair.
+        location.key = TrackedKey(v);
+        location.value = v * 10;
+    }
+};
+
+using TrackedOrderedHashTable = WTF::OrderedHashTable<TrackedKey, TrackedKVP, WTF::KeyValuePairKeyExtractor<TrackedKVP>, TrackedKeyHash, TrackedKVPTraits, TrackedKeyTraits, WTF::HashTableMalloc>;
+
+}
+
+TEST(WTF_OrderedHashMap, HashTranslatorAddConstructsEmptyBeforeAssign)
+{
+    // Map-side equivalent of the OrderedHashSet test. Without the pre-translate
+    // constructEmptyValue, `location.key = ...` would assign into raw malloc
+    // storage and TrackedKey::operator= would EXPECT-fail because m_state would
+    // be random bits rather than one of the known sentinels.
+    TrackedKey::liveCount = 0;
+    auto noFunctor = []() ALWAYS_INLINE_LAMBDA -> TrackedKVP { return { }; };
+    {
+        TrackedOrderedHashTable table;
+        for (int i = 0; i < 32; ++i) {
+            auto r = table.add<TrackedKVPTranslator>(i, noFunctor);
+            EXPECT_TRUE(r.isNewEntry);
+        }
+        EXPECT_EQ(32u, table.size());
+
+        // Remove half, then re-add via the translator so the path also runs
+        // after internal compact/rehash activity.
+        for (int i = 0; i < 32; i += 2)
+            table.remove(TrackedKey(i));
+        EXPECT_EQ(16u, table.size());
+        for (int i = 0; i < 32; i += 2) {
+            auto r = table.add<TrackedKVPTranslator>(i, noFunctor);
+            EXPECT_TRUE(r.isNewEntry);
+        }
+        EXPECT_EQ(32u, table.size());
+
+        // Verify values survived correctly.
+        int seen = 0;
+        for (auto it = table.begin(); it != table.end(); ++it) {
+            EXPECT_EQ(it->key.value() * 10, it->value);
+            ++seen;
+        }
+        EXPECT_EQ(32, seen);
+    }
+    EXPECT_EQ(0, TrackedKey::liveCount);
+}
+
 } // namespace TestWebKitAPI

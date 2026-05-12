@@ -651,4 +651,200 @@ TEST(WTF_OrderedHashSet, HashTranslatorFindContains)
     EXPECT_TRUE(missing == set.end());
 }
 
+namespace {
+
+// Mirrors the signature OrderedHashTable::add<HashTranslator> expects:
+//   translate(location, key, valueFunctor).
+// Uses plain assignment into `location` — the canonical WTF translator convention.
+// This is the shape that will silently corrupt raw storage if the entries array
+// isn't pre-initialized to an empty value before translate() runs.
+struct AssigningStringViewTranslator {
+    static unsigned hash(StringView view) { return StringHash::hash(view.toString()); }
+    static bool equal(const String& a, StringView b) { return a == b; }
+    static void translate(String& location, StringView view, NOESCAPE const auto&)
+    {
+        location = view.toString();
+    }
+};
+
+using StringOrderedHashTable = WTF::OrderedHashTable<String, String, WTF::IdentityExtractor, DefaultHash<String>, HashTraits<String>, HashTraits<String>, WTF::HashTableMalloc>;
+
+// A value type whose operator= asserts the LHS is in a constructed state
+// (one of the known sentinels). Without a pre-translate constructEmptyValue,
+// the translator's `location = ...` assigns into raw malloc storage and the
+// m_state field will be random bits, nearly always tripping the assert.
+// liveCount tracks Live-state instances only; Empty/Deleted sentinels are
+// not counted, mirroring WTF's convention that sentinels hold no resources.
+class TrackedValue {
+public:
+    enum State : uint32_t { Garbage = 0xDEADBEEF, Empty = 0xE11E, Deleted = 0xDEAD, Live = 0xA11E };
+
+    static int liveCount;
+
+    TrackedValue() : m_state(Empty), m_value(0) { }
+    explicit TrackedValue(int v) : m_state(Live), m_value(v) { ++liveCount; }
+    TrackedValue(const TrackedValue& other) : m_state(other.m_state), m_value(other.m_value)
+    {
+        if (m_state == Live)
+            ++liveCount;
+    }
+    TrackedValue(TrackedValue&& other) noexcept : m_state(other.m_state), m_value(other.m_value)
+    {
+        // Move: dst increments, src keeps its state so its destructor balances.
+        if (m_state == Live)
+            ++liveCount;
+    }
+    TrackedValue(WTF::HashTableDeletedValueType) : m_state(Deleted), m_value(0) { }
+
+    ~TrackedValue()
+    {
+        if (m_state == Live)
+            --liveCount;
+        m_state = Garbage;
+    }
+
+    TrackedValue& operator=(const TrackedValue& other)
+    {
+        // LHS must be a constructed object (Empty/Live/Deleted). Raw malloc
+        // storage will have random bits, which almost never match a sentinel.
+        EXPECT_TRUE(m_state == Empty || m_state == Live || m_state == Deleted);
+        if (m_state == Live)
+            --liveCount;
+        m_state = other.m_state;
+        m_value = other.m_value;
+        if (m_state == Live)
+            ++liveCount;
+        return *this;
+    }
+
+    bool isHashTableDeletedValue() const { return m_state == Deleted; }
+    bool operator==(const TrackedValue& other) const { return m_state == other.m_state && m_value == other.m_value; }
+
+    int value() const { return m_value; }
+
+private:
+    uint32_t m_state;
+    int m_value;
+};
+
+int TrackedValue::liveCount = 0;
+
+struct TrackedValueHash {
+    static unsigned hash(const TrackedValue& v) { return IntHash<int>::hash(v.value()); }
+    static bool equal(const TrackedValue& a, const TrackedValue& b) { return a == b; }
+};
+
+struct TrackedValueTraits : WTF::SimpleClassHashTraits<TrackedValue> {
+    // Force emptyValueIsZero=false so constructEmptyValue runs (not zeroBytes).
+    static constexpr bool emptyValueIsZero = false;
+};
+
+struct TrackedValueTranslator {
+    static unsigned hash(int v) { return IntHash<int>::hash(v); }
+    static bool equal(const TrackedValue& a, int b) { return a.value() == b; }
+    static void translate(TrackedValue& location, int v, NOESCAPE const auto&)
+    {
+        // Standard WTF translator convention: assign. LHS must be constructed.
+        location = TrackedValue(v);
+    }
+};
+
+using TrackedOrderedHashTable = WTF::OrderedHashTable<TrackedValue, TrackedValue, WTF::IdentityExtractor, TrackedValueHash, TrackedValueTraits, TrackedValueTraits, WTF::HashTableMalloc>;
+
+}
+
+TEST(WTF_OrderedHashSet, HashTranslatorAddConstructsEmptyBeforeAssign)
+{
+    // Without the pre-translate constructEmptyValue, `location = ...` inside the
+    // translator would be invoked on raw malloc storage. TrackedValue::operator=
+    // asserts its LHS is a real constructed object, so the bug would EXPECT fail.
+    TrackedValue::liveCount = 0;
+    auto noFunctor = []() ALWAYS_INLINE_LAMBDA -> TrackedValue { return TrackedValue(); };
+    {
+        TrackedOrderedHashTable table;
+        for (int i = 0; i < 32; ++i) {
+            auto r = table.add<TrackedValueTranslator>(i, noFunctor);
+            EXPECT_TRUE(r.isNewEntry);
+        }
+        EXPECT_EQ(32u, table.size());
+
+        // Force deletions then re-add; after internal compact/rehash the translator
+        // path writes into slots whose prior occupants were destructed/moved-from —
+        // each such slot must again be re-constructed-empty before translate.
+        for (int i = 0; i < 32; i += 2)
+            table.remove(TrackedValue(i));
+        EXPECT_EQ(16u, table.size());
+        for (int i = 0; i < 32; i += 2) {
+            auto r = table.add<TrackedValueTranslator>(i, noFunctor);
+            EXPECT_TRUE(r.isNewEntry);
+        }
+        EXPECT_EQ(32u, table.size());
+    }
+    // Every constructed instance must have been destructed.
+    EXPECT_EQ(0, TrackedValue::liveCount);
+}
+
+TEST(WTF_OrderedHashSet, HashTranslatorAddIntoRawStorage)
+{
+    // Exercises OrderedHashTable::add<HashTranslator>. A correctly-implemented WTF
+    // translator assigns into `location`; our entries array is raw malloc storage,
+    // so without an in-place empty-value construction before translate, String's
+    // assignment operator would deref garbage from the freshly malloc'd slot.
+    StringOrderedHashTable table;
+    auto noFunctor = []() ALWAYS_INLINE_LAMBDA -> String { return String(); };
+
+    auto a = table.add<AssigningStringViewTranslator>(StringView { "alpha"_s }, noFunctor);
+    EXPECT_TRUE(a.isNewEntry);
+    auto b = table.add<AssigningStringViewTranslator>(StringView { "beta"_s }, noFunctor);
+    EXPECT_TRUE(b.isNewEntry);
+    auto aAgain = table.add<AssigningStringViewTranslator>(StringView { "alpha"_s }, noFunctor);
+    EXPECT_FALSE(aAgain.isNewEntry);
+
+    EXPECT_EQ(2u, table.size());
+    auto it = table.begin();
+    EXPECT_EQ("alpha"_s, *it);
+    ++it;
+    EXPECT_EQ("beta"_s, *it);
+    ++it;
+    EXPECT_TRUE(it == table.end());
+}
+
+TEST(WTF_OrderedHashSet, HashTranslatorAddTriggersRehashAndCompact)
+{
+    // Adding through the translator path past initial capacity must rehash (growing
+    // the entries array and re-placement-newing into it) without disturbing any
+    // in-flight empty-value state for the slot still being populated.
+    StringOrderedHashTable table;
+    auto noFunctor = []() ALWAYS_INLINE_LAMBDA -> String { return String(); };
+
+    Vector<String> keys;
+    for (unsigned i = 0; i < 64; ++i)
+        keys.append(String::number(i));
+
+    for (const auto& k : keys)
+        table.add<AssigningStringViewTranslator>(StringView { k }, noFunctor);
+    EXPECT_EQ(64u, table.size());
+
+    // Delete half, then add again via the translator — forces compactInPlace to
+    // run, after which the next translator add lands in a slot that was previously
+    // a deleted entry. The fix must still apply in that path.
+    for (unsigned i = 0; i < 64; i += 2)
+        table.remove(keys[i]);
+    EXPECT_EQ(32u, table.size());
+
+    for (unsigned i = 0; i < 64; i += 2) {
+        auto result = table.add<AssigningStringViewTranslator>(StringView { keys[i] }, noFunctor);
+        EXPECT_TRUE(result.isNewEntry);
+    }
+    EXPECT_EQ(64u, table.size());
+
+    // Verify all keys are present and iterable.
+    unsigned count = 0;
+    for (auto it = table.begin(); it != table.end(); ++it) {
+        EXPECT_TRUE(table.contains(*it));
+        ++count;
+    }
+    EXPECT_EQ(64u, count);
+}
+
 } // namespace TestWebKitAPI

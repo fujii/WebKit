@@ -343,6 +343,11 @@ public:
         }
 
         uint32_t newIndex = m_entriesLength;
+        // translate call may assume that entry is empty-initialized.
+        if constexpr (Traits::emptyValueIsZero)
+            zeroBytes(m_entries[newIndex]);
+        else
+            Traits::template constructEmptyValue<Traits>(m_entries[newIndex]);
         HashTranslator::translate(m_entries[newIndex], std::forward<K>(key), valueFunctor);
         m_buckets[insertSlot] = newIndex;
         auto result = AddResult { iterator(this, newIndex), true };
@@ -403,6 +408,7 @@ public:
     void reserveInitialCapacity(unsigned keyCount)
     {
         ASSERT(isEmpty());
+        ASSERT(!m_entriesLength);
         if (!keyCount)
             return;
         uint32_t newBucketCount = bucketCountForKeyCount(keyCount);
