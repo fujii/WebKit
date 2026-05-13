@@ -79,6 +79,7 @@ list(APPEND WTF_PUBLIC_HEADERS
 
     cocoa/CrashReporter.h
     cocoa/Entitlements.h
+    cocoa/NSTypeTraits.h
     cocoa/NSURLExtras.h
     cocoa/RuntimeApplicationChecksCocoa.h
     cocoa/SoftLinking.h
