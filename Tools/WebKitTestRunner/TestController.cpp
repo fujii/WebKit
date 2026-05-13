@@ -1802,8 +1802,21 @@ ASCIILiteral TestController::gpuProcessName()
     return "com.apple.WebKit.GPU"_s;
 #elif PLATFORM(COCOA)
     return "com.apple.WebKit.GPU.Development"_s;
+#elif PLATFORM(GTK)
+    return "WebKitGPUProcess"_s;
+#elif PLATFORM(WPE)
+    return "WPEGPUProcess"_s;
 #else
     return "GPUProcess"_s;
+#endif
+}
+
+ASCIILiteral TestController::serviceWorkerProcessName()
+{
+#if PLATFORM(GTK) || PLATFORM(WPE)
+    return webProcessName();
+#else
+    return "ServiceWorkerProcess"_s;
 #endif
 }
 
@@ -3547,7 +3560,7 @@ void TestController::networkProcessDidCrash(WKProcessID processID, WKProcessTerm
 void TestController::serviceWorkerProcessDidCrash(WKProcessID processID, WKProcessTerminationReason reason)
 {
     fprintf(stderr, "%s terminated (pid %ld) for reason: %s\n", "ServiceWorkerProcess", static_cast<long>(processID), terminationReasonToString(reason));
-    fprintf(stderr, "#CRASHED - ServiceWorkerProcess (pid %ld)\n", static_cast<long>(processID));
+    fprintf(stderr, "#CRASHED - %s (pid %ld)\n", serviceWorkerProcessName().characters(), static_cast<long>(processID));
     if (m_shouldExitWhenAuxiliaryProcessCrashes)
         exitProcess(1);
 }

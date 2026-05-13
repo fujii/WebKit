@@ -189,6 +189,7 @@ public:
     static ASCIILiteral webProcessName();
     static ASCIILiteral networkProcessName();
     static ASCIILiteral gpuProcessName();
+    static ASCIILiteral serviceWorkerProcessName();
 
     WorkQueueManager& workQueueManager() { return m_workQueueManager; }
 
