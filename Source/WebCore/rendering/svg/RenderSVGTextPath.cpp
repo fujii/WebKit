@@ -78,13 +78,7 @@ Path RenderSVGTextPath::layoutPath() const
     // system due to a possible transform attribute on the current 'text' element.
     // http://www.w3.org/TR/SVG/text.html#TextPathElement
     if (CheckedPtr shapeRenderer = dynamicDowncast<RenderSVGShape>(element->renderer())) {
-        if (!shapeRenderer->isTransformed())
-            return path;
-        TransformationMatrix matrix;
-        CheckedRef style = shapeRenderer->style();
-        auto referenceBoxRect = shapeRenderer->transformReferenceBoxRect(style);
-        shapeRenderer->applyTransform(matrix, style, referenceBoxRect, Style::TransformResolver::individualTransformOperations);
-        auto transform = matrix.toAffineTransform();
+        auto transform = shapeRenderer->computeRendererTransform();
         if (!transform.isIdentity())
             path.transform(transform);
         return path;
