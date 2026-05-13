@@ -28,6 +28,7 @@ import time
 from webkitpy.common.memoized import memoized
 from webkitpy.common.system.crashlogs import CrashLogs
 from webkitpy.common.system.executive import ScriptError
+from webkitpy.common.version_name_map import PUBLIC_TABLE, VersionNameMap
 from webkitpy.port.apple import ApplePort
 from webkitpy.port.leakdetector import LeakDetector
 
@@ -110,6 +111,10 @@ class DarwinPort(ApplePort):
         if self.get_option('guard_malloc'):
             return 350 * 1000
         return super(DarwinPort, self).default_timeout_ms()
+
+    def _api_test_version_name(self, version, table=PUBLIC_TABLE):
+        name = VersionNameMap.map(self.host.platform).to_name(version, platform=self.port_name, table=table)
+        return name.lower().replace(' ', '') if name else None
 
     def _port_specific_expectations_files(self, device_type=None):
         return list(reversed([self._filesystem.join(self._webkit_baseline_path(p), 'TestExpectations') for p in self.baseline_search_path(device_type=device_type)]))
