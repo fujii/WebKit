@@ -23,4 +23,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Intentionally empty. This file is needed to create a linkable framework binary.
+#pragma once
+
+// Prevents -dead_strip_dylibs from pruning the framework's load command.
+extern "C" __attribute__((visibility("default"))) void WebInspectorUIFrameworkLoad(void);

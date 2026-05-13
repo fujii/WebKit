@@ -621,7 +621,9 @@ set(ObjCForwardingHeaders
 )
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -compatibility_version 1 -current_version ${WEBKIT_MAC_VERSION}")
-target_link_options(WebKit PRIVATE -lsandbox -framework AuthKit)
+# -Wl,-u forces a symbol reference so -dead_strip_dylibs won't prune the weak framework.
+target_link_options(WebKit PRIVATE -lsandbox -framework AuthKit -F${CMAKE_BINARY_DIR} -weak_framework WebInspectorUI -Wl,-u,_WebInspectorUIFrameworkLoad)
+add_dependencies(WebKit WebInspectorUIFramework)
 
 # Match WebKit.xcconfig REEXPORTED_FRAMEWORK_NAMES / REEXPORTED_LIBRARY_NAMES so
 # the CMake-built framework exports the same ABI as the Xcode build. Without the
