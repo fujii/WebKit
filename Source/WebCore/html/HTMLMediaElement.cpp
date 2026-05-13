@@ -4042,6 +4042,13 @@ void HTMLMediaElement::seekTask()
     m_pendingSeekType = thisSeekType;
     setSeeking(true);
 
+    // Before scheduling the 'seeking' event, drop any queued periodic timeupdate
+    // task. Without this, a periodic timeupdate queued by playbackProgressTimerFired
+    // just before setCurrentTime could dispatch ahead of 'seeking', producing the
+    // spec-incorrect event ordering observed in mediasource-duration.html. The
+    // seek-completion timeupdate is queued separately by finishSeek and survives.
+    m_periodicTimeupdateCancellationGroup.cancel();
+
     // 10 - Queue a task to fire a simple event named seeking at the element.
     scheduleEvent(eventNames().seekingEvent);
 
@@ -5056,6 +5063,14 @@ void HTMLMediaElement::playbackProgressTimerFired()
 
 void HTMLMediaElement::scheduleTimeupdateEvent(bool periodicEvent)
 {
+    // Per HTML spec, the periodic timeupdate is only for "the time reached through the
+    // usual monotonic increase of the current playback position during normal playback".
+    // During an active seek, the seek algorithm's own events (seeking -> timeupdate ->
+    // seeked via finishSeek) are responsible for notifying the page. Suppress periodic
+    // timeupdates while seeking so they don't interleave with the seek-driven ordering.
+    if (periodicEvent && m_seeking)
+        return;
+
     MonotonicTime now = MonotonicTime::now();
     Seconds timedelta = now - m_clockTimeAtLastUpdateEvent;
 
@@ -5070,7 +5085,14 @@ void HTMLMediaElement::scheduleTimeupdateEvent(bool periodicEvent)
     // event at a given time so filter here
     MediaTime movieTime = currentMediaTime();
     if (movieTime != m_lastTimeUpdateEventMovieTime) {
-        scheduleEvent(eventNames().timeupdateEvent);
+        if (periodicEvent) {
+            // Periodic timeupdates are cancellable by the seek path — if a seek starts
+            // before this task dispatches, the pending timeupdate would race ahead of
+            // the 'seeking' event, producing spec-incorrect event ordering that fails
+            // mediasource-duration.html.
+            queueCancellableTaskToDispatchEvent(*this, TaskSource::MediaElement, m_periodicTimeupdateCancellationGroup, Event::create(eventNames().timeupdateEvent, Event::CanBubble::No, Event::IsCancelable::Yes));
+        } else
+            scheduleEvent(eventNames().timeupdateEvent);
         m_clockTimeAtLastUpdateEvent = now;
         m_lastTimeUpdateEventMovieTime = movieTime;
     }

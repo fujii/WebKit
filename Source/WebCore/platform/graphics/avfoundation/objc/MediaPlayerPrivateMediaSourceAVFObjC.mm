@@ -779,7 +779,9 @@ void MediaPlayerPrivateMediaSourceAVFObjC::bufferedChanged()
             MediaTime now = protectedThis->currentTime();
             ALWAYS_LOG_WITH_THIS(protectedThis, logSiteIdentifier, "boundary time observer called, now = ", now);
 
-            if (stallTime == protectedThis->duration())
+            if (protectedThis->seeking())
+                return; // seek owns state transitions
+            if (now >= protectedThis->duration())
                 protectedThis->pause();
             protectedThis->timeChanged();
         });
@@ -1152,7 +1154,6 @@ void MediaPlayerPrivateMediaSourceAVFObjC::updateStateFromReadyState()
         dispatchToRendererQueue([](auto& renderer) {
             renderer.play();
         });
-        timeChanged();
     } else
         stall();
 
