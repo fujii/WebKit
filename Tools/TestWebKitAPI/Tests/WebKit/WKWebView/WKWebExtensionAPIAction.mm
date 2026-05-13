@@ -1590,7 +1590,12 @@ TEST(WKWebExtensionAPIAction, PageAction)
     [manager run];
 }
 
+// FIXME when webkit.org/b/314652 is resolved.
+#if PLATFORM(MAC) && defined(NDEBUG)
+TEST(WKWebExtensionAPIAction, DISABLED_ClearTabSpecificActionPropertiesOnNavigation)
+#else
 TEST(WKWebExtensionAPIAction, ClearTabSpecificActionPropertiesOnNavigation)
+#endif
 {
     TestWebKitAPI::HTTPServer server({
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
