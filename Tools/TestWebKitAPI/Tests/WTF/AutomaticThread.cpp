@@ -30,6 +30,7 @@
 #include <wtf/DataMutex.h>
 #include <wtf/Deque.h>
 #include <wtf/ThreadSpecific.h>
+#include <wtf/TZoneMallocInlines.h>
 #include <wtf/Variant.h>
 
 struct Invalid { };
@@ -182,6 +183,8 @@ private:
     size_t m_numberOfProcessedItems;
 
 };
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(WorkItemConsumerThread);
 
 TEST(WTF, AutomaticThreadStopsWhenNotGivenWork)
 {
