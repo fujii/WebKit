@@ -7922,7 +7922,8 @@ void WebPage::didCommitLoad(WebFrame* frame)
     m_elementsPendingTextRecognition.clear();
 #endif
 
-    clearLoadedSubresourceDomains();
+    if (frame->isMainFrame())
+        clearLoadedSubresourceDomains();
 
     // If previous URL is invalid, then it's not a real page that's being navigated away from.
     // Most likely, this is actually the first load to be committed in this page.
@@ -8808,7 +8809,15 @@ void WebPage::wasLoadedWithDataTransferFromPrevalentResource()
 
 void WebPage::didLoadFromRegistrableDomain(RegistrableDomain&& targetDomain)
 {
-    if (targetDomain != RegistrableDomain(m_mainFrame->url()))
+    RefPtr coreMainFrame = m_mainFrame->coreFrame();
+    if (!coreMainFrame)
+        return;
+
+    RefPtr mainFrameOrigin = coreMainFrame->frameDocumentSecurityOrigin();
+    if (!mainFrameOrigin)
+        return;
+
+    if (targetDomain != RegistrableDomain(mainFrameOrigin->data()))
         m_internals->loadedSubresourceDomains.add(targetDomain);
 }
 

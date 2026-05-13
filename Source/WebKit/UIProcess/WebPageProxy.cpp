@@ -17166,7 +17166,29 @@ void WebPageProxy::triggerMockCaptureConfigurationChange(bool forCamera, bool fo
 
 void WebPageProxy::getLoadedSubresourceDomains(CompletionHandler<void(Vector<RegistrableDomain>&&)>&& completionHandler)
 {
-    sendWithAsyncReply(Messages::WebPage::GetLoadedSubresourceDomains(), WTF::move(completionHandler));
+    class GetLoadedSubresourceDomainsCallbackAggregator : public RefCounted<GetLoadedSubresourceDomainsCallbackAggregator> {
+    public:
+        static Ref<GetLoadedSubresourceDomainsCallbackAggregator> create(CompletionHandler<void(Vector<RegistrableDomain>&&)>&& completionHandler) { return adoptRef(*new GetLoadedSubresourceDomainsCallbackAggregator(WTF::move(completionHandler))); }
+        void didGetLoadedSubresourceDomains(Vector<RegistrableDomain>&& subresourceDomains) { m_subresourceDomains.addAll(WTF::move(subresourceDomains)); }
+        ~GetLoadedSubresourceDomainsCallbackAggregator()
+        {
+            m_completionHandler(copyToVector(m_subresourceDomains));
+        }
+    private:
+        explicit GetLoadedSubresourceDomainsCallbackAggregator(CompletionHandler<void(Vector<RegistrableDomain>&&)>&& completionHandler)
+            : m_completionHandler(WTF::move(completionHandler))
+        {
+        }
+        HashSet<RegistrableDomain> m_subresourceDomains;
+        CompletionHandler<void(Vector<RegistrableDomain>&&)> m_completionHandler;
+    };
+
+    Ref callbackAggregator = GetLoadedSubresourceDomainsCallbackAggregator::create(WTF::move(completionHandler));
+    forEachWebContentProcess([callbackAggregator](auto& process, auto pageID) {
+        process.sendWithAsyncReply(Messages::WebPage::GetLoadedSubresourceDomains(), [callbackAggregator](Vector<RegistrableDomain>&& subresourceDomains) {
+            callbackAggregator->didGetLoadedSubresourceDomains(WTF::move(subresourceDomains));
+        }, pageID);
+    });
 }
 
 void WebPageProxy::clearLoadedSubresourceDomains()
