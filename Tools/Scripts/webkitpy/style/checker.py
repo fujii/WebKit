@@ -46,6 +46,7 @@ from webkitpy.style.checkers.contributors import ContributorsChecker
 from webkitpy.style.checkers.changelog import ChangeLogChecker
 from webkitpy.style.checkers.cpp import CppChecker
 from webkitpy.style.checkers.cmake import CMakeChecker
+from webkitpy.style.checkers.deprecated_js_test_includes import categories as DeprecatedJSTestIncludesCategories
 from webkitpy.style.checkers.featuredefines import FeatureDefinesChecker
 from webkitpy.style.checkers.js import JSChecker
 from webkitpy.style.checkers.jsonchecker import JSONChecker
@@ -657,6 +658,7 @@ def _all_categories():
     # Take the union across all checkers.
     categories = CommonCategories.union(CppChecker.categories)
     categories = categories.union(CMakeChecker.categories)
+    categories = categories.union(DeprecatedJSTestIncludesCategories)
     categories = categories.union(JSChecker.categories)
     categories = categories.union(JSONChecker.categories)
     categories = categories.union(JSTestChecker.categories)
