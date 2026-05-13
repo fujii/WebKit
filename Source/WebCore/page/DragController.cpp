@@ -1442,7 +1442,7 @@ void DragController::doSystemDrag(DragImage image, const IntPoint& dragLoc, cons
         if (RefPtr link = containingLinkElement(*element)) {
             auto titleAttribute = link->attributeWithoutSynchronization(HTMLNames::titleAttr);
             item.title = titleAttribute.isEmpty() ? link->innerText() : titleAttribute.string();
-            item.url = frame.document()->completeURL(link->getAttribute(HTMLNames::hrefAttr), ScriptExecutionContext::ForceUTF8::No);
+            item.url = frame.document()->encodingParseURL(link->getAttribute(HTMLNames::hrefAttr));
         }
 
 #if ENABLE(MODEL_ELEMENT_STAGE_MODE_INTERACTION)

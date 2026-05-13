@@ -201,7 +201,7 @@ private:
     void deleteJSCodeAndGC(Synchronous);
     void clearDecodedScriptData();
 
-    URL completeURL(const String&, ForceUTF8 = ForceUTF8::Yes) const final;
+    URL parseURL(const String&) const final;
     String userAgent(const URL&) const final;
 
     EventTarget* errorEventTarget() final;

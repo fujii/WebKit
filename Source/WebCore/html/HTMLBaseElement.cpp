@@ -88,7 +88,7 @@ String HTMLBaseElement::href() const
         url = emptyAtom();
 
     Ref document = this->document();
-    auto urlRecord = document->completeURL(url, document->fallbackBaseURL(), ScriptExecutionContext::ForceUTF8::No);
+    auto urlRecord = document->encodingParseURL(url, document->fallbackBaseURL());
     if (!urlRecord.isValid())
         return url;
 

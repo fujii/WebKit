@@ -74,7 +74,7 @@ inline EventSource::EventSource(ScriptExecutionContext& context, const URL& url,
 
 ExceptionOr<Ref<EventSource>> EventSource::create(ScriptExecutionContext& context, const String& url, Init&& eventSourceInit)
 {
-    URL fullURL = context.completeURL(url, ScriptExecutionContext::ForceUTF8::No);
+    URL fullURL = context.encodingParseURL(url);
     if (!fullURL.isValid())
         return Exception { ExceptionCode::SyntaxError };
 

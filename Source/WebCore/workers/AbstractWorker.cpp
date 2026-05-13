@@ -63,7 +63,7 @@ ExceptionOr<URL> AbstractWorker::resolveURL(const String& url)
     Ref context = *scriptExecutionContext();
 
     // FIXME: This should use the dynamic global scope (bug #27887).
-    URL scriptURL = context->completeURL(url, ScriptExecutionContext::ForceUTF8::No);
+    URL scriptURL = context->encodingParseURL(url);
     if (!scriptURL.isValid())
         return Exception { ExceptionCode::SyntaxError };
 

@@ -1840,7 +1840,7 @@ void HTMLMediaElement::selectMediaResource()
                 return;
             }
 
-            auto absoluteURL = element.document().completeURL(srcValue, ScriptExecutionContext::ForceUTF8::No);
+            auto absoluteURL = element.document().encodingParseURL(srcValue);
             if (!element.isSafeToLoadURL(absoluteURL, InvalidURLAction::Complain)) {
                 element.mediaLoadingFailed(MediaPlayer::NetworkState::FormatError);
                 return;
@@ -5713,7 +5713,7 @@ URL HTMLMediaElement::selectNextSourceChild(ContentType* contentType, InvalidURL
         // from parsing the URL specified by candidate's src attribute's value
         // relative to the candidate's node document when the src attribute was
         // last changed.
-        mediaURL = protect(source->document())->completeURL(srcValue, ScriptExecutionContext::ForceUTF8::No);
+        mediaURL = protect(source->document())->encodingParseURL(srcValue);
 
         if (auto mediaQueryList = source->parsedMediaAttribute(protect(document())); !mediaQueryList.isEmpty()) {
             if (shouldLog)

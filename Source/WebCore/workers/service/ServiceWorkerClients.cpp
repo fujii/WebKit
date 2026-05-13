@@ -103,7 +103,7 @@ void ServiceWorkerClients::openWindow(ScriptExecutionContext& context, const Str
         return;
     }
 
-    auto url = context.completeURL(urlString, ScriptExecutionContext::ForceUTF8::No);
+    auto url = context.encodingParseURL(urlString);
     if (!url.isValid()) {
         promise->reject(Exception { ExceptionCode::TypeError, makeString("URL string "_s, urlString, " cannot successfully be parsed"_s) });
         return;

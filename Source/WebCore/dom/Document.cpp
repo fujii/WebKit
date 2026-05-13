@@ -4119,7 +4119,7 @@ void Document::implicitOpen()
 
 RefPtr<FontLoadRequest> Document::fontLoadRequest(const String& url, bool isSVG, bool isInitiatingElementInUserAgentShadowTree, LoadedFromOpaqueSource loadedFromOpaqueSource)
 {
-    RefPtr cachedFont = protect(fontLoader())->cachedFont(completeURL(url, ForceUTF8::No), isSVG, isInitiatingElementInUserAgentShadowTree, loadedFromOpaqueSource);
+    RefPtr cachedFont = protect(fontLoader())->cachedFont(encodingParseURL(url), isSVG, isInitiatingElementInUserAgentShadowTree, loadedFromOpaqueSource);
     if (!cachedFont)
         return nullptr;
     return CachedFontLoadRequest::create(*cachedFont, *this);
@@ -4895,7 +4895,7 @@ void Document::processBaseElement()
 
     URL baseElementURL;
     if (!href.isNull())
-        baseElementURL = completeURL(href, fallbackBaseURL(), ForceUTF8::No);
+        baseElementURL = encodingParseURL(href, fallbackBaseURL());
     if (m_baseElementURL != baseElementURL) {
         if (settings().shouldRestrictBaseURLSchemes() && !baseElementURL.isEmpty() && !baseElementURL.isValid()) {
             m_baseElementURL = { };
@@ -7419,9 +7419,10 @@ URL Document::baseURLForComplete(const URL& baseURLOverride) const
     return ((baseURLOverride.isEmpty() || baseURLOverride == aboutBlankURL()) && parentDocument()) ? parentDocument()->baseURL() : baseURLOverride;
 }
 
-URL Document::completeURL(const String& url, const URL& baseURLOverride, ForceUTF8 forceUTF8) const
+// https://html.spec.whatwg.org/multipage/webappapis.html#encoding-parsing-a-url
+URL Document::encodingParseURL(const String& url, const URL& baseURLOverride) const
 {
-    // See also CSSParserContext::completeURL(const String&)
+    // See also CSS::completeURL().
 
     // Always return a null URL when passed a null string.
     // FIXME: Should we change the URL constructor to have this behavior?
@@ -7430,14 +7431,23 @@ URL Document::completeURL(const String& url, const URL& baseURLOverride, ForceUT
 
     URL baseURL = baseURLForComplete(baseURLOverride);
     // Same logic as openFunc() in XMLDocumentParserLibxml2.cpp. Keep them in sync.
-    if (!m_decoder || forceUTF8 == ForceUTF8::Yes)
+    if (!m_decoder)
         return URL(baseURL, url);
     return URL(baseURL, url, m_decoder->encodingForURLParsing());
 }
 
-URL Document::completeURL(const String& url, ForceUTF8 forceUTF8) const
+// https://html.spec.whatwg.org/multipage/webappapis.html#encoding-parsing-a-url
+URL Document::encodingParseURL(const String& url) const
 {
-    return completeURL(url, m_baseURL, forceUTF8);
+    return encodingParseURL(url, m_baseURL);
+}
+
+// https://html.spec.whatwg.org/multipage/webappapis.html#parse-a-url
+URL Document::parseURL(const String& url) const
+{
+    if (url.isNull())
+        return URL();
+    return URL(baseURLForComplete(m_baseURL), url);
 }
 
 bool Document::shouldMaskURLForBindingsInternal(const URL& urlToMask) const

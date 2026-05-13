@@ -122,7 +122,8 @@ void WorkletGlobalScope::evaluate()
         script()->evaluate(*m_code);
 }
 
-URL WorkletGlobalScope::completeURL(const String& url, ForceUTF8) const
+// https://html.spec.whatwg.org/multipage/webappapis.html#parse-a-url
+URL WorkletGlobalScope::parseURL(const String& url) const
 {
     if (url.isNull())
         return URL();

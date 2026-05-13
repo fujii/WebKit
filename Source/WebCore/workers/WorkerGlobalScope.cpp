@@ -210,7 +210,8 @@ void WorkerGlobalScope::applyContentSecurityPolicyResponseHeaders(const ContentS
     protect(contentSecurityPolicy())->didReceiveHeaders(contentSecurityPolicyResponseHeaders, String { });
 }
 
-URL WorkerGlobalScope::completeURL(const String& url, ForceUTF8) const
+// https://html.spec.whatwg.org/multipage/webappapis.html#parse-a-url
+URL WorkerGlobalScope::parseURL(const String& url) const
 {
     // Always return a null URL when passed a null string.
     // FIXME: Should we change the URL constructor to have this behavior?
@@ -431,7 +432,7 @@ ExceptionOr<void> WorkerGlobalScope::importScripts(const FixedVector<Variant<Ref
     Vector<URLKeepingBlobAlive> completedURLs;
     completedURLs.reserveInitialCapacity(urls.size());
     for (auto& entry : urlStrings) {
-        URL url = completeURL(entry, ForceUTF8::No);
+        URL url = parseURL(entry);
         if (!url.isValid())
             return Exception { ExceptionCode::SyntaxError };
         completedURLs.append({ WTF::move(url), m_topOrigin->data() });
@@ -645,7 +646,7 @@ Ref<FontFaceSet> WorkerGlobalScope::fonts()
 
 RefPtr<FontLoadRequest> WorkerGlobalScope::fontLoadRequest(const String& url, bool, bool, LoadedFromOpaqueSource loadedFromOpaqueSource)
 {
-    return WorkerFontLoadRequest::create(completeURL(url, ForceUTF8::No), loadedFromOpaqueSource);
+    return WorkerFontLoadRequest::create(parseURL(url), loadedFromOpaqueSource);
 }
 
 void WorkerGlobalScope::beginLoadingFontSoon(FontLoadRequest& request)

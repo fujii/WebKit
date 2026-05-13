@@ -4853,7 +4853,7 @@ void Editor::registerAttachmentIdentifier(const String& identifier, const Attach
 
         String name = imageElement->attributeWithoutSynchronization(altAttr);
         if (name.isEmpty())
-            name = imageElement->document().completeURL(imageElement->imageSourceURL(), ScriptExecutionContext::ForceUTF8::No).lastPathComponent().toString();
+            name = imageElement->document().encodingParseURL(imageElement->imageSourceURL()).lastPathComponent().toString();
 
         if (name.isEmpty())
             return std::nullopt;

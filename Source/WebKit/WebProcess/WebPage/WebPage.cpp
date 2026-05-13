@@ -9433,7 +9433,7 @@ void WebPage::requestTextRecognition(Element& element, TextRecognitionOptions&& 
             return;
 
         RefPtr cachedImage = renderImage->cachedImage();
-        auto imageURL = cachedImage ? protect(weakElement->document())->completeURL(cachedImage->url().string(), ScriptExecutionContext::ForceUTF8::No) : URL { };
+        auto imageURL = cachedImage ? protect(weakElement->document())->encodingParseURL(cachedImage->url().string()) : URL { };
         protectedThis->sendWithAsyncReply(Messages::WebPageProxy::RequestTextRecognition(WTF::move(imageURL), WTF::move(*bitmapHandle), options.sourceLanguageIdentifier, options.targetLanguageIdentifier), [weakThis, weakElement, resolveAndRemoveHandlerFollowingError = WTF::move(resolveAndRemoveHandlerFollowingError)] (auto&& result) mutable {
             RefPtr protectedThis = weakThis.get();
             if (!protectedThis)

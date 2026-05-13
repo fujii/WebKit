@@ -179,7 +179,7 @@
 
 - (DOMDocumentFragment *)_createDocumentFragmentWithMarkupString:(NSString *)markupString baseURLString:(NSString *)baseURLString
 {
-    RetainPtr baseURL = core(self)->completeURL(baseURLString, WebCore::ScriptExecutionContext::ForceUTF8::No).createNSURL();
+    RetainPtr baseURL = core(self)->encodingParseURL(baseURLString).createNSURL();
     return [self createDocumentFragmentWithMarkupString:markupString baseURL:baseURL.get()];
 }
 

@@ -287,7 +287,7 @@ bool HTMLAnchorElement::draggable() const
 
 URL HTMLAnchorElement::href() const
 {
-    return protect(document())->completeURL(attributeWithoutSynchronization(hrefAttr), ScriptExecutionContext::ForceUTF8::No);
+    return protect(document())->encodingParseURL(attributeWithoutSynchronization(hrefAttr));
 }
 
 bool HTMLAnchorElement::hasRel(Relation relation) const
@@ -368,7 +368,7 @@ void HTMLAnchorElement::sendPings(const URL& destinationURL)
     Ref document = this->document();
     SpaceSplitString pingURLs(pingValue, SpaceSplitString::ShouldFoldCase::No);
     for (auto& pingURL : pingURLs)
-        PingLoader::sendPing(*protect(document->frame()), document->completeURL(pingURL, ScriptExecutionContext::ForceUTF8::No), destinationURL);
+        PingLoader::sendPing(*protect(document->frame()), document->encodingParseURL(pingURL), destinationURL);
 }
 
 #if USE(SYSTEM_PREVIEW)
@@ -570,7 +570,7 @@ void HTMLAnchorElement::handleClick(Event& event)
     StringBuilder url;
     url.append(StringView(attributeWithoutSynchronization(hrefAttr).string()).trim(isASCIIWhitespace));
     appendServerMapMousePosition(url, event);
-    URL completedURL = document->completeURL(url.toString(), ScriptExecutionContext::ForceUTF8::No);
+    URL completedURL = document->encodingParseURL(url.toString());
 
 #if ENABLE(DATA_DETECTION) && PLATFORM(IOS_FAMILY)
     if (DataDetection::canPresentDataDetectorsUIForElement(*this)) {

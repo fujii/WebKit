@@ -484,7 +484,7 @@ URL HitTestResult::absoluteImageURL() const
 
     if (RefPtr element = dynamicDowncast<Element>(*imageNode); element
         && isAnyOf<HTMLEmbedElement, HTMLImageElement, HTMLInputElement, HTMLObjectElement, SVGImageElement>(*element)) {
-        auto imageURL = imageNode->document().completeURL(element->imageSourceURL(), ScriptExecutionContext::ForceUTF8::No);
+        auto imageURL = imageNode->document().encodingParseURL(element->imageSourceURL());
         if (RefPtr page = imageNode->document().page())
             return page->applyLinkDecorationFiltering(imageURL, LinkDecorationFilteringTrigger::Unspecified);
         return imageURL;
@@ -502,7 +502,7 @@ URL HitTestResult::absolutePDFURL() const
     if (!element)
         return URL();
 
-    auto url = m_innerNonSharedNode->document().completeURL(element->url(), ScriptExecutionContext::ForceUTF8::No);
+    auto url = m_innerNonSharedNode->document().encodingParseURL(element->url());
     if (!url.isValid())
         return URL();
 
