@@ -497,25 +497,11 @@ void SkiaCompositingLayer::paintSelf(SkCanvas& canvas, PaintContext& context)
             image = buffer->skiaImage();
             if (!m_contentsTiling.size.isEmpty()) {
                 sk_sp<SkImage> tileImage = std::exchange(image, nullptr);
-                SkAutoCanvasRestore autoRestore(&canvas, true);
-                canvas.clipRect(SkRect(m_contentsRect));
-
-                float startX = m_contentsRect.x() + m_contentsTiling.phase.width();
-                float startY = m_contentsRect.y() + m_contentsTiling.phase.height();
-
-                // Adjust start position to cover the contentsRect from the beginning.
-                while (startX > m_contentsRect.x())
-                    startX -= m_contentsTiling.size.width();
-                while (startY > m_contentsRect.y())
-                    startY -= m_contentsTiling.size.height();
-
-                for (float y = startY; y < m_contentsRect.maxY(); y += m_contentsTiling.size.height()) {
-                    for (float x = startX; x < m_contentsRect.maxX(); x += m_contentsTiling.size.width()) {
-                        FloatRect tileRect(x, y, m_contentsTiling.size.width(), m_contentsTiling.size.height());
-                        canvas.drawImageRect(tileImage, SkRect::MakeSize(SkSize::Make(tileImage->dimensions())), SkRect(tileRect),
-                            SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), &paint, SkCanvas::kFast_SrcRectConstraint);
-                    }
-                }
+                SkMatrix matrix;
+                matrix.setScale(m_contentsTiling.size.width() / tileImage->width(), m_contentsTiling.size.height() / tileImage->height());
+                matrix.postTranslate(-m_contentsTiling.phase.width(), -m_contentsTiling.phase.height());
+                paint.setShader(tileImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), matrix));
+                canvas.drawRect(m_contentsRect, paint);
             }
         }
 
