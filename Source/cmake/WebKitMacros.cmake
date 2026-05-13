@@ -939,7 +939,7 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             add_dependencies(${_target}_SwiftCxxHeader ${${_target}_SWIFT_HEADER_DEPENDS})
             add_dependencies(${_target} ${_target}_SwiftCxxHeader)
         else ()
-            target_sources(${_target} PRIVATE ${_header_path})
+            target_sources(${_target} PRIVATE ${_header_stamp_path})
         endif ()
     endif ()
 endmacro()
