@@ -117,7 +117,6 @@ imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across
 ########################
 accessibility/youtube-embed-accessibility-hierarchy.html [ Failure Timeout ]
 editing/execCommand/delete-no-scroll.html [ Failure ]
-editing/selection/drag-in-iframe.html [ Failure ]
 fast/canvas/webgl/canvas-webgl-page-cache.html [ Failure ]
 fast/events/event-timing-back-forward-cache-duration.html [ Failure ]
 fast/files/file-reader-back-forward-cache.html [ Failure ]
