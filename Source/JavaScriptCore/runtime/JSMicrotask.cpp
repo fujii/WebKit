@@ -1411,26 +1411,7 @@ void runInternalMicrotask(JSGlobalObject* globalObject, VM& vm, InternalMicrotas
         if (!promiseSpeciesWatchpointIsValid(vm, promise)) [[unlikely]]
             RELEASE_AND_RETURN(scope, promiseResolveThenableJobWithInternalMicrotaskFastSlow(globalObject, promise, task, context));
 
-        JSValue reactionsOrResult = promise->reactionsOrResult();
-        switch (promise->status()) {
-        case JSPromise::Status::Pending: {
-            auto* reaction = JSSlimPromiseReaction::create(vm, jsUndefined(), task, context, reactionsOrResult ? uncheckedDowncast<JSPromiseReaction>(reactionsOrResult) : nullptr);
-            promise->setReactionsOrResult(vm, reaction);
-            promise->markAsHandled();
-            break;
-        }
-        case JSPromise::Status::Rejected: {
-            if (!promise->isHandled())
-                globalObject->globalObjectMethodTable()->promiseRejectionTracker(globalObject, promise, JSPromiseRejectionOperation::Handle);
-            JSPromise::rejectWithInternalMicrotask(vm, globalObject, reactionsOrResult, task, context);
-            promise->markAsHandled();
-            break;
-        }
-        case JSPromise::Status::Fulfilled: {
-            JSPromise::fulfillWithInternalMicrotask(vm, globalObject, reactionsOrResult, task, context);
-            break;
-        }
-        }
+        promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, jsUndefined(), context);
         return;
     }
 

@@ -247,6 +247,26 @@ JSPromise* JSPromise::rejectWithCaughtException(JSGlobalObject* globalObject, Th
     return this;
 }
 
+JSPromiseReaction* JSPromise::spillInlineReaction(VM& vm)
+{
+    ASSERT(hasInlineReaction());
+    InternalMicrotask task = inlineReactionMicrotask();
+    JSValue context = inlineReactionContext();
+    auto* reaction = JSSlimPromiseReaction::create(vm, jsUndefined(), task, context, nullptr);
+    clearInlineReaction();
+    setReactionsOrResult(vm, reaction);
+    return reaction;
+}
+
+JSPromiseReaction* JSPromise::reactionHead(VM& vm)
+{
+    ASSERT(status() == Status::Pending);
+    if (hasInlineReaction()) [[unlikely]]
+        return spillInlineReaction(vm);
+    JSValue reactionsOrResult = this->reactionsOrResult();
+    return reactionsOrResult ? uncheckedDowncast<JSPromiseReaction>(reactionsOrResult) : nullptr;
+}
+
 void JSPromise::performPromiseThen(VM& vm, JSGlobalObject* globalObject, JSValue onFulfilled, JSValue onRejected, JSValue promiseOrCapability)
 {
     bool fulfilledCallable = onFulfilled.isCallable();
@@ -255,7 +275,7 @@ void JSPromise::performPromiseThen(VM& vm, JSGlobalObject* globalObject, JSValue
     JSValue reactionsOrResult = this->reactionsOrResult();
     switch (status()) {
     case JSPromise::Status::Pending: {
-        JSPromiseReaction* existing = reactionsOrResult ? uncheckedDowncast<JSPromiseReaction>(reactionsOrResult) : nullptr;
+        JSPromiseReaction* existing = reactionHead(vm);
         JSPromiseReaction* reaction;
         if (fulfilledCallable && !rejectedCallable)
             reaction = JSSlimPromiseReaction::create(vm, promiseOrCapability, onFulfilled, true, existing);
@@ -295,7 +315,15 @@ void JSPromise::performPromiseThenWithInternalMicrotask(VM& vm, JSGlobalObject* 
     JSValue reactionsOrResult = this->reactionsOrResult();
     switch (status()) {
     case JSPromise::Status::Pending: {
-        auto* reaction = JSSlimPromiseReaction::create(vm, promise, task, context, reactionsOrResult ? uncheckedDowncast<JSPromiseReaction>(reactionsOrResult) : nullptr);
+        if (promise.isUndefined() && !reactionsOrResult) [[likely]] {
+            // setInlineReaction always stores a non-empty cell into ReactionsOrResult,
+            // so an empty ReactionsOrResult implies no inline reaction.
+            ASSERT(!hasInlineReaction());
+            setInlineReaction(vm, task, context);
+            break;
+        }
+        JSPromiseReaction* existing = reactionHead(vm);
+        auto* reaction = JSSlimPromiseReaction::create(vm, promise, task, context, existing);
         setReactionsOrResult(vm, reaction);
         markAsHandled();
         break;
@@ -337,10 +365,26 @@ bool isDefinitelyNonThenable(JSObject* object, JSGlobalObject* globalObject)
     return true;
 }
 
+ALWAYS_INLINE void JSPromise::settleInlineReaction(VM& vm, JSGlobalObject* globalObject, Status status, JSValue argument, int32_t flags)
+{
+    ASSERT(flags & hasInlineReactionFlag);
+    // setInlineReaction always sets isHandledFlag, so no rejection tracker call needed.
+    ASSERT(flags & isHandledFlag);
+    InternalMicrotask task = static_cast<InternalMicrotask>((flags & inlineReactionMicrotaskMask) >> inlineReactionMicrotaskShift);
+    JSValue context = reactionsOrResult();
+    internalField(Field::Flags).setWithoutWriteBarrier(jsNumber((flags & ~(hasInlineReactionFlag | inlineReactionMicrotaskMask)) | static_cast<int32_t>(status)));
+    internalField(Field::ReactionsOrResult).set(vm, this, argument);
+    globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(status), jsUndefined(), argument, context);
+}
+
 void JSPromise::rejectPromise(VM& vm, JSGlobalObject* globalObject, JSValue argument)
 {
     ASSERT(status() == Status::Pending);
     int32_t flags = this->flags();
+
+    if (flags & hasInlineReactionFlag)
+        return settleInlineReaction(vm, globalObject, Status::Rejected, argument, flags);
+
     JSValue reactions = this->reactionsOrResult();
     internalField(Field::Flags).setWithoutWriteBarrier(jsNumber(static_cast<int32_t>(flags | static_cast<uint32_t>(Status::Rejected))));
     internalField(Field::ReactionsOrResult).set(vm, this, argument);
@@ -357,6 +401,10 @@ void JSPromise::fulfillPromise(VM& vm, JSGlobalObject* globalObject, JSValue arg
 {
     ASSERT(status() == Status::Pending);
     int32_t flags = this->flags();
+
+    if (flags & hasInlineReactionFlag)
+        return settleInlineReaction(vm, globalObject, Status::Fulfilled, argument, flags);
+
     JSValue reactions = this->reactionsOrResult();
     internalField(Field::Flags).setWithoutWriteBarrier(jsNumber(static_cast<int32_t>(flags | static_cast<uint32_t>(Status::Fulfilled))));
     internalField(Field::ReactionsOrResult).set(vm, this, argument);

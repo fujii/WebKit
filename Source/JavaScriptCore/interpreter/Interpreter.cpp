@@ -455,6 +455,8 @@ void Interpreter::getAsyncStackTrace(JSCell* owner, Vector<StackFrame>& results,
 
     auto getContextValueFromPromise = [&](JSPromise* promise) -> JSValue {
         if (promise && promise->status() == JSPromise::Status::Pending) {
+            if (promise->hasInlineReaction())
+                return promise->inlineReactionContext();
             JSValue reactionsValue = promise->internalField(JSPromise::Field::ReactionsOrResult).get();
             if (reactionsValue) {
                 if (JSValue context = JSPromiseReaction::tryGetContext(reactionsValue))

@@ -26,10 +26,9 @@
 #pragma once
 
 #include <JavaScriptCore/JSInternalFieldObjectImpl.h>
+#include <JavaScriptCore/Microtask.h>
 
 namespace JSC {
-
-enum class InternalMicrotask : uint8_t;
 
 class JSPromiseConstructor;
 class JSPromise : public JSInternalFieldObjectImpl<2> {
@@ -57,8 +56,19 @@ public:
     static constexpr int32_t isFirstResolvingFunctionCalledFlag = 8;
     static constexpr int32_t stateMask = 0b11;
 
+    // For pending promises with exactly one internal-microtask reaction whose result
+    // promise is undefined (the common await / async-generator-resume case), we avoid
+    // allocating a JSSlimPromiseReaction by storing the InternalMicrotask in the upper
+    // bits of Flags and the reaction's context in ReactionsOrResult.
+    static constexpr int32_t hasInlineReactionFlag = 16;
+    static constexpr int32_t inlineReactionMicrotaskShift = 5;
+    static constexpr int32_t inlineReactionMicrotaskMask = 0xff << inlineReactionMicrotaskShift;
+
     enum class Field : unsigned {
         Flags = 0,
+        // Pending + hasInlineReactionFlag: the inline reaction's context cell.
+        // Pending otherwise: head of the JSPromiseReaction chain (or empty).
+        // Fulfilled / Rejected: the settlement value.
         ReactionsOrResult = 1,
     };
     static_assert(numberOfInternalFields == 2);
@@ -112,6 +122,13 @@ public:
 
     JSValue reactionsOrResult() const { return internalField(Field::ReactionsOrResult).get(); };
     void setReactionsOrResult(VM& vm, JSValue value) { internalField(Field::ReactionsOrResult).set(vm, this, value); };
+
+    bool hasInlineReaction() const { return flags() & hasInlineReactionFlag; }
+    JSValue inlineReactionContext() const
+    {
+        ASSERT(hasInlineReaction());
+        return reactionsOrResult();
+    }
 
     // https://webidl.spec.whatwg.org/#mark-a-promise-as-handled
     void markAsHandled()
@@ -167,6 +184,31 @@ protected:
     }
 
 private:
+    InternalMicrotask inlineReactionMicrotask() const
+    {
+        ASSERT(hasInlineReaction());
+        return static_cast<InternalMicrotask>((flags() & inlineReactionMicrotaskMask) >> inlineReactionMicrotaskShift);
+    }
+    void setInlineReaction(VM& vm, InternalMicrotask task, JSValue context)
+    {
+        ASSERT(status() == Status::Pending);
+        ASSERT(!reactionsOrResult());
+        ASSERT(task != InternalMicrotask::None);
+        int32_t flags = this->flags();
+        ASSERT(!(flags & hasInlineReactionFlag));
+        // The inline reaction always implies markAsHandled, so set both bits in one write.
+        internalField(Field::Flags).setWithoutWriteBarrier(jsNumber(flags | hasInlineReactionFlag | isHandledFlag | (static_cast<int32_t>(task) << inlineReactionMicrotaskShift)));
+        setReactionsOrResult(vm, context);
+    }
+    void clearInlineReaction()
+    {
+        int32_t flags = this->flags();
+        ASSERT(flags & hasInlineReactionFlag);
+        internalField(Field::Flags).setWithoutWriteBarrier(jsNumber(flags & ~(hasInlineReactionFlag | inlineReactionMicrotaskMask)));
+    }
+    JSPromiseReaction* spillInlineReaction(VM&);
+    JSPromiseReaction* reactionHead(VM&);
+    void settleInlineReaction(VM&, JSGlobalObject*, Status, JSValue argument, int32_t flags);
     static void triggerPromiseReactions(VM&, JSGlobalObject*, JSPromise::Status, JSPromiseReaction* head, JSValue argument);
 };
 
