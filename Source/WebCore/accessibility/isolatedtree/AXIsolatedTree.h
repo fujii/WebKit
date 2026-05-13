@@ -558,6 +558,8 @@ public:
 
     constexpr AXTreeID treeID() const { return m_id; }
     constexpr ProcessID processID() const { return m_processID; }
+    constexpr bool isMainFrame() const { return m_isMainFrame; }
+    constexpr bool siteIsolationEnabled() const { return m_siteIsolationEnabled; }
     void setPageActivityState(OptionSet<ActivityState>);
     WEBCORE_EXPORT OptionSet<ActivityState> pageActivityState() const;
 
@@ -737,10 +739,12 @@ private:
     // Written to by main thread under lock, accessed and applied by AX thread.
     PendingChanges m_pendingChanges WTF_GUARDED_BY_LOCK(m_changeLogLock);
 
-    // These three are placed here to fit in padding that would otherwise be between m_pendingSortedLiveRegionIDs and m_pendingSortedNonRootWebAreaIDs.
+    // These are placed here to fit in padding that would otherwise be between m_pendingSortedLiveRegionIDs and m_pendingSortedNonRootWebAreaIDs.
     OptionSet<ActivityState> m_pageActivityState;
     bool m_isEmptyContentTree { false };
     bool m_queuedForDestruction WTF_GUARDED_BY_LOCK(m_changeLogLock) { false };
+    bool m_isMainFrame { false };
+    bool m_siteIsolationEnabled { false };
 
     Markable<AXID> m_focusedNodeID;
     std::atomic<double> m_loadingProgress { 0 };

@@ -50,6 +50,7 @@
 #include "HTMLNames.h"
 #include "LocalFrameView.h"
 #include "Logging.h"
+#include "Settings.h"
 #include <wtf/MonotonicTime.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/SetForScope.h>
@@ -83,6 +84,19 @@ AXIsolatedTree::AXIsolatedTree(AXObjectCache& axObjectCache)
 {
     AXTRACE("AXIsolatedTree::AXIsolatedTree"_s);
     AX_ASSERT(isMainThread());
+
+    // If any of these are null at construction, the cached m_isMainFrame and
+    // m_siteIsolationEnabled values below will be wrong for the tree's entire
+    // lifetime. We _should_ always have a valid document, frame, and page, hence
+    // the asserts. If this assumption proves to be wrong, we can investigate further.
+    RefPtr document = axObjectCache.document();
+    AX_ASSERT(document);
+    RefPtr frame = document ? document->frame() : nullptr;
+    AX_ASSERT(frame);
+    RefPtr page = frame ? frame->page() : nullptr;
+    AX_ASSERT(page);
+    m_isMainFrame = frame && frame->isMainFrame();
+    m_siteIsolationEnabled = page && page->settings().siteIsolationEnabled();
 }
 
 AXIsolatedTree::~AXIsolatedTree()
