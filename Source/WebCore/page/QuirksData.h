@@ -257,6 +257,7 @@ struct QuirksData {
         NeedsZillowFloorplanMarginQuirk,
 #if PLATFORM(IOS_FAMILY)
         NeedsChromeOSNavigatorUserAgentQuirk,
+        ShouldSendFakeTouchForceChangeEvent,
 #endif
         ShouldLimitHLSPlaybackRate,
         ShouldDeferIntersectionObserversDuringResize,

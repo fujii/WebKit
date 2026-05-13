@@ -345,6 +345,10 @@ public:
 
     void determineRelevantQuirks();
 
+#if PLATFORM(IOS_FAMILY)
+    bool NODELETE shouldSendFakeTouchForceChangeEvent() const;
+#endif
+
 private:
     bool needsQuirks() const;
     bool isDomain(const String&) const;

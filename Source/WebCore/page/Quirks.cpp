@@ -2286,6 +2286,14 @@ bool Quirks::needsChromeOSNavigatorUserAgentQuirk(const Document& document) cons
     return true;
 }
 
+// instagram.com: rdar://174936655
+bool Quirks::shouldSendFakeTouchForceChangeEvent() const
+{
+    QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
+
+    return m_quirksData.quirkIsEnabled(QuirksData::SiteSpecificQuirk::ShouldSendFakeTouchForceChangeEvent);
+}
+
 #endif // PLATFORM(IOS_FAMILY)
 
 #if ENABLE(CONTENT_CHANGE_OBSERVER)
@@ -2709,6 +2717,8 @@ static void handleInstagramQuirks(QuirksData& quirksData, const URL&, const Stri
 #if PLATFORM(IOS_FAMILY)
     // instagram.com rdar://121014613
     quirksData.shouldDisableElementFullscreen = true;
+    // instagram.com: rdar://174936655
+    quirksData.enableQuirk(QuirksData::SiteSpecificQuirk::ShouldSendFakeTouchForceChangeEvent);
 #endif
 }
 
