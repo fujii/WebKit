@@ -291,7 +291,6 @@ imported/w3c/web-platform-tests/websockets/back-forward-cache-with-open-websocke
 imported/w3c/web-platform-tests/websockets/back-forward-cache-with-open-websocket-connection-ccns.tentative.window.html [ Failure ]
 imported/w3c/web-platform-tests/websockets/back-forward-cache-with-open-websocket-connection.window.html [ Failure ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/srcdoc/srcdoc-history-entries.html [ Failure ]
-imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/cross-origin-isolated-permission.https.html [ Failure ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/broadcastchannel-success-and-failure.https.html [ Failure ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/nested-sharedworker-success.https.html [ Failure ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-sharedworker-failure.https.html [ Failure ]
