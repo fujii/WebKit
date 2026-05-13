@@ -27,6 +27,7 @@
 #include "JSModuleNamespaceObject.h"
 
 #include "AbstractModuleRecord.h"
+#include "CyclicModuleRecord.h"
 #include "JSCInlines.h"
 #include "JSModuleEnvironment.h"
 
@@ -34,10 +35,11 @@ namespace JSC {
 
 const ClassInfo JSModuleNamespaceObject::s_info = { "ModuleNamespaceObject"_s, &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSModuleNamespaceObject) };
 
-JSModuleNamespaceObject::JSModuleNamespaceObject(VM& vm, Structure* structure, AbstractModuleRecord* moduleRecord, Vector<std::pair<Identifier, AbstractModuleRecord::Resolution>>&& resolutions)
+JSModuleNamespaceObject::JSModuleNamespaceObject(VM& vm, Structure* structure, AbstractModuleRecord* moduleRecord, Vector<std::pair<Identifier, AbstractModuleRecord::Resolution>>&& resolutions, bool isDeferred)
     : Base(vm, structure)
     , m_exports()
     , m_moduleRecord(moduleRecord, WriteBarrierEarlyInit)
+    , m_isDeferred(isDeferred)
 {
     // http://www.ecma-international.org/ecma-262/6.0/#sec-module-namespace-exotic-objects
     // Quoted from the spec:
@@ -63,7 +65,7 @@ void JSModuleNamespaceObject::finishCreation(JSGlobalObject* globalObject)
     auto scope = DECLARE_THROW_SCOPE(vm);
     Base::finishCreation(vm);
     ASSERT(inherits(info()));
-    putDirect(vm, vm.propertyNames->toStringTagSymbol, jsNontrivialString(vm, "Module"_s), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    putDirect(vm, vm.propertyNames->toStringTagSymbol, jsNontrivialString(vm, m_isDeferred ? "Deferred Module"_s : "Module"_s), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
     // http://www.ecma-international.org/ecma-262/6.0/#sec-module-namespace-exotic-objects-getprototypeof
     // http://www.ecma-international.org/ecma-262/6.0/#sec-module-namespace-exotic-objects-setprototypeof-v
@@ -92,6 +94,34 @@ void JSModuleNamespaceObject::visitChildrenImpl(JSCell* cell, Visitor& visitor)
 
 DEFINE_VISIT_CHILDREN(JSModuleNamespaceObject);
 
+// https://tc39.es/proposal-defer-import-eval/#sec-IsSymbolLikeNamespaceKey
+ALWAYS_INLINE bool JSModuleNamespaceObject::isSymbolLikeNamespaceKey(VM& vm, PropertyName propertyName)
+{
+    return propertyName.isSymbol() || (m_isDeferred && propertyName == vm.propertyNames->then);
+}
+
+// https://tc39.es/proposal-defer-import-eval/#sec-GetModuleExportsList
+// The spec returns O.[[Exports]] after triggering evaluation; here we only perform the
+// evaluation side effect since callers already have direct access to m_exports.
+void JSModuleNamespaceObject::ensureDeferredNamespaceEvaluation(JSGlobalObject* globalObject)
+{
+    // 1. If O.[[Deferred]] is true, then
+    ASSERT(m_isDeferred);
+    // Fast path: if the module's cycle has already successfully evaluated, EvaluateModuleSync would
+    // observe a fulfilled promise and return without throwing, so we can skip the work entirely.
+    // We must consult [[CycleRoot]] here because Evaluate() redirects to it; for a non-root SCC
+    // member, status/evaluationError on the module itself may not reflect the cycle's outcome.
+    if (auto* cyclic = dynamicDowncast<CyclicModuleRecord>(m_moduleRecord.get())) {
+        CyclicModuleRecord* root = cyclic->cycleRoot() ? cyclic->cycleRoot() : cyclic;
+        if (root->status() == CyclicModuleRecord::Status::Evaluated && !root->evaluationError())
+            return;
+    }
+    //   1.a. Let m be O.[[Module]].
+    //   1.b. Perform ? EvaluateModuleSync(m).
+    m_moduleRecord->evaluateSync(globalObject);
+    // 2. Return O.[[Exports]].
+}
+
 static JSValue getValue(JSModuleEnvironment* environment, PropertyName localName, ScopeOffset& scopeOffset)
 {
     SymbolTable* symbolTable = environment->symbolTable();
@@ -113,13 +143,17 @@ bool JSModuleNamespaceObject::getOwnPropertySlotCommon(JSGlobalObject* globalObj
 
     // http://www.ecma-international.org/ecma-262/6.0/#sec-module-namespace-exotic-objects-getownproperty-p
 
-    // step 1.
-    // If the property name is a symbol, we don't look into the imported bindings.
+    // 1. If IsSymbolLikeNamespaceKey(P, O) is true, then return ! Ordinary{Get,GetOwnProperty,HasProperty}(O, P, ...).
     // It may return the descriptor with writable: true, but namespace objects does not allow it in [[Set]] / [[DefineOwnProperty]] side.
-    if (propertyName.isSymbol())
+    if (isSymbolLikeNamespaceKey(vm, propertyName))
         return Base::getOwnPropertySlot(this, globalObject, propertyName, slot);
 
     slot.setIsTaintedByOpaqueObject();
+
+    if (m_isDeferred && slot.internalMethodType() != PropertySlot::InternalMethodType::VMInquiry) [[unlikely]] {
+        ensureDeferredNamespaceEvaluation(globalObject);
+        RETURN_IF_EXCEPTION(scope, false);
+    }
 
     auto iterator = m_exports.find(propertyName.uid());
     if (iterator == m_exports.end())
@@ -205,9 +239,16 @@ bool JSModuleNamespaceObject::putByIndex(JSCell*, JSGlobalObject* globalObject, 
 bool JSModuleNamespaceObject::deleteProperty(JSCell* cell, JSGlobalObject* globalObject, PropertyName propertyName, DeletePropertySlot& slot)
 {
     // https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-delete-p
+    VM& vm = globalObject->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
     JSModuleNamespaceObject* thisObject = uncheckedDowncast<JSModuleNamespaceObject>(cell);
-    if (propertyName.isSymbol())
-        return Base::deleteProperty(thisObject, globalObject, propertyName, slot);
+    if (thisObject->isSymbolLikeNamespaceKey(vm, propertyName))
+        RELEASE_AND_RETURN(scope, Base::deleteProperty(thisObject, globalObject, propertyName, slot));
+
+    if (thisObject->m_isDeferred) [[unlikely]] {
+        thisObject->ensureDeferredNamespaceEvaluation(globalObject);
+        RETURN_IF_EXCEPTION(scope, false);
+    }
 
     return !thisObject->m_exports.contains(propertyName.uid());
 }
@@ -215,7 +256,12 @@ bool JSModuleNamespaceObject::deleteProperty(JSCell* cell, JSGlobalObject* globa
 bool JSModuleNamespaceObject::deletePropertyByIndex(JSCell* cell, JSGlobalObject* globalObject, unsigned propertyName)
 {
     VM& vm = globalObject->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
     JSModuleNamespaceObject* thisObject = uncheckedDowncast<JSModuleNamespaceObject>(cell);
+    if (thisObject->m_isDeferred) [[unlikely]] {
+        thisObject->ensureDeferredNamespaceEvaluation(globalObject);
+        RETURN_IF_EXCEPTION(scope, false);
+    }
     return !thisObject->m_exports.contains(Identifier::from(vm, propertyName).impl());
 }
 
@@ -226,6 +272,10 @@ void JSModuleNamespaceObject::getOwnPropertyNames(JSObject* cell, JSGlobalObject
 
     // https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-ownpropertykeys
     JSModuleNamespaceObject* thisObject = uncheckedDowncast<JSModuleNamespaceObject>(cell);
+    if (thisObject->m_isDeferred) [[unlikely]] {
+        thisObject->ensureDeferredNamespaceEvaluation(globalObject);
+        RETURN_IF_EXCEPTION(scope, void());
+    }
     for (const auto& name : thisObject->m_exports.keys()) {
         if (mode == DontEnumPropertiesMode::Exclude) {
             // Perform [[GetOwnProperty]] to throw ReferenceError if binding is uninitialized.
@@ -250,8 +300,8 @@ bool JSModuleNamespaceObject::defineOwnProperty(JSObject* cell, JSGlobalObject* 
 
     JSModuleNamespaceObject* thisObject = uncheckedDowncast<JSModuleNamespaceObject>(cell);
 
-    // 1. If Type(P) is Symbol, return OrdinaryDefineOwnProperty(O, P, Desc).
-    if (propertyName.isSymbol())
+    // 1. If IsSymbolLikeNamespaceKey(P, O) is true, return ! OrdinaryDefineOwnProperty(O, P, Desc).
+    if (thisObject->isSymbolLikeNamespaceKey(vm, propertyName))
         RELEASE_AND_RETURN(scope, Base::defineOwnProperty(thisObject, globalObject, propertyName, descriptor, shouldThrow));
 
     // 2. Let current be ? O.[[GetOwnProperty]](P).

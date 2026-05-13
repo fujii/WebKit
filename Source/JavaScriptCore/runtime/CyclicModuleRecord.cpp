@@ -167,8 +167,8 @@ void CyclicModuleRecord::initializeEnvironment(JSGlobalObject* globalObject, Ref
 #endif
             // 7.b. If in.[[ImportName]] is NAMESPACE-OBJECT, then
             if (in.type == ImportEntryType::Namespace) {
-                // 7.b.i. Let namespace be GetModuleNamespace(importedModule).
-                JSModuleNamespaceObject* ns = importedModule->getModuleNamespace(globalObject);
+                // 7.b.i. Let namespace be GetModuleNamespace(importedModule, in.[[Phase]]).
+                JSModuleNamespaceObject* ns = importedModule->getModuleNamespace(globalObject, in.phase);
                 RETURN_IF_EXCEPTION(scope, void());
                 // 7.b.ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                 // 7.b.iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
