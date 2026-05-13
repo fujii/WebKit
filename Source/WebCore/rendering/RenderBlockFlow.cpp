@@ -442,7 +442,7 @@ void RenderBlockFlow::computeColumnCountAndWidth()
     setComputedColumnCountAndWidth(desiredColumnCount, desiredColumnWidth);
 }
 
-bool RenderBlockFlow::willCreateColumns(std::optional<unsigned> desiredColumnCount) const
+bool RenderBlockFlow::willCreateColumns() const
 {
     // The following types are not supposed to create multicol context.
     if (isRenderFileUploadControl() || isRenderTextControl() || isRenderListBox())
@@ -483,9 +483,6 @@ bool RenderBlockFlow::willCreateColumns(std::optional<unsigned> desiredColumnCou
     if (!style().columnCount().isAuto())
 #endif
         return true;
-
-    if (desiredColumnCount)
-        return desiredColumnCount.value() > 1;
 
     ASSERT_NOT_REACHED();
     return false;
@@ -4647,14 +4644,13 @@ void RenderBlockFlow::checkForPaginationLogicalHeightChange(RelayoutChildren& re
     }
 }
 
-bool RenderBlockFlow::requiresColumns(int desiredColumnCount) const
-{    
-    return willCreateColumns(desiredColumnCount);
+bool RenderBlockFlow::requiresFragmentedFlow() const
+{
+    return willCreateColumns();
 }
 
 void RenderBlockFlow::setComputedColumnCountAndWidth(int count, LayoutUnit width)
 {
-    ASSERT(!!multiColumnFlow() == requiresColumns(count));
     if (!multiColumnFlow())
         return;
     multiColumnFlow()->setColumnCountAndWidth(count, width);
