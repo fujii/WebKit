@@ -501,8 +501,6 @@ void MediaPlayerPrivateMediaSourceAVFObjC::stall()
     dispatchToRendererQueue([](auto& renderer) {
         renderer.stall();
     });
-    if (shouldBePlaying())
-        timeChanged();
 }
 
 bool MediaPlayerPrivateMediaSourceAVFObjC::playAtHostTime(const MonotonicTime& time)
@@ -558,9 +556,7 @@ void MediaPlayerPrivateMediaSourceAVFObjC::seekInternal()
 
     cancelPendingSeek();
 
-    dispatchToRendererQueue([](auto& renderer) {
-        renderer.stall();
-    });
+    stall();
 
     ALWAYS_LOG(LOGIDENTIFIER);
 
@@ -1185,6 +1181,10 @@ void MediaPlayerPrivateMediaSourceAVFObjC::mediaSourceHasRetrievedAllData()
 {
     assertIsMainThread();
     setNetworkState(MediaPlayer::NetworkState::Loaded);
+    if (!effectiveRate()) {
+        // Playback had stalled; make transition for the element to ended if needed.
+        timeChanged();
+    }
 }
 
 ALLOW_NEW_API_WITHOUT_GUARDS_BEGIN
