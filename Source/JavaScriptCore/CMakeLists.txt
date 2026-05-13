@@ -1560,6 +1560,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     wasm/js/JSWebAssemblyLinkError.h
     wasm/js/JSWebAssemblyMemory.h
     wasm/js/JSWebAssemblyModule.h
+    wasm/js/JSWebAssemblyStreamingContext.h
     wasm/js/WebAssemblyPromising.h
     wasm/js/WebAssemblySuspending.h
     wasm/js/JSWebAssemblyTable.h
