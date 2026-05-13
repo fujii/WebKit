@@ -2750,15 +2750,13 @@ set(SCRIPTS_RESOLVE_SUPPLEMENTAL
 set(SCRIPTS_BINDINGS
     ${WEBCORE_DIR}/bindings/scripts/CodeGenerator.pm
     ${WEBCORE_DIR}/bindings/scripts/CodeGeneratorJS.pm
+    ${WEBCORE_DIR}/bindings/scripts/Hasher.pm
     ${WEBCORE_DIR}/bindings/scripts/IDLParser.pm
     ${WEBCORE_DIR}/bindings/scripts/InFilesParser.pm
+    ${WEBCORE_DIR}/bindings/scripts/StaticString.pm
     ${WEBCORE_DIR}/bindings/scripts/preprocessor.pm
 )
 
-set(MAKE_NAMES_DEPENDENCIES
-    ${WEBCORE_DIR}/bindings/scripts/Hasher.pm
-    ${WEBCORE_DIR}/bindings/scripts/StaticString.pm
-)
 set(SUPPLEMENTAL_DEPENDENCY_FILE ${WebCore_DERIVED_SOURCES_DIR}/supplemental_dependency.tmp)
 set(ISO_SUBSPACES_HEADER_FILE ${WebCore_DERIVED_SOURCES_DIR}/DOMIsoSubspaces.h)
 set(CLIENT_ISO_SUBSPACES_HEADER_FILE ${WebCore_DERIVED_SOURCES_DIR}/DOMClientIsoSubspaces.h)

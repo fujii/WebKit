@@ -188,6 +188,16 @@ private:
     HashTableType m_impl;
 };
 
-} // namespace WTF
+template<typename T, typename U, typename V, typename M, typename M2>
+bool equalIgnoringOrder(const OrderedHashSet<T, U, V, M>& a, const OrderedHashSet<T, U, V, M2>& b)
+{
+    if (a.size() != b.size())
+        return false;
+    for (const auto& value : a) {
+        if (!b.contains(value))
+            return false;
+    }
+    return true;
+}
 
-using WTF::OrderedHashSet;
+} // namespace WTF

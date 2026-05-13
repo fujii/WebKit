@@ -491,6 +491,7 @@ set(WTF_PUBLIC_HEADERS
     text/NullTextBreakIterator.h
     text/OrdinalNumber.h
     text/ParsingUtilities.h
+    text/RapidHash.h
     text/StringBuffer.h
     text/StringBuilder.h
     text/StringBuilderInternals.h
@@ -502,7 +503,6 @@ set(WTF_PUBLIC_HEADERS
     text/StringHasher.h
     text/StringHasherInlines.h
     text/SuperFastHash.h
-    text/WYHash.h
     text/StringImpl.h
     text/StringParsingBuffer.h
     text/StringSearch.h

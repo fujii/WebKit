@@ -2605,7 +2605,11 @@ PREPROCESS_IDLS_SCRIPTS = \
 
 IDL_COMMON_ARGS = --write-dependencies --outputDir .
 
-JS_BINDINGS_SCRIPTS = $(COMMON_BINDINGS_SCRIPTS) $(WebCore)/bindings/scripts/CodeGeneratorJS.pm
+JS_BINDINGS_SCRIPTS = \
+    $(COMMON_BINDINGS_SCRIPTS) \
+    $(WebCore)/bindings/scripts/CodeGeneratorJS.pm \
+    $(WebCore)/bindings/scripts/Hasher.pm \
+    $(WebCore)/bindings/scripts/StaticString.pm
 
 SUPPLEMENTAL_DEPENDENCY_FILE = SupplementalDependencies.txt
 SUPPLEMENTAL_MAKEFILE_DEPS = SupplementalDependencies.dep

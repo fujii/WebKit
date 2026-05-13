@@ -763,13 +763,11 @@ JSC_DEFINE_CUSTOM_SETTER(testStaticAccessorPutter, (JSGlobalObject* globalObject
     return thisObject->putDirect(vm, PropertyName(Identifier::fromString(vm, "testField"_s)), JSValue::decode(value));
 }
 
-static const struct CompactHashIndex staticCustomAccessorTableIndex[6] = {
-    { -1, -1 },
-    { -1, -1 },
-    { -1, -1 },
-    { 0, 4 },
-    { 1, 5 },
+static const struct CompactHashIndex staticCustomAccessorTableIndex[4] = {
     { 2, -1 },
+    { 0, -1 },
+    { 1, -1 },
+    { -1, -1 },
 };
 
 static const struct JSC::HashTableValue staticCustomAccessorTableValues[3] = {
@@ -861,10 +859,10 @@ JSC_DEFINE_CUSTOM_SETTER(testStaticValuePutterSetFlag, (JSGlobalObject* globalOb
 }
 
 static const struct CompactHashIndex staticCustomValueTableIndex[5] = {
-    { 0, -1 },
+    { 1, 4 },
     { -1, -1 },
-    { 1, -1 },
-    { 2, 4 },
+    { 0, -1 },
+    { 2, -1 },
     { 3, -1 },
 };
 

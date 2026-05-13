@@ -193,7 +193,7 @@ macro(GENERATE_FONT_NAMES _infile)
     add_custom_command(
         OUTPUT  ${_outputfiles}
         MAIN_DEPENDENCY ${_infile}
-        DEPENDS ${MAKE_NAMES_DEPENDENCIES} ${NAMES_GENERATOR} ${SCRIPTS_BINDINGS}
+        DEPENDS ${NAMES_GENERATOR} ${SCRIPTS_BINDINGS}
         COMMAND ${PERL_EXECUTABLE} ${NAMES_GENERATOR} --outputDir ${WebCore_DERIVED_SOURCES_DIR} ${_arguments}
         VERBATIM)
 endmacro()
@@ -242,7 +242,7 @@ function(GENERATE_DOM_NAMES _namespace _attrs)
 
     add_custom_command(
         OUTPUT  ${_outputfiles}
-        DEPENDS ${MAKE_NAMES_DEPENDENCIES} ${NAMES_GENERATOR} ${SCRIPTS_BINDINGS} ${_attrs} ${_elements}
+        DEPENDS ${NAMES_GENERATOR} ${SCRIPTS_BINDINGS} ${_attrs} ${_elements}
         COMMAND ${PERL_EXECUTABLE} ${NAMES_GENERATOR} --outputDir ${WebCore_DERIVED_SOURCES_DIR} ${_arguments} ${_additionArguments}
         VERBATIM)
 endfunction()
@@ -251,7 +251,7 @@ endfunction()
 function(GENERATE_DOM_NAME_ENUM _enum)
     add_custom_command(
         OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/${_enum}.cpp ${WebCore_DERIVED_SOURCES_DIR}/${_enum}.h
-        DEPENDS ${WEBCORE_DIR}/html/HTMLTagNames.in ${WEBCORE_DIR}/svg/svgtags.in ${WEBCORE_DIR}/mathml/mathtags.in ${WEBCORE_DIR}/html/HTMLAttributeNames.in ${WEBCORE_DIR}/mathml/mathattrs.in ${WEBCORE_DIR}/svg/svgattrs.in ${WEBCORE_DIR}/svg/xlinkattrs.in ${WEBCORE_DIR}/xml/xmlattrs.in ${WEBCORE_DIR}/xml/xmlnsattrs.in ${MAKE_NAMES_DEPENDENCIES} ${WEBCORE_DIR}/dom/make_names.pl  ${SCRIPTS_BINDINGS}
+        DEPENDS ${WEBCORE_DIR}/html/HTMLTagNames.in ${WEBCORE_DIR}/svg/svgtags.in ${WEBCORE_DIR}/mathml/mathtags.in ${WEBCORE_DIR}/html/HTMLAttributeNames.in ${WEBCORE_DIR}/mathml/mathattrs.in ${WEBCORE_DIR}/svg/svgattrs.in ${WEBCORE_DIR}/svg/xlinkattrs.in ${WEBCORE_DIR}/xml/xmlattrs.in ${WEBCORE_DIR}/xml/xmlnsattrs.in ${WEBCORE_DIR}/dom/make_names.pl  ${SCRIPTS_BINDINGS}
         COMMAND ${PERL_EXECUTABLE} ${WEBCORE_DIR}/dom/make_names.pl --outputDir ${WebCore_DERIVED_SOURCES_DIR} --enum ${_enum} --elements ${WEBCORE_DIR}/html/HTMLTagNames.in --elements ${WEBCORE_DIR}/svg/svgtags.in --elements ${WEBCORE_DIR}/mathml/mathtags.in --attrs ${WEBCORE_DIR}/html/HTMLAttributeNames.in --attrs ${WEBCORE_DIR}/mathml/mathattrs.in --attrs ${WEBCORE_DIR}/svg/svgattrs.in --attrs ${WEBCORE_DIR}/svg/xlinkattrs.in --attrs ${WEBCORE_DIR}/xml/xmlattrs.in --attrs ${WEBCORE_DIR}/xml/xmlnsattrs.in
         VERBATIM)
 endfunction()

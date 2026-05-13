@@ -513,6 +513,17 @@ private:
     HashTableType m_impl;
 };
 
-} // namespace WTF
+template<typename T, typename U, typename V, typename W, typename X, typename M, typename M2>
+bool equalIgnoringOrder(const OrderedHashMap<T, U, V, W, X, M>& a, const OrderedHashMap<T, U, V, W, X, M2>& b)
+{
+    if (a.size() != b.size())
+        return false;
+    for (auto it = a.begin(); it != a.end(); ++it) {
+        auto bPos = b.find(it->key);
+        if (bPos == b.end() || it->value != bPos->value)
+            return false;
+    }
+    return true;
+}
 
-using WTF::OrderedHashMap;
+} // namespace WTF
