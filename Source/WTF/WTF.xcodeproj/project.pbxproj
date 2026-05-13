@@ -552,6 +552,7 @@
 		DD3DC96627A4BF8E007E5B61 /* IndexSparseSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 2684D4351C000D400081D663 /* IndexSparseSet.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD3DC96727A4BF8E007E5B61 /* ListDump.h in Headers */ = {isa = PBXBuildFile; fileRef = A70DA0831799F04D00529A9B /* ListDump.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD3DC96827A4BF8E007E5B61 /* MonotonicTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F66B2831DC97BAB004A1D3F /* MonotonicTime.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		DD3DC9A027A5C0F0007E5B61 /* ReducedResolutionSeconds.h in Headers */ = {isa = PBXBuildFile; fileRef = DD3DC9A127A5C0F0007E5B61 /* ReducedResolutionSeconds.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD3DC96927A4BF8E007E5B61 /* ThreadSafeRefCounted.h in Headers */ = {isa = PBXBuildFile; fileRef = A8A4733E151A825B004123FF /* ThreadSafeRefCounted.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD3DC96A27A4BF8E007E5B61 /* MediaTime.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5497AB15857D0300B5BC30 /* MediaTime.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD3DC96B27A4BF8E007E5B61 /* GlobalVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F30BA8B1E78708E002CA847 /* GlobalVersion.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1170,6 +1171,7 @@
 		0F66B2811DC97BAB004A1D3F /* ClockType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClockType.h; sourceTree = "<group>"; };
 		0F66B2821DC97BAB004A1D3F /* MonotonicTime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MonotonicTime.cpp; sourceTree = "<group>"; };
 		0F66B2831DC97BAB004A1D3F /* MonotonicTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MonotonicTime.h; sourceTree = "<group>"; };
+		DD3DC9A127A5C0F0007E5B61 /* ReducedResolutionSeconds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReducedResolutionSeconds.h; sourceTree = "<group>"; };
 		0F66B2841DC97BAB004A1D3F /* Seconds.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Seconds.cpp; sourceTree = "<group>"; };
 		0F66B2851DC97BAB004A1D3F /* Seconds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Seconds.h; sourceTree = "<group>"; };
 		0F66B2861DC97BAB004A1D3F /* TimeWithDynamicClockType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimeWithDynamicClockType.cpp; sourceTree = "<group>"; };
@@ -2692,6 +2694,7 @@
 				E33D5F871FBED66700BF625E /* RecursableLambda.h */,
 				0FDE87F61DFD07CC0064C390 /* RecursiveLockAdapter.h */,
 				A8A472FE151A825B004123FF /* RedBlackTree.h */,
+				DD3DC9A127A5C0F0007E5B61 /* ReducedResolutionSeconds.h */,
 				26299B6D17A9E5B800ADEBE5 /* Ref.h */,
 				5C6222A52ED864D100AFEC2D /* RefCountable.h */,
 				14DFC2882ED23C5A0072E4A6 /* RefCountDebugger.cpp */,
@@ -3862,6 +3865,7 @@
 				DD3DC8EC27A4BF8E007E5B61 /* RecursableLambda.h in Headers */,
 				DD3DC91827A4BF8E007E5B61 /* RecursiveLockAdapter.h in Headers */,
 				DD3DC94127A4BF8E007E5B61 /* RedBlackTree.h in Headers */,
+				DD3DC9A027A5C0F0007E5B61 /* ReducedResolutionSeconds.h in Headers */,
 				DD3DC92C27A4BF8E007E5B61 /* Ref.h in Headers */,
 				5C6222A62ED864D100AFEC2D /* RefCountable.h in Headers */,
 				14DFC2872ED23C3C0072E4A6 /* RefCountDebugger.h in Headers */,

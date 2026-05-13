@@ -42,6 +42,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/MonotonicTime.h>
 #include <wtf/Platform.h>
+#include <wtf/ReducedResolutionSeconds.h>
 #include <wtf/WeakHashSet.h>
 
 namespace JSC {
@@ -59,7 +60,6 @@ struct ScrollToOptions;
 struct WindowPostMessageOptions;
 
 enum class PlatformEventModifier : uint8_t;
-using ReducedResolutionSeconds = Seconds;
 
 template<typename> class ExceptionOr;
 

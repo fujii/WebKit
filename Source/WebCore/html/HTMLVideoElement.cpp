@@ -60,6 +60,7 @@
 #include "ShareableBitmap.h"
 #include "VideoFrameMetadata.h"
 #include <wtf/NativePromise.h>
+#include <wtf/ReducedResolutionSeconds.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/TextStream.h>
 
@@ -847,7 +848,7 @@ void HTMLVideoElement::serviceRequestVideoFrameCallbacks(ReducedResolutionSecond
             continue;
 
         if (RefPtr callback = std::exchange(request->callback, { }))
-            callback->invoke(std::round(now.milliseconds()), *videoFrameMetadata);
+            callback->invoke(now.milliseconds(), *videoFrameMetadata);
     }
     m_servicedVideoFrameRequests.clear();
 

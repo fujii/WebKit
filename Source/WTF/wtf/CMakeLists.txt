@@ -272,6 +272,7 @@ set(WTF_PUBLIC_HEADERS
     RecursableLambda.h
     RecursiveLockAdapter.h
     RedBlackTree.h
+    ReducedResolutionSeconds.h
     Ref.h
     RefCountable.h
     RefCountDebugger.h
