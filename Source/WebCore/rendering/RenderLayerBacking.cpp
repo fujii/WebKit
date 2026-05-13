@@ -2159,10 +2159,12 @@ bool RenderLayerBacking::maintainsEventRegion() const
         return true;
 #endif
 #if ENABLE(TOUCH_EVENT_REGIONS)
-    if (renderer().document().hasTouchEventHandlers())
-        return true;
-    if (renderer().document().needsPointerEventHandlingForPopoverOrDialog())
-        return true;
+    if (renderer().document().shouldUseTouchEventRegions()) {
+        if (renderer().document().hasTouchEventHandlers())
+            return true;
+        if (renderer().document().needsPointerEventHandlingForPopoverOrDialog())
+            return true;
+    }
 #endif
 
     if (m_owningLayer.isRenderViewLayer())

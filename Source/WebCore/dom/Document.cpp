@@ -9267,11 +9267,11 @@ void Document::didAddTouchEventHandler(Node& handler)
         return;
     }
 
-#if ENABLE(TOUCH_EVENT_REGIONS)
+    if (!shouldUseTouchEventRegions())
+        return;
+
     wheelOrTouchEventHandlersChanged(&handler);
     invalidateEventListenerRegions();
-#endif
-
 #else
     UNUSED_PARAM(handler);
 #endif
@@ -9285,10 +9285,10 @@ void Document::didRemoveTouchEventHandler(Node& handler, EventHandlerRemoval rem
     if (auto* parent = parentDocument())
         parent->didRemoveTouchEventHandler(*this, removalMode);
 
-#if ENABLE(TOUCH_EVENT_REGIONS)
-    wheelOrTouchEventHandlersChanged(&handler);
-#endif
+    if (!shouldUseTouchEventRegions())
+        return;
 
+    wheelOrTouchEventHandlersChanged(&handler);
 #else
     UNUSED_PARAM(handler);
     UNUSED_PARAM(removalMode);
@@ -9456,12 +9456,13 @@ void Document::startTrackingStyleRecalcs()
 #if ENABLE(TOUCH_EVENTS) || ENABLE(TOUCH_EVENT_REGIONS)
 bool Document::hasTouchEventHandlers() const
 {
+    auto touchEventHandlerCountsIsEmpty = true;
+
 #if ENABLE(TOUCH_EVENTS) && ENABLE(TOUCH_EVENT_REGIONS)
-    return !m_touchEventTargets.isEmptyIgnoringNullReferences()
-        || !m_touchEventHandlerCounts.isEmptyIgnoringNullReferences();
-#else
-    return !m_touchEventTargets.isEmptyIgnoringNullReferences();
+    touchEventHandlerCountsIsEmpty = shouldUseTouchEventRegions() ? m_touchEventHandlerCounts.isEmptyIgnoringNullReferences() : true;
 #endif
+
+    return !m_touchEventTargets.isEmptyIgnoringNullReferences() || !touchEventHandlerCountsIsEmpty;
 }
 #endif
 
@@ -12128,6 +12129,15 @@ std::optional<TextPosition> Document::currentParserSourcePosition() const
         return { scriptableDocumentParser()->textPosition() };
 
     return { };
+}
+
+bool Document::shouldUseTouchEventRegions() const
+{
+#if ENABLE(TOUCH_EVENT_REGIONS)
+    return settings().siteIsolationEnabled() || settings().alwaysUseTouchEventRegions();
+#else
+    return false;
+#endif
 }
 
 } // namespace WebCore

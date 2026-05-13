@@ -2053,6 +2053,7 @@ bool LocalDOMWindow::addEventListener(const AtomString& eventType, Ref<EventList
     auto& eventNames = WebCore::eventNames();
     auto typeInfo = eventNames.typeInfoForEvent(eventType);
     if (document) {
+        const auto useTouchEventRegions = document->shouldUseTouchEventRegions();
         document->didAddEventListenersOfType(eventType, options.capture ? Document::IsCapture::Yes : Document::IsCapture::No);
         if (typeInfo.isInCategory(EventCategory::Wheel)) {
             document->didAddWheelEventHandler(*document);
@@ -2060,9 +2061,10 @@ bool LocalDOMWindow::addEventListener(const AtomString& eventType, Ref<EventList
         } else if (isTouchRelatedEventType(typeInfo, *document)) {
             document->didAddTouchEventHandler(*document);
 #if ENABLE(TOUCH_EVENT_REGIONS)
-            document->invalidateEventListenerRegions();
+            if (useTouchEventRegions)
+                document->invalidateEventListenerRegions();
 #endif
-        } else if (typeInfo.isInCategory(EventCategory::Gesture)) {
+        } else if (typeInfo.isInCategory(EventCategory::Gesture) && useTouchEventRegions) {
 #if ENABLE(TOUCH_EVENT_REGIONS)
             document->didAddTouchEventHandler(*document);
             document->invalidateEventListenerRegions();
@@ -2323,6 +2325,7 @@ bool LocalDOMWindow::removeEventListener(const AtomString& eventType, EventListe
     auto& eventNames = WebCore::eventNames();
     auto typeInfo = eventNames.typeInfoForEvent(eventType);
     if (document) {
+        const auto useTouchEventRegions = document->shouldUseTouchEventRegions();
         document->didRemoveEventListenersOfType(eventType, options.capture ? Document::IsCapture::Yes : Document::IsCapture::No);
         if (typeInfo.isInCategory(EventCategory::Wheel)) {
             document->didRemoveWheelEventHandler(*document);
@@ -2330,9 +2333,10 @@ bool LocalDOMWindow::removeEventListener(const AtomString& eventType, EventListe
         } else if (isTouchRelatedEventType(typeInfo, *document)) {
             document->didRemoveTouchEventHandler(*document);
 #if ENABLE(TOUCH_EVENT_REGIONS)
-            document->invalidateEventListenerRegions();
+            if (useTouchEventRegions)
+                document->invalidateEventListenerRegions();
 #endif
-        } else if (typeInfo.isInCategory(EventCategory::Gesture)) {
+        } else if (typeInfo.isInCategory(EventCategory::Gesture) && useTouchEventRegions) {
 #if ENABLE(TOUCH_EVENT_REGIONS)
             document->didRemoveTouchEventHandler(*document);
             document->invalidateEventListenerRegions();

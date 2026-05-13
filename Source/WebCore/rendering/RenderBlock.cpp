@@ -1219,8 +1219,10 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
         LOG_WITH_STREAM(EventRegions, stream << "  has wheel event handlers: " << document->hasWheelEventHandlers());
 #endif
 #if ENABLE(TOUCH_EVENT_REGIONS)
-        needsTraverseDescendants |= document->hasTouchEventHandlers();
-        LOG_WITH_STREAM(EventRegions, stream << "  has touch event handlers: " << document->hasTouchEventHandlers());
+        if (document->shouldUseTouchEventRegions()) {
+            needsTraverseDescendants |= document->hasTouchEventHandlers();
+            LOG_WITH_STREAM(EventRegions, stream << "  has touch event handlers: " << document->hasTouchEventHandlers());
+        }
 #endif
 
 #if ENABLE(EDITABLE_REGION)

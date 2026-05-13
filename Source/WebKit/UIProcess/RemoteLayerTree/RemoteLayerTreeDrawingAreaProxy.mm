@@ -456,6 +456,13 @@ void RemoteLayerTreeDrawingAreaProxy::commitLayerTree(IPC::Connection& connectio
 #if ENABLE(TOUCH_EVENT_REGIONS)
 WebCore::TrackingType RemoteLayerTreeDrawingAreaProxy::eventTrackingTypeForPoint(WebCore::EventTrackingRegions::EventType eventType, IntPoint location)
 {
+    RefPtr page = this->page();
+    if (!page)
+        return WebCore::TrackingType::NotTracking;
+    Ref preferences = page->preferences();
+    if (!preferences->alwaysUseTouchEventRegions() && !preferences->siteIsolationEnabled())
+        return WebCore::TrackingType::NotTracking;
+
     FloatPoint localLocation = location;
     RetainPtr rootLayer = remoteLayerTreeHost().rootLayer();
     return eventRegionForPoint(rootLayer.get(), localLocation).transform([eventType, &localLocation](const WebCore::EventRegion& eventRegion) {

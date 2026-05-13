@@ -2088,6 +2088,8 @@ public:
 
     std::optional<TextPosition> currentParserSourcePosition() const;
 
+    bool shouldUseTouchEventRegions() const;
+
 protected:
     enum class ConstructionFlag : uint8_t {
         Synthesized = 1 << 0,
