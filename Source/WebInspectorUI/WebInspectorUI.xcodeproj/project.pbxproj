@@ -189,6 +189,7 @@
 			inputPaths = (
 				"$(SRCROOT)/UserInterface",
 				"$(SRCROOT)/Scripts/copy-user-interface-resources.pl",
+				"$(JAVASCRIPTCORE_PRIVATE_HEADERS_DIR)/InspectorBackendCommands.js",
 			);
 			name = "Copy User Interface Resources";
 			outputPaths = (
