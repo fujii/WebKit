@@ -1810,6 +1810,65 @@ VALIDATION_FUNCTION(Clamp)
     return std::nullopt;
 }
 
+static bool containsInfinity(const ConstantValue& value)
+{
+    if (auto* f = std::get_if<float>(&value))
+        return std::isinf(*f);
+    if (auto* h = std::get_if<half>(&value))
+        return std::isinf(static_cast<float>(*h));
+    if (auto* d = std::get_if<double>(&value))
+        return std::isinf(*d);
+    if (auto* v = std::get_if<ConstantVector>(&value)) {
+        for (auto& element : v->elements) {
+            if (containsInfinity(element))
+                return true;
+        }
+    }
+    return false;
+}
+
+VALIDATION_FUNCTION(Add)
+{
+    if (arguments[0] && arguments[1] && !arguments[0]->isMatrix()) {
+        auto result = constantBinaryOperation<Constraints::Number>({ *arguments[0], *arguments[1] }, [&]<typename T>(T left, T right) -> T {
+            return left + right;
+        });
+        if (!result)
+            return { result.error() };
+        if (containsInfinity(*result))
+            return { makeString("addition of ("_s, *arguments[0], ") and ("_s, *arguments[1], ") overflows"_s) };
+    }
+    return std::nullopt;
+}
+
+VALIDATION_FUNCTION(Minus)
+{
+    if (arguments.size() == 2 && arguments[0] && arguments[1] && !arguments[0]->isMatrix()) {
+        auto result = constantBinaryOperation<Constraints::Number>({ *arguments[0], *arguments[1] }, [&]<typename T>(T left, T right) -> T {
+            return left - right;
+        });
+        if (!result)
+            return { result.error() };
+        if (containsInfinity(*result))
+            return { makeString("subtraction of ("_s, *arguments[0], ") and ("_s, *arguments[1], ") overflows"_s) };
+    }
+    return std::nullopt;
+}
+
+VALIDATION_FUNCTION(Multiply)
+{
+    if (arguments[0] && arguments[1] && !arguments[0]->isMatrix() && !arguments[1]->isMatrix()) {
+        auto result = constantBinaryOperation<Constraints::Number>({ *arguments[0], *arguments[1] }, [&]<typename T>(T left, T right) -> T {
+            return left * right;
+        });
+        if (!result)
+            return { result.error() };
+        if (containsInfinity(*result))
+            return { makeString("multiplication of ("_s, *arguments[0], ") and ("_s, *arguments[1], ") overflows"_s) };
+    }
+    return std::nullopt;
+}
+
 VALIDATION_FUNCTION(Smoothstep)
 {
     if (arguments[0] && arguments[1]) {

@@ -601,18 +601,22 @@ Packing RewriteGlobalVariables::getPacking(AST::BinaryExpression& expression)
     auto operation = toASCIILiteral(expression.operation());
     if (auto* overload = m_shaderModule.lookupOverload(operation)) {
         if (auto validate = overload->validationFunction) {
-            m_shaderModule.addOverrideValidation([&shaderModule = m_shaderModule, &expression, validate](auto& overrideValues) -> std::optional<Error> {
-                FixedVector<std::optional<ConstantValue>> validationArguments(2);
-                if (auto value = evaluate(shaderModule, expression.leftExpression(), overrideValues))
-                    validationArguments[0] = { *value };
-                if (auto value = evaluate(shaderModule, expression.rightExpression(), overrideValues))
-                    validationArguments[1] = { *value };
+            auto leftEval = expression.leftExpression().maybeEvaluation().value_or(Evaluation::Runtime);
+            auto rightEval = expression.rightExpression().maybeEvaluation().value_or(Evaluation::Runtime);
+            if (leftEval == Evaluation::Override || rightEval == Evaluation::Override) {
+                m_shaderModule.addOverrideValidation([&shaderModule = m_shaderModule, &expression, validate](auto& overrideValues) -> std::optional<Error> {
+                    FixedVector<std::optional<ConstantValue>> validationArguments(2);
+                    if (auto value = evaluate(shaderModule, expression.leftExpression(), overrideValues))
+                        validationArguments[0] = { *value };
+                    if (auto value = evaluate(shaderModule, expression.rightExpression(), overrideValues))
+                        validationArguments[1] = { *value };
 
-                if (auto error = validate(WTF::move(validationArguments)))
-                    return Error(*error, expression.span());
+                    if (auto error = validate(WTF::move(validationArguments)))
+                        return Error(*error, expression.span());
 
-                return std::nullopt;
-            });
+                    return std::nullopt;
+                });
+            }
         }
     }
 
