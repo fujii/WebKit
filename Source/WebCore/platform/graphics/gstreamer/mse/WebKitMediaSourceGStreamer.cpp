@@ -148,7 +148,7 @@ struct Stream : public ThreadSafeRefCountedAndCanMakeThreadSafeWeakPtr<Stream> {
     }
 
     WebKitMediaSrc* const source;
-    GRefPtr<GstPad> const pad;
+    GRefPtr<GstPad> pad;
     Ref<MediaSourceTrackGStreamer> track;
     GRefPtr<GstStream> streamInfo;
 
@@ -406,7 +406,7 @@ static gboolean webKitMediaSrcActivateMode(GstPad* pad, [[maybe_unused]] GstObje
     }
 
     if (active)
-        gst_pad_start_task(pad, webKitMediaSrcLoop, pad, nullptr);
+        gst_pad_start_task(pad, webKitMediaSrcLoop, gst_object_ref(pad), gst_object_unref);
     else {
         RefPtr<Stream> stream(WEBKIT_MEDIA_SRC_PAD(pad)->priv->stream.get());
         if (!stream)
@@ -753,7 +753,7 @@ static void webKitMediaSrcStreamFlush(Stream* stream, bool isSeekingFlush)
         }
 
         GST_DEBUG_OBJECT(stream->pad.get(), "Starting webKitMediaSrcLoop task and releasing the STREAM_LOCK.");
-        gst_pad_start_task(stream->pad.get(), webKitMediaSrcLoop, stream->pad.get(), nullptr);
+        gst_pad_start_task(stream->pad.get(), webKitMediaSrcLoop, stream->pad.ref(), gst_object_unref);
     }
 
     GST_DEBUG_OBJECT(stream->source, "Flush request for stream '%" PRIu64 "' (isSeekingFlush = %s) satisfied.",
