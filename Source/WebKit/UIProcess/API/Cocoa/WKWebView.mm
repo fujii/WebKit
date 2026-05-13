@@ -3393,6 +3393,9 @@ WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::FixedContai
         if (![_scrollView _wk_isScrolledBeyondTopExtent])
             return 0;
 
+        if (![_scrollView refreshControl])
+            return 0;
+
         auto topFixedColor = _fixedContainerEdges.predominantColor(WebCore::BoxSide::Top);
         if (!topFixedColor.isVisible())
             return 0;
