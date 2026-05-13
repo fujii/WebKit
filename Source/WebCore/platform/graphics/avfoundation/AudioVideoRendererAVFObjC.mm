@@ -615,12 +615,18 @@ Ref<MediaTimePromise> AudioVideoRendererAVFObjC::prepareToSeek(const MediaTime& 
     bool isSynchronizerSeeking = m_isSynchronizerSeeking || std::abs((synchronizerTime - seekTime).toMicroseconds()) > 1000;
 
     if (!isSynchronizerSeeking && allRenderersHaveAvailableSamples()) {
-        ALWAYS_LOG(LOGIDENTIFIER, "Synchroniser doesn't require seeking current: ", synchronizerTime, " seeking: ", seekTime);
         // In cases where the destination seek time matches too closely the synchronizer's existing time
         // no time jumped notification will be issued. In this case, just notify the MediaPlayer that
         // the seek completed successfully.
         m_lastSeekTime = synchronizerTime;
         m_seekState = SeekCompleted;
+
+        auto shouldBePlaying = this->shouldBePlaying();
+        ALWAYS_LOG(LOGIDENTIFIER, "Synchroniser doesn't require seeking current: ", synchronizerTime, " seeking: ", seekTime, ", shouldBePlaying: ", shouldBePlaying);
+
+        if (shouldBePlaying)
+            setSynchronizerRate(m_rate, { });
+
         return MediaTimePromise::createAndResolve(m_lastSeekTime);
     }
 
