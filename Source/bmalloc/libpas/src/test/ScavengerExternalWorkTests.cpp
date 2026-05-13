@@ -63,32 +63,37 @@ inline void testForeignWorkCallbackInstallReleasesLockOnSaturation()
 
 inline void testCallbacksAreCalledWhenExpected(int scavenger_on_ms, int scavenger_off_ms)
 {
-    TestScope frequentScavenging(
-        "frequent-scavenging",
-        [] () {
-            pas_scavenger_period_in_milliseconds = 1.;
-            pas_scavenger_max_epoch_delta = -1ll * 1000ll * 1000ll;
-        });
+    std::atomic<int> counter { 0 };
+    CHECK(pas_scavenger_try_install_foreign_work_callback(incrementCounter, 1, &counter));
 
-    auto counter = 0;
-    [[maybe_unused]] void* counter_ptr = reinterpret_cast<void*>(&counter);
-    CHECK(pas_scavenger_try_install_foreign_work_callback(incrementCounter, 1, counter_ptr));
+    pas_scavenger_did_create_eligible();
+    pas_scavenger_notify_eligibility_if_needed();
 
     int prevCounterValue;
     {
-        SuspendScavengerScope suspendScavenger;
-        prevCounterValue = counter;
+        pas_scavenger_suspend();
+        prevCounterValue = counter.load();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(scavenger_off_ms));
-        CHECK_EQUAL(counter, prevCounterValue);
+        CHECK_EQUAL(counter.load(), prevCounterValue);
+
+        pas_scavenger_resume();
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(scavenger_on_ms));
-    CHECK_GREATER(counter, prevCounterValue);
+    CHECK_GREATER(counter.load(), prevCounterValue);
 }
 
 void addScavengerExternalWorkTests()
 {
-    ADD_TEST(testCallbacksAreCalledWhenExpected(50, 50));
+    {
+        TestScope frequentScavenging(
+            "frequent-scavenging",
+            [] () {
+                pas_scavenger_period_in_milliseconds = 1.;
+                pas_scavenger_max_epoch_delta = -1ll * 1000ll * 1000ll;
+            });
+        ADD_TEST(testCallbacksAreCalledWhenExpected(50, 50));
+    }
     ADD_TEST(testForeignWorkCallbackInstallReleasesLockOnSaturation());
 }
