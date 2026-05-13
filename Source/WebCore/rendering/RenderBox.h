@@ -375,6 +375,7 @@ public:
 
     void overrideLogicalHeightForSizeContainment();
 
+    bool shouldCacheIntrinsicContentLogicalHeightForFlexItem() const;
     void cacheIntrinsicContentLogicalHeightForFlexItem(LayoutUnit) const;
     
     // This function will compute the logical border-box height, without laying
