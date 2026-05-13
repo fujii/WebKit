@@ -710,8 +710,10 @@ void WebXRSession::onFrame(PlatformXR::FrameData&& frameData)
         // 5. If the active flag of any view in the list of views has changed since the last XR animation frame, update the viewports.
         // FIXME: implement.
 
-        if (session.m_inputInitialized)
-            session.m_inputSources->update(now, session.m_frameData.inputSources);
+        // FIXME: I moved step 7 before 6 because of https://github.com/immersive-web/webxr/issues/1164
+        // 7.If session’s pending render state is not null, apply the pending render state.
+        if (session.m_pendingRenderState)
+            session.applyPendingRenderState();
 
 #if ENABLE(WEBXR_HIT_TEST)
         // Cancel hit test sources that are not referenced by the application.
@@ -738,6 +740,11 @@ void WebXRSession::onFrame(PlatformXR::FrameData&& frameData)
 
             // 6.3.Set frame’s active boolean to true.
             frame->setActive(true);
+
+            // 6.4.Apply frame updates for frame.
+            if (session.m_inputInitialized)
+                session.m_inputSources->update(now, session.m_frameData.inputSources);
+
             tracePoint(WebXRSessionFrameCallbacksStart);
             session.minimalUpdateRendering();
             // 6.5.For each entry in session’s list of currently running animation frame callbacks, in order:
@@ -779,9 +786,6 @@ void WebXRSession::onFrame(PlatformXR::FrameData&& frameData)
             if (RefPtr device = session.m_device.get())
                 device->submitFrame(WTF::move(frameLayers));
         }
-
-        if (session.m_pendingRenderState)
-            session.applyPendingRenderState();
 
         session.requestFrameIfNeeded();
     });
