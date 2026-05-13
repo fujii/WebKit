@@ -129,7 +129,10 @@ class LLMTestRunner(TestRunner):
         for key, entries in data.get('plugins', {}).items():
             plugin_name = key.split('@')[0]
             for entry in entries:
-                if entry.get('projectPath') == project_path:
+                entry_path = entry.get('projectPath')
+                if not entry_path:
+                    continue
+                if project_path == entry_path or project_path.startswith(entry_path + os.sep):
                     installed.add(plugin_name)
         return installed
 
