@@ -27,9 +27,9 @@
 
 #if ENABLE(WEBASSEMBLY)
 
-#include "JSCell.h"
-#include "VM.h"
-#include "WebAssemblyCompileOptions.h"
+#include <JavaScriptCore/JSCell.h>
+#include <JavaScriptCore/VM.h>
+#include <JavaScriptCore/WebAssemblyCompileOptions.h>
 
 namespace JSC {
 

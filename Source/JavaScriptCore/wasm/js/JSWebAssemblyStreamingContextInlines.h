@@ -27,9 +27,9 @@
 
 #if ENABLE(WEBASSEMBLY)
 
-#include "JSWebAssemblyStreamingContext.h"
-#include "Structure.h"
-#include "StructureCreateInlines.h"
+#include <JavaScriptCore/JSWebAssemblyStreamingContext.h>
+#include <JavaScriptCore/Structure.h>
+#include <JavaScriptCore/StructureCreateInlines.h>
 
 namespace JSC {
 
