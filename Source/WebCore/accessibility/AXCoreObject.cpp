@@ -313,6 +313,11 @@ static bool NODELETE isValidChildForTable(AXCoreObject& object)
 
 AXCoreObject::AccessibilityChildrenVector AXCoreObject::unignoredChildren(bool updateChildrenIfNeeded)
 {
+    // NOTE: The per-object properties read below (role, IsExposableTable, IsIgnored) participate
+    // in AXIsolatedTree's cache invalidation for stitchedUnignoredChildren. If a new property
+    // becomes a dependency of this walk, update the trigger list in
+    // AXIsolatedTree::applyPendingChangesFromSnapshot.
+
     if (onlyAddsUnignoredChildren())
         return children(updateChildrenIfNeeded);
 
@@ -383,6 +388,11 @@ AXCoreObject::AccessibilityChildrenVector AXCoreObject::unignoredChildren(bool u
 
 bool AXCoreObject::hasUnignoredChild()
 {
+    if (const auto* cached = cachedUnignoredChildren()) {
+        if (!cached->isEmpty())
+            return true;
+    }
+
     const auto& children = childrenIncludingIgnored(/* updateChildrenIfNeeded */ true);
     RefPtr descendant = children.size() ? children[0].ptr() : nullptr;
     if (onlyAddsUnignoredChildren())
@@ -425,6 +435,20 @@ static AXCoreObject::AccessibilityChildrenVector childrenAfterStitching(const AX
 AXCoreObject::AccessibilityChildrenVector AXCoreObject::stitchedUnignoredChildren()
 {
     return childrenAfterStitching(unignoredChildren());
+}
+
+size_t AXCoreObject::stitchedUnignoredChildrenCount()
+{
+    return stitchedUnignoredChildren().size();
+}
+
+AXCoreObject::AccessibilityChildrenVector AXCoreObject::crossFrameUnignoredChildrenInRange(size_t start, size_t maxCount)
+{
+    auto children = crossFrameUnignoredChildren();
+    if (start >= children.size())
+        return { };
+    size_t count = std::min(maxCount, children.size() - start);
+    return AccessibilityChildrenVector { children.span().subspan(start, count) };
 }
 
 std::optional<AXStitchGroup> AXCoreObject::stitchGroupIfRepresentative() const

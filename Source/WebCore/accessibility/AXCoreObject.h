@@ -1115,7 +1115,7 @@ public:
 
 #if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
     bool onlyAddsUnignoredChildren() const { return isTableColumn() || role() == AccessibilityRole::TableHeaderContainer; }
-    AccessibilityChildrenVector unignoredChildren(bool updateChildrenIfNeeded = true);
+    virtual AccessibilityChildrenVector unignoredChildren(bool updateChildrenIfNeeded = true);
     bool hasUnignoredChild();
 #else
     const AccessibilityChildrenVector& unignoredChildren(bool updateChildrenIfNeeded = true) LIFETIME_BOUND { return children(updateChildrenIfNeeded); }
@@ -1125,7 +1125,11 @@ public:
         return !children.isEmpty();
     }
 #endif // ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
-    AccessibilityChildrenVector stitchedUnignoredChildren();
+    virtual AccessibilityChildrenVector stitchedUnignoredChildren();
+    virtual size_t stitchedUnignoredChildrenCount();
+    virtual const AccessibilityChildrenVector* cachedUnignoredChildren() { return nullptr; }
+    virtual const AccessibilityChildrenVector* cachedStitchedUnignoredChildren() { return nullptr; }
+    virtual AccessibilityChildrenVector crossFrameUnignoredChildrenInRange(size_t start, size_t maxCount);
 
     virtual bool isBlockFlow() const { return false; }
     bool hasStitchableRole() const

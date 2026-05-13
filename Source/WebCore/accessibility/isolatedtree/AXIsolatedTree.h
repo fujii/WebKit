@@ -477,6 +477,12 @@ public:
     }
     template<typename U> Vector<Ref<AXCoreObject>> objectsForIDs(const U&);
 
+    struct CachedUnignoredChildren {
+        Vector<Ref<AXCoreObject>> children;
+        bool hasPotentialStitchable { false };
+    };
+    HashMap<AXID, CachedUnignoredChildren>& cachedUnignoredChildrenMap() { AX_ASSERT(!isMainThread()); return m_cachedUnignoredChildren; }
+
     void generateSubtree(AccessibilityObject&);
     bool shouldCreateNodeChange(AccessibilityObject&);
     enum class ResolveNodeChanges : bool { No, Yes };
@@ -756,6 +762,11 @@ private:
     Vector<AXID> m_sortedNonRootWebAreaIDs;
     HashMap<AXID, LineRange> m_mostRecentlyPaintedText;
     HashMap<AXID, AXRelations> m_relations;
+    // Cache of unignoredChildren() results for AXIsolatedObjects. Populated lazily
+    // on cache miss; cleared in applyPendingChangesFromSnapshot when the incoming snapshot
+    // carries a change that could affect any unignored-children list (tree structure change,
+    // or IsIgnored / IsExposableTable / StitchGroups property update).
+    HashMap<AXID, CachedUnignoredChildren> m_cachedUnignoredChildren;
 #if ENABLE(ACCESSIBILITY_LOCAL_FRAME)
     AXFrameGeometry m_frameGeometry;
     IntPoint m_frameViewOriginScrollPosition;

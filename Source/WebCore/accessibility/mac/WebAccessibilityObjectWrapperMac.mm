@@ -4409,7 +4409,14 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
     if (backingObject->isTree())
         return [super accessibilityIndexOfChild:targetChild];
 
-    const auto& children = backingObject->stitchedUnignoredChildren();
+    const auto* childrenPointer = backingObject->cachedStitchedUnignoredChildren();
+    AXCoreObject::AccessibilityChildrenVector computedChildren;
+    if (!childrenPointer) {
+        computedChildren = backingObject->stitchedUnignoredChildren();
+        childrenPointer = &computedChildren;
+    }
+    const auto& children = *childrenPointer;
+
     if (!children.size()) {
         if (RetainPtr widgetChildren = renderWidgetChildren(*backingObject))
             return [widgetChildren.get() indexOfObject:targetChild];
@@ -4440,14 +4447,14 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     if (!backingObject)
         return 0;
 
-    if ([attribute isEqualToString:NSAccessibilityChildrenAttribute]) {
+    if ([attribute isEqualToString:NSAccessibilityChildrenAttribute] || [attribute isEqualToString:NSAccessibilityChildrenInNavigationOrderAttribute]) {
         // Tree items object returns a different set of children than those that are in children()
         // because an AXOutline (the mac role is becomes) has some odd stipulations.
         if (backingObject->isTree() || backingObject->isTreeItem() || backingObject->isRemoteFrame())
             return children(*backingObject).count;
 
         // FIXME: this is duplicating the logic in children(AXCoreObject&) so it should be reworked.
-        size_t childrenSize = backingObject->stitchedUnignoredChildren().size();
+        size_t childrenSize = backingObject->stitchedUnignoredChildrenCount();
         if (!childrenSize) {
 #if ENABLE(MODEL_ELEMENT_ACCESSIBILITY)
             if (backingObject->isModel())
@@ -4487,47 +4494,40 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     if (!backingObject)
         return nil;
 
-    const auto& unignoredChildren = backingObject->crossFrameUnignoredChildren();
-    if (unignoredChildren.isEmpty()) {
-        RetainPtr<NSArray> children = transformSpecialChildrenCases(*backingObject, unignoredChildren);
-        if (!children)
-            return nil;
-
-        NSUInteger childCount = [children count];
-        if (index >= childCount)
-            return nil;
-
-        NSUInteger arrayLength = std::min(childCount - index, maxCount);
-        return [children subarrayWithRange:NSMakeRange(index, arrayLength)];
-    }
-
     if (backingObject->isTree() || backingObject->isTreeItem()) {
         // Tree objects return their rows as their children & tree items return their contents sans rows.
         // We can use the original method in this case.
         return [super accessibilityArrayAttributeValues:NSAccessibilityChildrenAttribute index:index maxCount:maxCount];
     }
 
-    RetainPtr<NSArray> children = makeNSArray(unignoredChildren, returnPlatformElements);
-    unsigned childCount = [children count];
-    if (index >= childCount)
-        return nil;
+    auto childrenInRange = backingObject->crossFrameUnignoredChildrenInRange(index, maxCount);
+    if (childrenInRange.isEmpty()) {
+        if (index > 0)
+            return nil;
+        // No regular or cross-frame children. Fall back to special cases (model element, render widget).
+        AXCoreObject::AccessibilityChildrenVector emptyChildren;
+        RetainPtr<NSArray> children = transformSpecialChildrenCases(*backingObject, emptyChildren);
+        if (!children)
+            return nil;
+        NSUInteger specialCount = [children count];
+        NSUInteger arrayLength = std::min(specialCount, maxCount);
+        return [children subarrayWithRange:NSMakeRange(0, arrayLength)];
+    }
 
-    unsigned available = std::min(childCount - index, maxCount);
-
-    NSMutableArray *subarray = [NSMutableArray arrayWithCapacity:available];
-    for (unsigned added = 0; added < available; ++index, ++added) {
-        RetainPtr<WebAccessibilityObjectWrapper> wrapper = [children objectAtIndex:index];
+    NSMutableArray *subarray = [NSMutableArray arrayWithCapacity:childrenInRange.size()];
+    for (auto& child : childrenInRange) {
+        RetainPtr<WebAccessibilityObjectWrapper> wrapper = child->wrapper();
+        if (!wrapper)
+            continue;
 
         // The attachment view should be returned, otherwise AX palindrome errors occur.
         RetainPtr<id> attachmentView;
-        if (RefPtr childObject = [wrapper isKindOfClass:[WebAccessibilityObjectWrapper class]] ? wrapper.get().axBackingObject : nullptr) {
-            if (childObject->isAttachment())
-                attachmentView = [wrapper attachmentView];
-            else if (childObject->isRemoteFrame() && returnPlatformElements)
-                attachmentView = childObject->remoteFramePlatformElement();
-        }
+        if (child->isAttachment())
+            attachmentView = [wrapper attachmentView];
+        else if (child->isRemoteFrame() && returnPlatformElements)
+            attachmentView = child->remoteFramePlatformElement();
 
-        [subarray addObject:attachmentView ? attachmentView.get() : wrapper.get()];
+        [subarray addObject:attachmentView ? attachmentView.get() : (id)wrapper.get()];
     }
 
     return subarray;

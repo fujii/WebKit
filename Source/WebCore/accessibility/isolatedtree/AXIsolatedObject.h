@@ -79,6 +79,14 @@ public:
     bool hasRowGroupTag() const final;
 
     const AccessibilityChildrenVector& children(bool updateChildrenIfNeeded = true) LIFETIME_BOUND final;
+#if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
+    AccessibilityChildrenVector unignoredChildren(bool updateChildrenIfNeeded = true) final;
+#endif
+    AccessibilityChildrenVector stitchedUnignoredChildren() final;
+    size_t stitchedUnignoredChildrenCount() final;
+    const AccessibilityChildrenVector* cachedUnignoredChildren() final;
+    const AccessibilityChildrenVector* cachedStitchedUnignoredChildren() final;
+    AccessibilityChildrenVector crossFrameUnignoredChildrenInRange(size_t start, size_t maxCount) final;
     AXIsolatedObject* parentObject() const final { return tree().objectForID(parent()); }
     AXIsolatedObject* parentObjectUnignored() const final { return downcast<AXIsolatedObject>(AXCoreObject::parentObjectUnignored()); }
     bool isEditableWebArea() const final { return boolAttributeValue(AXProperty::IsEditableWebArea); }
@@ -119,6 +127,8 @@ public:
     bool isBlockFlow() const final { return boolAttributeValue(AXProperty::IsBlockFlow); }
 
 private:
+    AXIsolatedTree::CachedUnignoredChildren& ensureCachedUnignoredChildren();
+
     constexpr ProcessID processID() const final { return tree().processID(); }
     void detachRemoteParts(AccessibilityDetachmentType) final;
     void detachPlatformWrapper(AccessibilityDetachmentType) final;
