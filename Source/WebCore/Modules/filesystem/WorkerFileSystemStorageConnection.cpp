@@ -85,8 +85,8 @@ void WorkerFileSystemStorageConnection::scopeClosed()
     for (auto& callback : stringCallbacks.values())
         callback(Exception { ExceptionCode::InvalidStateError });
 
-    auto cloneHandleCallbacks = std::exchange(m_cloneHandleCallbacks, { });
-    for (auto& callback : cloneHandleCallbacks.values())
+    auto resolveGlobalIdentifierCallbacks = std::exchange(m_resolveGlobalIdentifierCallbacks, { });
+    for (auto& callback : resolveGlobalIdentifierCallbacks.values())
         callback(Exception { ExceptionCode::InvalidStateError });
 
     auto streamCallbacks = std::exchange(m_streamCallbacks, { });
@@ -254,9 +254,9 @@ void WorkerFileSystemStorageConnection::completeStringCallback(CallbackIdentifie
         callback(WTF::move(result));
 }
 
-void WorkerFileSystemStorageConnection::didCloneHandle(CallbackIdentifier callbackIdentifier, ExceptionOr<std::pair<FileSystemHandleIdentifier, String>>&& result)
+void WorkerFileSystemStorageConnection::didResolveGlobalIdentifier(CallbackIdentifier callbackIdentifier, ExceptionOr<FileSystemHandleIdentifier>&& result)
 {
-    if (auto callback = m_cloneHandleCallbacks.take(callbackIdentifier))
+    if (auto callback = m_resolveGlobalIdentifierCallbacks.take(callbackIdentifier))
         callback(WTF::move(result));
 }
 
@@ -502,38 +502,38 @@ void WorkerFileSystemStorageConnection::requestNewCapacityForSyncAccessHandle(Fi
     return callback(std::nullopt);
 }
 
-void WorkerFileSystemStorageConnection::cloneHandle(ClientOrigin&& origin, FileSystemHandleIdentifier identifier, CloneHandleCallback&& callback)
+void WorkerFileSystemStorageConnection::addGlobalIdentifierReference(ClientOrigin&& origin, FileSystemHandleGlobalIdentifier globalIdentifier)
+{
+    callOnMainThread([mainThreadConnection = m_mainThreadConnection, origin = crossThreadCopy(WTF::move(origin)), globalIdentifier] mutable {
+        mainThreadConnection->addGlobalIdentifierReference(WTF::move(origin), globalIdentifier);
+    });
+}
+
+void WorkerFileSystemStorageConnection::removeGlobalIdentifierReference(ClientOrigin&& origin, FileSystemHandleGlobalIdentifier globalIdentifier)
+{
+    callOnMainThread([mainThreadConnection = m_mainThreadConnection, origin = crossThreadCopy(WTF::move(origin)), globalIdentifier] mutable {
+        mainThreadConnection->removeGlobalIdentifierReference(WTF::move(origin), globalIdentifier);
+    });
+}
+
+void WorkerFileSystemStorageConnection::resolveGlobalIdentifier(ClientOrigin&& origin, FileSystemHandleGlobalIdentifier globalIdentifier, ResolveGlobalIdentifierCallback&& callback)
 {
     RefPtr scope = m_scope.get();
     if (!scope)
         return callback(Exception { ExceptionCode::InvalidStateError });
 
     auto callbackIdentifier = CallbackIdentifier::generate();
-    m_cloneHandleCallbacks.add(callbackIdentifier, WTF::move(callback));
+    m_resolveGlobalIdentifierCallbacks.add(callbackIdentifier, WTF::move(callback));
 
-    callOnMainThread([callbackIdentifier, workerThread = Ref { scope->thread() }, mainThreadConnection = m_mainThreadConnection, origin = crossThreadCopy(WTF::move(origin)), identifier]() mutable {
+    callOnMainThread([callbackIdentifier, workerThread = Ref { scope->thread() }, mainThreadConnection = m_mainThreadConnection, origin = crossThreadCopy(WTF::move(origin)), globalIdentifier] mutable {
         auto mainThreadCallback = [callbackIdentifier, workerThread = WTF::move(workerThread)](auto&& result) mutable {
             workerThread->runLoop().postTaskForMode([callbackIdentifier, result = crossThreadCopy(WTF::move(result))](auto& scope) mutable {
                 if (auto connection = downcast<WorkerGlobalScope>(scope).fileSystemStorageConnection())
-                    connection->didCloneHandle(callbackIdentifier, WTF::move(result));
+                    connection->didResolveGlobalIdentifier(callbackIdentifier, WTF::move(result));
             }, WorkerRunLoop::defaultMode());
         };
 
-        mainThreadConnection->cloneHandle(WTF::move(origin), identifier, WTF::move(mainThreadCallback));
-    });
-}
-
-void WorkerFileSystemStorageConnection::addTransferReference(FileSystemHandleIdentifier identifier)
-{
-    callOnMainThread([mainThreadConnection = m_mainThreadConnection, identifier] {
-        mainThreadConnection->addTransferReference(identifier);
-    });
-}
-
-void WorkerFileSystemStorageConnection::removeTransferReference(FileSystemHandleIdentifier identifier)
-{
-    callOnMainThread([mainThreadConnection = m_mainThreadConnection, identifier] {
-        mainThreadConnection->removeTransferReference(identifier);
+        mainThreadConnection->resolveGlobalIdentifier(WTF::move(origin), globalIdentifier, WTF::move(mainThreadCallback));
     });
 }
 

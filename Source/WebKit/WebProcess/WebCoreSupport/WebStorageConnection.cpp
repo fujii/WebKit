@@ -68,12 +68,9 @@ void WebStorageConnection::fileSystemGetDirectory(WebCore::ClientOrigin&& origin
         if (!result)
             return completionHandler(convertToException(result.error()));
 
-        auto identifier = result.value();
-        if (!identifier)
-            return completionHandler(WebCore::Exception { WebCore::ExceptionCode::UnknownError, "Connection is lost"_s });
-
+        auto& [globalIdentifier, identifier] = result.value();
         auto connection = RefPtr<WebCore::FileSystemStorageConnection> { &WebProcess::singleton().fileSystemStorageConnection() };
-        return completionHandler(std::pair { *identifier, WTF::move(connection) });
+        completionHandler(WebCore::StorageConnection::DirectoryInfo { globalIdentifier, identifier, WTF::move(connection) });
     });
 }
 

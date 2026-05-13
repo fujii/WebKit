@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <WebCore/FileSystemHandleGlobalIdentifier.h>
 #include <WebCore/FileSystemHandleIdentifier.h>
 #include <WebCore/FileSystemStorageConnection.h>
 #include <WebCore/StorageEstimate.h>
@@ -43,7 +44,12 @@ public:
     using PersistCallback = CompletionHandler<void(bool)>;
     virtual void getPersisted(ClientOrigin&&, PersistCallback&&) = 0;
     virtual void persist(const ClientOrigin&, PersistCallback&& completionHandler) { completionHandler(false); }
-    using DirectoryInfo = std::pair<FileSystemHandleIdentifier, RefPtr<FileSystemStorageConnection>>;
+    struct DirectoryInfo {
+        FileSystemHandleGlobalIdentifier globalIdentifier;
+        FileSystemHandleIdentifier identifier;
+        RefPtr<FileSystemStorageConnection> connection;
+        DirectoryInfo isolatedCopy() && { return { globalIdentifier, identifier, WTF::move(connection) }; }
+    };
     using GetDirectoryCallback = CompletionHandler<void(ExceptionOr<DirectoryInfo>&&)>;
     virtual void fileSystemGetDirectory(ClientOrigin&&, GetDirectoryCallback&&) = 0;
     using GetEstimateCallback = CompletionHandler<void(ExceptionOr<StorageEstimate>&&)>;

@@ -7463,6 +7463,7 @@
 		93B0A67326D5A72E00AA21E4 /* WebPermissionController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebPermissionController.cpp; sourceTree = "<group>"; };
 		93B0A67426D5A72E00AA21E4 /* WebPermissionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPermissionController.h; sourceTree = "<group>"; };
 		93B42F2E29834A4200DF1D45 /* FileSystemSyncAccessHandleInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileSystemSyncAccessHandleInfo.h; sourceTree = "<group>"; };
+		53619B4B33665181AB76A5CB /* FileSystemHandleInfo.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = FileSystemHandleInfo.serialization.in; sourceTree = "<group>"; };
 		93B631E327ABA5F700443A44 /* IDBStorageConnectionToClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IDBStorageConnectionToClient.cpp; sourceTree = "<group>"; };
 		93B631E427ABA62700443A44 /* IDBStorageConnectionToClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBStorageConnectionToClient.h; sourceTree = "<group>"; };
 		93B631E627ABA65C00443A44 /* IDBStorageManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBStorageManager.h; sourceTree = "<group>"; };
@@ -10300,6 +10301,7 @@
 				5C6CED8E2900598000B5D522 /* EditorState.serialization.in */,
 				56487A232E951667009CB259 /* EnhancedSecurity.h */,
 				F47FD8B42F7854A8008BF1DD /* ExtractedNodeInfo.h */,
+				53619B4B33665181AB76A5CB /* FileSystemHandleInfo.serialization.in */,
 				93B42F2E29834A4200DF1D45 /* FileSystemSyncAccessHandleInfo.h */,
 				86BAAFD829A3D4040013F9A9 /* FileSystemSyncAccessHandleInfo.serialization.in */,
 				C59C4A5718B81174007BDCB6 /* FocusedElementInformation.h */,

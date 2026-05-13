@@ -140,6 +140,7 @@ template<typename T, typename = DefaultOSObjectRetainTraits<T, ARCEnabled>> clas
 template<typename, typename, typename> class ObjectIdentifierGeneric;
 template<typename T, typename RawValue = uint64_t> using ObjectIdentifier = ObjectIdentifierGeneric<T, ObjectIdentifierMainThreadAccessTraits<RawValue>, RawValue>;
 template<typename T, typename RawValue = uint64_t> using AtomicObjectIdentifier = ObjectIdentifierGeneric<T, ObjectIdentifierThreadSafeAccessTraits<RawValue>, RawValue>;
+template<typename T> using UUIDObjectIdentifier = AtomicObjectIdentifier<T, UUID>;
 template<typename> class Observer;
 template<typename, ConcurrencyTag = ConcurrencyTag::None> class OptionSet;
 template<typename> class Packed;
@@ -323,6 +324,7 @@ using WTF::SuspendableWorkQueue;
 using WTF::TextPosition;
 using WTF::TextStream;
 using WTF::URL;
+using WTF::UUIDObjectIdentifier;
 using WTF::UncheckedKeyHashMap;
 using WTF::UncheckedKeyHashSet;
 using WTF::UniqueRef;

@@ -45,15 +45,22 @@ namespace WebCore {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(FileSystemFileHandle);
 
-Ref<FileSystemFileHandle> FileSystemFileHandle::create(ScriptExecutionContext& context, String&& name, FileSystemHandleIdentifier identifier, Ref<FileSystemStorageConnection>&& connection)
+Ref<FileSystemFileHandle> FileSystemFileHandle::create(ScriptExecutionContext& context, String&& name, FileSystemHandleGlobalIdentifier globalIdentifier, FileSystemHandleIdentifier identifier, Ref<FileSystemStorageConnection>&& connection)
 {
-    auto result = adoptRef(*new FileSystemFileHandle(context, WTF::move(name), identifier, WTF::move(connection)));
+    Ref result = adoptRef(*new FileSystemFileHandle(context, WTF::move(name), globalIdentifier, identifier, WTF::move(connection)));
     result->suspendIfNeeded();
     return result;
 }
 
-FileSystemFileHandle::FileSystemFileHandle(ScriptExecutionContext& context, String&& name, FileSystemHandleIdentifier identifier, Ref<FileSystemStorageConnection>&& connection)
-    : FileSystemHandle(context, FileSystemHandle::Kind::File, WTF::move(name), identifier, WTF::move(connection))
+Ref<FileSystemFileHandle> FileSystemFileHandle::create(ScriptExecutionContext& context, String&& name, FileSystemHandleGlobalIdentifier globalIdentifier)
+{
+    Ref result = adoptRef(*new FileSystemFileHandle(context, WTF::move(name), globalIdentifier, { }, nullptr));
+    result->suspendIfNeeded();
+    return result;
+}
+
+FileSystemFileHandle::FileSystemFileHandle(ScriptExecutionContext& context, String&& name, FileSystemHandleGlobalIdentifier globalIdentifier, Markable<FileSystemHandleIdentifier> identifier, RefPtr<FileSystemStorageConnection>&& connection)
+    : FileSystemHandle(context, FileSystemHandle::Kind::File, WTF::move(name), globalIdentifier, identifier, WTF::move(connection))
 {
 }
 
@@ -198,7 +205,7 @@ void FileSystemFileHandle::executeCommandForWritable(FileSystemWritableFileStrea
     if (isClosed())
         return promise.reject(Exception { ExceptionCode::InvalidStateError, "Handle is closed"_s });
 
-    ASSERT(!isBorrowed());
+    ASSERT(!isUnresolved());
     connection().executeCommandForWritable(identifier(), streamIdentifier, type, position, size, dataBytes, hasDataError, [promise = WTF::move(promise)](auto result) mutable {
         promise.settle(WTF::move(result));
     });

@@ -7997,7 +7997,7 @@ struct WebCore::SerializedScriptValueInternals {
     Vector<Ref<WebCore::WebCodecsEncodedAudioChunkStorage>> serializedAudioChunks;
 #endif
     uint64_t exposedMessagePortCount;
-    [NotSerialized] Vector<WebCore::FileSystemHandleTransferToken> fileSystemHandleTransferTokens;
+    [NotSerialized] Vector<WebCore::FileSystemHandleKeepAlive> fileSystemHandleKeepAlives;
 #if ENABLE(WEB_CODECS)
     [NotSerialized] Vector<WebCore::WebCodecsVideoFrameData> serializedVideoFrames;
     [NotSerialized] Vector<WebCore::WebCodecsAudioInternalData> serializedAudioData;

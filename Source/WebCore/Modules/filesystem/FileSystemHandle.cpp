@@ -37,12 +37,13 @@ namespace WebCore {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(FileSystemHandle);
 
-FileSystemHandle::FileSystemHandle(ScriptExecutionContext& context, FileSystemHandle::Kind kind, String&& name, FileSystemHandleIdentifier identifier, Ref<FileSystemStorageConnection>&& connection)
+FileSystemHandle::FileSystemHandle(ScriptExecutionContext& context, FileSystemHandle::Kind kind, String&& name, FileSystemHandleGlobalIdentifier globalIdentifier, Markable<FileSystemHandleIdentifier> identifier, RefPtr<FileSystemStorageConnection>&& connection)
     : ActiveDOMObject(&context)
     , m_kind(kind)
     , m_name(WTF::move(name))
     , m_identifier(identifier)
     , m_connection(WTF::move(connection))
+    , m_globalIdentifier(globalIdentifier)
 {
 }
 
@@ -57,24 +58,29 @@ void FileSystemHandle::close()
         return;
 
     m_isClosed = true;
-    if (m_isBorrowed) {
-        m_connection->removeTransferReference(m_identifier);
-        m_isBorrowed = false;
+    if (m_isUnresolved) {
+        if (RefPtr connection = m_connection)
+            connection->removeGlobalIdentifierReference(ClientOrigin { m_origin }, m_globalIdentifier);
+        m_isUnresolved = false;
         resolveEnsureIdentifierCallbacks(false);
         return;
     }
-    m_connection->closeHandle(m_identifier);
+    if (RefPtr connection = m_connection)
+        connection->closeHandle(*m_identifier);
 }
 
-void FileSystemHandle::markAsBorrowed()
+void FileSystemHandle::markAsUnresolved(ClientOrigin&& origin, Ref<FileSystemStorageConnection>&& connection)
 {
-    m_isBorrowed = true;
-    m_connection->addTransferReference(m_identifier);
+    ASSERT(m_globalIdentifier.toRawValue());
+    m_isUnresolved = true;
+    m_origin = WTF::move(origin);
+    connection->addGlobalIdentifierReference(ClientOrigin { m_origin }, m_globalIdentifier);
+    m_connection = WTF::move(connection);
 }
 
 void FileSystemHandle::ensureIdentifier(CompletionHandler<void(bool)>&& callback)
 {
-    if (!m_isBorrowed)
+    if (!m_isUnresolved)
         return callback(true);
 
     m_ensureIdentifierCallbacks.append(WTF::move(callback));
@@ -83,36 +89,34 @@ void FileSystemHandle::ensureIdentifier(CompletionHandler<void(bool)>&& callback
 
     RefPtr context = scriptExecutionContext();
     if (!context) {
+        if (RefPtr connection = m_connection)
+            connection->removeGlobalIdentifierReference(ClientOrigin { m_origin }, m_globalIdentifier);
+        m_isUnresolved = false;
         resolveEnsureIdentifierCallbacks(false);
         return;
     }
 
     auto origin = clientOriginForContext(*context);
-    m_connection->cloneHandle(WTF::move(origin), m_identifier, [this, protectedThis = Ref { *this }](auto result) mutable {
+    protect(m_connection)->resolveGlobalIdentifier(WTF::move(origin), m_globalIdentifier, [this, protectedThis = Ref { *this }](auto result) mutable {
         if (m_isClosed) {
-            if (!result.hasException()) {
-                auto& [newIdentifier, newName] = result.returnValue();
-                m_connection->closeHandle(newIdentifier);
-            }
+            if (!result.hasException())
+                protect(m_connection)->closeHandle(result.returnValue());
             resolveEnsureIdentifierCallbacks(false);
             return;
         }
 
         if (result.hasException()) {
             m_isClosed = true;
-            m_connection->removeTransferReference(m_identifier);
-            m_isBorrowed = false;
+            if (RefPtr connection = m_connection)
+                connection->removeGlobalIdentifierReference(ClientOrigin { m_origin }, m_globalIdentifier);
+            m_isUnresolved = false;
             resolveEnsureIdentifierCallbacks(false);
             return;
         }
 
-        auto oldIdentifier = m_identifier;
-        auto& [newIdentifier, newName] = result.returnValue();
-        m_identifier = newIdentifier;
-        if (!newName.isEmpty())
-            m_name = newName;
-        m_isBorrowed = false;
-        m_connection->removeTransferReference(oldIdentifier);
+        m_identifier = result.returnValue();
+        m_isUnresolved = false;
+        protect(m_connection)->removeGlobalIdentifierReference(ClientOrigin { m_origin }, m_globalIdentifier);
         resolveEnsureIdentifierCallbacks(true);
     });
 }
@@ -135,7 +139,7 @@ void FileSystemHandle::isSameEntry(FileSystemHandle& handle, DOMPromiseDeferred<
         if (!success)
             return promise.reject(Exception { ExceptionCode::InvalidStateError, "Handle is invalid"_s });
 
-        m_connection->isSameEntry(m_identifier, handle->identifier(), [promise = WTF::move(promise)](auto result) mutable {
+        protect(m_connection)->isSameEntry(*m_identifier, handle->identifier(), [promise = WTF::move(promise)](auto result) mutable {
             promise.settle(WTF::move(result));
         });
     });
@@ -153,7 +157,7 @@ void FileSystemHandle::move(FileSystemHandle& destinationHandle, const String& n
         if (!success)
             return promise.reject(Exception { ExceptionCode::InvalidStateError, "Handle is invalid"_s });
 
-        m_connection->move(m_identifier, destinationHandle->identifier(), newName, [this, protectedThis = WTF::move(protectedThis), newName, promise = WTF::move(promise)](auto result) mutable {
+        protect(m_connection)->move(*m_identifier, destinationHandle->identifier(), newName, [this, protectedThis = WTF::move(protectedThis), newName, promise = WTF::move(promise)](auto result) mutable {
             if (!result.hasException())
                 m_name = newName;
 

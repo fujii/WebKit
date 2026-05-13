@@ -42,6 +42,7 @@
 #include "DocumentQuirks.h"
 #include "FileSystemDirectoryHandle.h"
 #include "FileSystemFileHandle.h"
+#include "FileSystemHandleGlobalIdentifier.h"
 #include "IDBValue.h"
 #include "ImageBuffer.h"
 #include "JSAudioWorkletGlobalScope.h"
@@ -1227,7 +1228,7 @@ public:
 #endif
         Vector<URLKeepingBlobAlive>& blobHandles, Vector<uint8_t>& out, SerializationContext context, ArrayBufferContentsArray& sharedBuffers,
         SerializationForStorage forStorage,
-        Vector<FileSystemHandleTransferToken>& fileSystemHandleTransferTokens)
+        Vector<FileSystemHandleKeepAlive>& fileSystemHandleKeepAlives)
     {
 #if ASSERT_ENABLED
         auto& vm = lexicalGlobalObject->vm();
@@ -1267,7 +1268,7 @@ public:
 #endif
             blobHandles, out, context, sharedBuffers, forStorage);
         auto code = serializer.serialize(value);
-        fileSystemHandleTransferTokens = WTF::move(serializer.m_fileSystemHandleTransferTokens);
+        fileSystemHandleKeepAlives = WTF::move(serializer.m_fileSystemHandleKeepAlives);
 #if ENABLE(MEDIA_STREAM)
         for (auto& track : std::exchange(serializer.m_serializedMediaStreamTracks , { }))
             detachedMediaStreamTracks.append(track.releaseNonNull());
@@ -2432,12 +2433,12 @@ private:
                 write(FileSystemHandleTag);
                 write(std::to_underlying(handle.kind()));
                 write(handle.name());
-                write(handle.identifier().toUInt64());
+                write(std::span<const uint8_t> { handle.globalIdentifier().toRawValue().span() });
                 ASSERT(!context->securityOrigin()->isOpaque());
                 write(context->securityOrigin()->toString());
                 if (RefPtr connection = fileSystemStorageConnectionForContext(*context)) {
-                    connection->addTransferReference(handle.identifier());
-                    m_fileSystemHandleTransferTokens.append({ handle.identifier(), connection.releaseNonNull() });
+                    auto origin = clientOriginForContext(*context);
+                    m_fileSystemHandleKeepAlives.append({ WTF::move(origin), handle.globalIdentifier(), connection.releaseNonNull() });
                 }
                 return true;
             };
@@ -2987,7 +2988,7 @@ private:
     ObjectPoolMap m_transferredMediaStreamTrackHandles;
 #endif
     SerializationForStorage m_forStorage;
-    Vector<FileSystemHandleTransferToken> m_fileSystemHandleTransferTokens;
+    Vector<FileSystemHandleKeepAlive> m_fileSystemHandleKeepAlives;
 
 #if ASSERT_ENABLED
     bool m_didSeeComplexCases { false };
@@ -5214,12 +5215,20 @@ private:
             return JSValue();
         }
 
-        uint64_t identifierValue;
-        if (!read(identifierValue) || !identifierValue) {
-            SERIALIZE_TRACE("FAIL readFileSystemHandle: invalid identifier");
+        static constexpr size_t uuidSize = 16;
+        if (m_data.size() < uuidSize) {
+            SERIALIZE_TRACE("FAIL readFileSystemHandle: not enough data for UUID");
             fail();
             return JSValue();
         }
+        auto uuid = WTF::UUID(m_data.first(uuidSize));
+        skip(m_data, uuidSize);
+        if (!uuid) {
+            SERIALIZE_TRACE("FAIL readFileSystemHandle: invalid UUID");
+            fail();
+            return JSValue();
+        }
+        auto globalIdentifier = FileSystemHandleGlobalIdentifier(uuid);
 
         CachedStringRef origin;
         if (!readStringData(origin)) {
@@ -5244,14 +5253,14 @@ private:
             return JSValue();
         }
 
-        auto identifier = FileSystemHandleIdentifier(identifierValue);
+        auto clientOrigin = clientOriginForContext(*context);
         if (kind == FileSystemHandleKind::File) {
-            auto handle = FileSystemFileHandle::create(*context, String { name->string() }, identifier, Ref { *connection });
-            handle->markAsBorrowed();
+            Ref handle = FileSystemFileHandle::create(*context, String { name->string() }, globalIdentifier);
+            handle->markAsUnresolved(WTF::move(clientOrigin), connection.releaseNonNull());
             return getJSValue(handle);
         }
-        auto handle = FileSystemDirectoryHandle::create(*context, String { name->string() }, identifier, Ref { *connection });
-        handle->markAsBorrowed();
+        Ref handle = FileSystemDirectoryHandle::create(*context, String { name->string() }, globalIdentifier);
+        handle->markAsUnresolved(WTF::move(clientOrigin), connection.releaseNonNull());
         return getJSValue(handle);
     }
 
@@ -6719,7 +6728,7 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
     Vector<RefPtr<WebCodecsAudioData>> serializedAudioData;
 #endif
 
-    Vector<FileSystemHandleTransferToken> fileSystemHandleTransferTokens;
+    Vector<FileSystemHandleKeepAlive> fileSystemHandleKeepAlives;
     auto exposedMessagePortsCount = messagePorts.size();
     auto code = CloneSerializer::serialize(&lexicalGlobalObject, value, messagePorts, arrayBuffers, imageBitmaps,
 #if ENABLE(OFFSCREEN_CANVAS_IN_WORKERS)
@@ -6753,7 +6762,7 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
         wasmMemoryHandles,
 #endif
         blobHandles, buffer, context, *sharedBuffers, forStorage,
-        fileSystemHandleTransferTokens);
+        fileSystemHandleKeepAlives);
 
     // Serialization may throw an exception. If we see one, we should exit early. To satisfy
     // exception checks, we need to check the exception here. When we throw an exception, we
@@ -6915,7 +6924,7 @@ ExceptionOr<Ref<SerializedScriptValue>> SerializedScriptValue::create(JSGlobalOb
         , .serializedAudioChunks = WTF::move(serializedAudioChunks)
 #endif
         , .exposedMessagePortCount = exposedMessagePortsCount
-        , .fileSystemHandleTransferTokens = WTF::move(fileSystemHandleTransferTokens)
+        , .fileSystemHandleKeepAlives = WTF::move(fileSystemHandleKeepAlives)
 #if ENABLE(WEB_CODECS)
         , .serializedVideoFrames = WTF::move(serializedVideoFrameData)
         , .serializedAudioData = WTF::move(serializedAudioInternalData)
