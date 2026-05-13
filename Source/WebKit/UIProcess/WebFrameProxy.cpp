@@ -575,20 +575,34 @@ void WebFrameProxy::prepareForProvisionalLoadInProcess(WebProcessProxy& process,
 
     m_provisionalFrame = nullptr;
     m_provisionalFrame = adoptRef(*new ProvisionalFrameProxy(*this, group.ensureProcessForSite(site, mainFrameSite, process, protect(page->preferences())), commitTiming));
+    Ref provisionalFrame = *m_provisionalFrame;
 
-    if (RefPtr provisionalFrame = m_provisionalFrame)
-        page->inspectorController().didCreateProvisionalFrame(*provisionalFrame);
+    page->inspectorController().didCreateProvisionalFrame(provisionalFrame);
 
-    protect(protect(page->websiteDataStore())->networkProcess())->addAllowedFirstPartyForCookies(process, mainFrameDomain, LoadedWebArchive::No, [weakProvisionalFrame = WeakPtr { m_provisionalFrame }, pageID = page->webPageIDInProcess(process), completionHandler = WTF::move(completionHandler)] mutable {
+    auto continuation = [networkProcess = Ref { protect(page->websiteDataStore())->networkProcess() }, process = Ref { process }, mainFrameDomain, weakProvisionalFrame = WeakPtr { m_provisionalFrame }, pageID = page->webPageIDInProcess(process), completionHandler = WTF::move(completionHandler)] () mutable {
         RefPtr provisionalFrame = weakProvisionalFrame.get();
-        if (!provisionalFrame || !protect(provisionalFrame->frame())->isConnected()) {
-            // Provisional loading was cancelled while network process was handling this message.
+        bool cancelled = !provisionalFrame || !protect(provisionalFrame->frame())->isConnected();
+        if (cancelled) {
             completionHandler(std::nullopt);
             return;
         }
 
-        completionHandler(pageID);
-    });
+        networkProcess->addAllowedFirstPartyForCookies(process, mainFrameDomain, LoadedWebArchive::No, [weakProvisionalFrame = WTF::move(weakProvisionalFrame), pageID, completionHandler = WTF::move(completionHandler)] mutable {
+            RefPtr provisionalFrame = weakProvisionalFrame.get();
+            bool cancelled = !provisionalFrame || !protect(provisionalFrame->frame())->isConnected();
+            if (cancelled) {
+                completionHandler(std::nullopt);
+                return;
+            }
+
+            completionHandler(pageID);
+        });
+    };
+
+    if (page->inspectorController().shouldPauseLoadingForFrame(provisionalFrame))
+        page->inspectorController().setContinueLoadingCallbackForFrame(provisionalFrame, WTF::move(continuation));
+    else
+        continuation();
 }
 
 void WebFrameProxy::commitProvisionalFrame(IPC::Connection& connection, FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, String&& mimeType, bool frameHasCustomContentProvider, FrameLoadType frameLoadType, const CertificateInfo& certificateInfo, bool usedLegacyTLS, bool privateRelayed, String&& proxyName, WebCore::ResourceResponseSource source, bool containsPluginDocument, HasInsecureContent hasInsecureContent, MouseEventPolicy mouseEventPolicy, DocumentSecurityPolicy&& documentSecurityPolicy, const UserData& userData)

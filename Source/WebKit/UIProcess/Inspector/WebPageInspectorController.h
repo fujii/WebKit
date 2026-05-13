@@ -75,8 +75,10 @@ public:
 
     void sendMessageToInspectorFrontend(const String& targetId, const String& message);
 
-    bool shouldPauseLoading(const ProvisionalPageProxy&) const;
-    void setContinueLoadingCallback(const ProvisionalPageProxy&, WTF::Function<void()>&&);
+    bool shouldPauseLoadingForPage(const ProvisionalPageProxy&) const;
+    void setContinueLoadingCallbackForPage(const ProvisionalPageProxy&, WTF::Function<void()>&&);
+    bool shouldPauseLoadingForFrame(const ProvisionalFrameProxy&) const;
+    void setContinueLoadingCallbackForFrame(const ProvisionalFrameProxy&, WTF::Function<void()>&&);
 
     void didCreateProvisionalPage(ProvisionalPageProxy&, WebCore::FrameIdentifier mainFrameID, WebProcessProxy& mainFrameProcess);
     void willDestroyProvisionalPage(const ProvisionalPageProxy&, WebCore::FrameIdentifier mainFrameID, WebCore::ProcessIdentifier mainFrameProcessID);

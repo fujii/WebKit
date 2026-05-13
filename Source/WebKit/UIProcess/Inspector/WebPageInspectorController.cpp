@@ -57,6 +57,12 @@ static String getTargetID(const ProvisionalPageProxy& provisionalPage)
     return PageInspectorTarget::toTargetID(provisionalPage.webPageID());
 }
 
+// For an uncommitted provisional page, which is delegated through its main frame target under SI.
+static String getMainFrameTargetID(const ProvisionalPageProxy& provisionalPage)
+{
+    return FrameInspectorTarget::toTargetID(protect(provisionalPage.mainFrame())->frameID(), provisionalPage.process().coreProcessIdentifier());
+}
+
 static String getTargetID(const WebFrameProxy& frame)
 {
     return FrameInspectorTarget::toTargetID(frame.frameID(), frame.process().coreProcessIdentifier());
@@ -191,19 +197,54 @@ void WebPageInspectorController::sendMessageToInspectorFrontend(const String& ta
     protect(m_targetAgent)->sendMessageFromTargetToFrontend(targetId, message);
 }
 
-bool WebPageInspectorController::shouldPauseLoading(const ProvisionalPageProxy& provisionalPage) const
+bool WebPageInspectorController::shouldPauseLoadingForPage(const ProvisionalPageProxy& provisionalPage) const
 {
     if (!m_frontendRouter->hasFrontends())
         return false;
 
-    CheckedPtr target = m_targets.get(getTargetID(provisionalPage));
+    if (!shouldManageFrameTargets()) {
+        CheckedPtr target = m_targets.get(getTargetID(provisionalPage));
+        ASSERT(target);
+        return target->isPaused();
+    }
+
+    CheckedPtr target = m_targets.get(getMainFrameTargetID(provisionalPage));
     ASSERT(target);
     return target->isPaused();
 }
 
-void WebPageInspectorController::setContinueLoadingCallback(const ProvisionalPageProxy& provisionalPage, WTF::Function<void()>&& callback)
+void WebPageInspectorController::setContinueLoadingCallbackForPage(const ProvisionalPageProxy& provisionalPage, WTF::Function<void()>&& callback)
 {
-    CheckedPtr target = m_targets.get(getTargetID(provisionalPage));
+    if (!shouldManageFrameTargets()) {
+        CheckedPtr target = m_targets.get(getTargetID(provisionalPage));
+        ASSERT(target);
+        target->setResumeCallback(WTF::move(callback));
+        return;
+    }
+
+    CheckedPtr target = m_targets.get(getMainFrameTargetID(provisionalPage));
+    ASSERT(target);
+    target->setResumeCallback(WTF::move(callback));
+}
+
+bool WebPageInspectorController::shouldPauseLoadingForFrame(const ProvisionalFrameProxy& provisionalFrame) const
+{
+    if (!shouldManageFrameTargets())
+        return false;
+
+    if (!m_frontendRouter->hasFrontends())
+        return false;
+
+    CheckedPtr target = m_targets.get(getTargetID(provisionalFrame));
+    ASSERT(target);
+    return target->isPaused();
+}
+
+void WebPageInspectorController::setContinueLoadingCallbackForFrame(const ProvisionalFrameProxy& provisionalFrame, WTF::Function<void()>&& callback)
+{
+    ASSERT(shouldManageFrameTargets());
+
+    CheckedPtr target = m_targets.get(getTargetID(provisionalFrame));
     ASSERT(target);
     target->setResumeCallback(WTF::move(callback));
 }
@@ -304,7 +345,14 @@ void WebPageInspectorController::willDestroyProvisionalFrame(const ProvisionalFr
     if (!shouldManageFrameTargets())
         return;
 
-    removeTarget(getTargetID(provisionalFrame));
+    String targetId = getTargetID(provisionalFrame);
+    if (CheckedPtr target = m_targets.get(targetId)) {
+        // The resume callback is required because it wraps a CompletionHandler from
+        // prepareForProvisionalLoadInProcess. CompletionHandlers must be called before destruction.
+        if (target->isPaused())
+            target->resume();
+    }
+    removeTarget(targetId);
 }
 
 void WebPageInspectorController::didCommitProvisionalFrame(WebFrameProxy& frame, WebCore::ProcessIdentifier oldProcessID, WebCore::ProcessIdentifier newProcessID)
