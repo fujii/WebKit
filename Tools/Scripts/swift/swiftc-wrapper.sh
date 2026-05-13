@@ -68,7 +68,13 @@ for arg in "$@"; do
             REAL_SWIFTC="${arg#--original-swift-compiler=}"
             ;;
         "-D"*)
-            args+=("$arg" "-Xcc" "$arg")
+            if [[ "$arg" == *"="* ]]; then
+                # Value-bearing defines (e.g. -DFOO=1) are not valid Swift
+                # conditional compilation flags; pass only to the embedded clang.
+                args+=("-Xcc" "$arg")
+            else
+                args+=("$arg" "-Xcc" "$arg")
+            fi
             ;;
         *)
             if [[ -n "$skip_next" ]]; then
