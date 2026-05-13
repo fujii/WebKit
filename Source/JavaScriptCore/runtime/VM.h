@@ -523,6 +523,7 @@ public:
 #if ENABLE(WEBASSEMBLY)
     WriteBarrier<Structure> pinballCompletionStructure;
     WriteBarrier<Structure> webAssemblyCalleeGroupStructure;
+    WriteBarrier<Structure> webAssemblyStreamingContextStructure;
 #endif
     WriteBarrier<Structure> moduleProgramExecutableStructure;
     WriteBarrier<Structure> slimPromiseReactionStructure;

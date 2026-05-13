@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Oleksandr Skachkov <gskachkov@gmail.com>.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,22 +23,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function compileStreaming(source) {
-    "use strict";
+#pragma once
 
-    var compileOptions = @argument(1);
-    return @promiseResolve(@Promise, source).@then((source) => {
-        return @webAssemblyCompileStreamingInternal(source, compileOptions);
-    });
+#if ENABLE(WEBASSEMBLY)
+
+#include "JSWebAssemblyStreamingContext.h"
+#include "Structure.h"
+#include "StructureCreateInlines.h"
+
+namespace JSC {
+
+inline Structure* JSWebAssemblyStreamingContext::createStructure(VM& vm, JSGlobalObject* globalObject, JSValue prototype)
+{
+    return Structure::create(vm, globalObject, prototype, TypeInfo(JSWebAssemblyStreamingContextType, StructureFlags), info());
 }
 
-function instantiateStreaming(source) {
-    "use strict";
+} // namespace JSC
 
-    var importObject = @argument(1);
-    var compileOptions = @argument(2);
-    return @promiseResolve(@Promise, source).@then((source) => {
-        return @webAssemblyInstantiateStreamingInternal(source, importObject, compileOptions);
-    });
-}
-
+#endif // ENABLE(WEBASSEMBLY)

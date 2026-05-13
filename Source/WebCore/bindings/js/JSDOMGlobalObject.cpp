@@ -540,47 +540,47 @@ GetterSetter* JSDOMGlobalObject::createCrossOriginGetterSetter(JSGlobalObject* l
 
 #if ENABLE(WEBASSEMBLY)
 // https://webassembly.github.io/spec/web-api/index.html#compile-a-potential-webassembly-response
-static JSC::JSPromise* handleResponseOnStreamingAction(JSC::JSGlobalObject* globalObject, JSC::JSValue source, JSC::Wasm::CompilerMode compilerMode, JSC::JSObject* importObject, std::optional<JSC::WebAssemblyCompileOptions>&& compileOptions)
+static void handleResponseOnStreamingAction(JSC::JSGlobalObject* globalObject, JSC::JSPromise* promise, JSC::JSValue source, JSC::Wasm::CompilerMode compilerMode, JSC::JSObject* importObject, std::optional<JSC::WebAssemblyCompileOptions>&& compileOptions)
 {
     VM& vm = globalObject->vm();
     JSLockHolder lock(vm);
 
-    auto deferred = DeferredPromise::create(*downcast<JSDOMGlobalObject>(globalObject), DeferredPromise::Mode::RetainPromiseOnResolve);
+    auto deferred = DeferredPromise::create(*downcast<JSDOMGlobalObject>(globalObject), *promise, DeferredPromise::Mode::RetainPromiseOnResolve);
 
     auto inputResponse = JSFetchResponse::toWrapped(vm, source);
     if (!inputResponse) {
         deferred->reject(ExceptionCode::TypeError, "first argument must be an Response or Promise for Response"_s);
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     if (auto exception = inputResponse->loadingException()) {
         deferred->reject(*exception);
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     // 4. If response is not CORS-same-origin, reject returnValue with a TypeError and abort these substeps.
     // If response is opaque, content-type becomes "".
     if (!inputResponse->isCORSSameOrigin()) {
         deferred->reject(ExceptionCode::TypeError, "Response is not CORS-same-origin"_s);
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     // 3. If mimeType is not `application/wasm`, reject returnValue with a TypeError and abort these substeps.
     if (!inputResponse->hasWasmMIMEType()) {
         deferred->reject(ExceptionCode::TypeError, "Unexpected response MIME type. Expected 'application/wasm'"_s);
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     // 5. If response’s status is not an ok status, reject returnValue with a TypeError and abort these substeps.
     if (!inputResponse->ok()) {
         deferred->reject(ExceptionCode::TypeError, "Response has not returned OK status"_s);
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     // https://fetch.spec.whatwg.org/#concept-body-consume-body
     if (inputResponse->isDisturbedOrLocked()) {
         deferred->reject(ExceptionCode::TypeError, "Response is disturbed or locked"_s);
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     // FIXME: for efficiency, we should load blobs directly instead of going through the readableStream path.
@@ -588,11 +588,11 @@ static JSC::JSPromise* handleResponseOnStreamingAction(JSC::JSGlobalObject* glob
         auto streamOrException = inputResponse->readableStream(*globalObject);
         if (streamOrException.hasException()) [[unlikely]] {
             deferred->reject(streamOrException.releaseException());
-            return downcast<JSC::JSPromise>(deferred->promise());
+            return;
         }
     }
 
-    auto compiler = JSC::Wasm::StreamingCompiler::create(vm, compilerMode, globalObject, downcast<JSC::JSPromise>(deferred->promise()), importObject, WTF::move(compileOptions), JSC::makeSource("handleResponseOnStreamingAction"_s, JSC::SourceOrigin(), JSC::SourceTaintedOrigin::Untainted), inputResponse->url());
+    auto compiler = JSC::Wasm::StreamingCompiler::create(vm, compilerMode, globalObject, promise, importObject, WTF::move(compileOptions), JSC::makeSource("handleResponseOnStreamingAction"_s, JSC::SourceOrigin(), JSC::SourceTaintedOrigin::Untainted), inputResponse->url());
 
     if (inputResponse->isBodyReceivedByChunk()) {
         inputResponse->consumeBodyReceivedByChunk([globalObject, compiler = WTF::move(compiler)](auto&& result) mutable {
@@ -630,7 +630,7 @@ static JSC::JSPromise* handleResponseOnStreamingAction(JSC::JSGlobalObject* glob
             else
                 compiler->finalize(globalObject);
         });
-        return downcast<JSC::JSPromise>(deferred->promise());
+        return;
     }
 
     auto body = inputResponse->consumeBody();
@@ -642,20 +642,18 @@ static JSC::JSPromise* handleResponseOnStreamingAction(JSC::JSGlobalObject* glob
     }, [&](std::nullptr_t&) {
         compiler->finalize(globalObject);
     });
-
-    return downcast<JSC::JSPromise>(deferred->promise());
 }
 
-JSC::JSPromise* JSDOMGlobalObject::compileStreaming(JSC::JSGlobalObject* globalObject, JSC::JSValue source, std::optional<JSC::WebAssemblyCompileOptions>&& compileOptions)
+void JSDOMGlobalObject::compileStreaming(JSC::JSGlobalObject* globalObject, JSC::JSPromise* promise, JSC::JSValue source, std::optional<JSC::WebAssemblyCompileOptions>&& compileOptions)
 {
     ASSERT(source);
-    return handleResponseOnStreamingAction(globalObject, source, JSC::Wasm::CompilerMode::Validation, nullptr, WTF::move(compileOptions));
+    handleResponseOnStreamingAction(globalObject, promise, source, JSC::Wasm::CompilerMode::Validation, nullptr, WTF::move(compileOptions));
 }
 
-JSC::JSPromise* JSDOMGlobalObject::instantiateStreaming(JSC::JSGlobalObject* globalObject, JSC::JSValue source, JSC::JSObject* importObject, std::optional<JSC::WebAssemblyCompileOptions>&& compileOptions)
+void JSDOMGlobalObject::instantiateStreaming(JSC::JSGlobalObject* globalObject, JSC::JSPromise* promise, JSC::JSValue source, JSC::JSObject* importObject, std::optional<JSC::WebAssemblyCompileOptions>&& compileOptions)
 {
     ASSERT(source);
-    return handleResponseOnStreamingAction(globalObject, source, JSC::Wasm::CompilerMode::FullCompile, importObject, WTF::move(compileOptions));
+    handleResponseOnStreamingAction(globalObject, promise, source, JSC::Wasm::CompilerMode::FullCompile, importObject, WTF::move(compileOptions));
 }
 #endif
 

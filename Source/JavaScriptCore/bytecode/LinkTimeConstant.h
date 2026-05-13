@@ -126,8 +126,6 @@ class JSGlobalObject;
     v(handleNegativeProxyHasTrapResult, nullptr) \
     v(handlePositiveProxySetTrapResult, nullptr) \
     v(handleProxyGetTrapResult, nullptr) \
-    v(webAssemblyCompileStreamingInternal, nullptr) \
-    v(webAssemblyInstantiateStreamingInternal, nullptr) \
     v(Object, nullptr) \
     v(Array, nullptr) \
     v(applyFunction, nullptr) \

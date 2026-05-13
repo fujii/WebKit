@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,42 +25,49 @@
 
 #pragma once
 
-#include <wtf/Platform.h>
-
 #if ENABLE(WEBASSEMBLY)
 
-#include <JavaScriptCore/JSObject.h>
-#include <JavaScriptCore/JSPromise.h>
+#include "JSCell.h"
+#include "VM.h"
+#include "WebAssemblyCompileOptions.h"
 
 namespace JSC {
 
-class WebAssemblyCompileOptions;
+class JSPromise;
 
-class JSWebAssembly final : public JSNonFinalObject {
+class JSWebAssemblyStreamingContext final : public JSCell {
 public:
-    using Base = JSNonFinalObject;
-    static constexpr unsigned StructureFlags = Base::StructureFlags | HasStaticPropertyTable;
+    using Base = JSCell;
 
-    template<typename CellType, SubspaceAccess>
+    static constexpr unsigned StructureFlags = Base::StructureFlags | StructureIsImmortal;
+    static constexpr DestructionMode needsDestruction = NeedsDestruction;
+
+    DECLARE_EXPORT_INFO;
+    DECLARE_VISIT_CHILDREN;
+
+    template<typename CellType, SubspaceAccess mode>
     static GCClient::IsoSubspace* subspaceFor(VM& vm)
     {
-        STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(JSWebAssembly, Base);
-        return &vm.plainObjectSpace();
+        return vm.webAssemblyStreamingContextSpace<mode>();
     }
 
-    static JSWebAssembly* create(VM&, JSGlobalObject*, Structure*);
     static Structure* createStructure(VM&, JSGlobalObject*, JSValue);
 
-    DECLARE_INFO;
+    static JSWebAssemblyStreamingContext* create(VM&, JSPromise*, JSObject* importObject, std::optional<WebAssemblyCompileOptions>&&);
 
-    JS_EXPORT_PRIVATE static void webAssemblyModuleValidateAsync(JSGlobalObject*, JSPromise*, Vector<uint8_t>&&, std::optional<WebAssemblyCompileOptions>&&);
-    static JSValue instantiate(JSGlobalObject*, JSPromise*, RefPtr<SourceProvider>&&, const Identifier&, JSValue);
+    JSPromise* promise() const { return m_promise.get(); }
+    JSObject* importObject() const { return m_importObject.get(); }
+    std::optional<WebAssemblyCompileOptions> takeCompileOptions() { return std::exchange(m_compileOptions, std::nullopt); }
 
-    static void instantiateForStreaming(VM&, JSGlobalObject*, JSPromise*, JSWebAssemblyModule*, JSObject*, RefPtr<SourceProvider>&&);
+    ~JSWebAssemblyStreamingContext();
 
 private:
-    JSWebAssembly(VM&, Structure*);
-    void finishCreation(VM&, JSGlobalObject*);
+    JSWebAssemblyStreamingContext(VM&, Structure*, JSPromise*, JSObject* importObject, std::optional<WebAssemblyCompileOptions>&&);
+    static void NODELETE destroy(JSCell*);
+
+    WriteBarrier<JSPromise> m_promise;
+    WriteBarrier<JSObject> m_importObject;
+    std::optional<WebAssemblyCompileOptions> m_compileOptions;
 };
 
 } // namespace JSC
