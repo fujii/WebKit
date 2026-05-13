@@ -100,7 +100,7 @@ enum class WebKit::AllowsCellularAccess : bool;
     bool serviceWorkerProcessTerminationDelayEnabled;
     bool inspectionForServiceWorkersAllowed;
     bool storageSiteValidationEnabled;
-    bool shouldPerformTimeBasedEviction;
+    WebKit::TimeBasedEvictionMode timeBasedEvictionMode;
     Seconds timeBasedEvictionThreshold;
     std::optional<Seconds> lastModificationTimeUpdateIntervalOverride;
     std::optional<Seconds> timeBasedEvictionIntervalOverride;

@@ -1537,7 +1537,7 @@ TEST(TimeBasedEviction, Basic)
     TestWebKitAPI::Util::run(&done);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
     [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
     [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
@@ -1605,7 +1605,7 @@ TEST(TimeBasedEviction, IndexedDBReadUpdatesTimestamp)
     TestWebKitAPI::Util::run(&done);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
     [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
     [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
@@ -1687,7 +1687,7 @@ TEST(TimeBasedEviction, LocalStorageReadUpdatesTimestamp)
     TestWebKitAPI::Util::run(&done);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
     [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
     [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
@@ -1755,7 +1755,7 @@ TEST(TimeBasedEviction, CacheStorageReadUpdatesTimestamp)
     TestWebKitAPI::Util::run(&done);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
     [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
     [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
@@ -1833,7 +1833,7 @@ TEST(TimeBasedEviction, FileSystemAPIReadUpdatesTimestamp)
     TestWebKitAPI::Util::run(&done);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
     [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
     [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
@@ -1925,7 +1925,7 @@ TEST(TimeBasedEviction, DiskCacheAccessUpdatesTimestamp)
     }, HTTPServer::Protocol::HttpsProxy);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:2.0];
     [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
     [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
@@ -1997,7 +1997,7 @@ TEST(TimeBasedEviction, ThrottledToConfiguredInterval)
     TestWebKitAPI::Util::run(&done);
 
     RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
-    [websiteDataStoreConfiguration setTimeBasedEvictionEnabled:YES];
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeAllTypes];
     // Set a small eviction threshold so all origins are removed at eviction.
     [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:0];
     // Set a small eviction interval so eviction happens at every session initialization.
@@ -2072,6 +2072,116 @@ TEST(TimeBasedEviction, ThrottledToConfiguredInterval)
         done = true;
     }];
     TestWebKitAPI::Util::run(&done);
+}
+
+static constexpr auto swPageHTML = R"SWRESOURCE(
+<script>
+navigator.serviceWorker.register('/sw.js').then((registration) => {
+    window.webkit.messageHandlers.testHandler.postMessage('registered');
+}).catch((error) => {
+    window.webkit.messageHandlers.testHandler.postMessage('error: ' + error);
+});
+</script>
+)SWRESOURCE"_s;
+
+static constexpr auto swScriptJS = R"SWRESOURCE(
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+)SWRESOURCE"_s;
+
+TEST(TimeBasedEviction, ServiceWorkerRegistrationsOnlyMode)
+{
+    RetainPtr uuid = adoptNS([[NSUUID alloc] initWithUUIDString:@"68753a44-4d6f-1226-9c60-0050e4c0006f"]);
+    done = false;
+    [WKWebsiteDataStore _removeDataStoreWithIdentifier:uuid.get() completionHandler:^(NSError *error) {
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    RetainPtr websiteDataStoreConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initWithIdentifier:uuid.get()]);
+    [websiteDataStoreConfiguration setTimeBasedEvictionMode:_WKTimeBasedEvictionModeServiceWorkerRegistrationsOnly];
+    [websiteDataStoreConfiguration setTimeBasedEvictionThreshold:0];
+    [websiteDataStoreConfiguration setTimeBasedEvictionIntervalOverride:@0];
+    [websiteDataStoreConfiguration setDefaultTrackingPreventionEnabledOverride:@NO];
+
+    NSString *idbHTML = @"<script> \
+        var request = indexedDB.open('testDB'); \
+        request.onupgradeneeded = function(event) { \
+            event.target.result.createObjectStore('store'); \
+        }; \
+        request.onsuccess = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('done'); \
+        }; \
+        request.onerror = function() { \
+            window.webkit.messageHandlers.testHandler.postMessage('error'); \
+        }; \
+    </script>";
+
+    @autoreleasepool {
+        TestWebKitAPI::HTTPServer server({
+            { "/"_s, { swPageHTML } },
+            { "/sw.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, swScriptJS } }
+        });
+
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        RetainPtr handler = adoptNS([[WKWebsiteDataStoreMessageHandler alloc] init]);
+        RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+        [[configuration userContentController] addScriptMessageHandler:handler.get() name:@"testHandler"];
+        [configuration setWebsiteDataStore:websiteDataStore.get()];
+        RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+        // Register a service worker.
+        receivedScriptMessage = false;
+        [webView loadRequest:server.request()];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"registered", [lastScriptMessage body]);
+
+        // Also store IndexedDB data for the same origin.
+        receivedScriptMessage = false;
+        [webView loadHTMLString:idbHTML baseURL:[NSURL URLWithString:@"https://example1.com/"]];
+        TestWebKitAPI::Util::run(&receivedScriptMessage);
+        EXPECT_WK_STREQ(@"done", [lastScriptMessage body]);
+
+        [webView _close];
+
+        [websiteDataStore _storeServiceWorkerRegistrations:^{
+            done = true;
+        }];
+        done = false;
+        TestWebKitAPI::Util::run(&done);
+
+        // Verify both data types exist.
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[NSSet setWithObjects:WKWebsiteDataTypeServiceWorkerRegistrations, WKWebsiteDataTypeIndexedDBDatabases, nil] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_GE(records.count, 1u);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
+
+    // Trigger eviction in ServiceWorkerRegistrationsOnly mode.
+    auto evictedDomains = triggerTimeBasedEviction(websiteDataStoreConfiguration.get());
+    EXPECT_GE(evictedDomains.get().count, 1u);
+
+    @autoreleasepool {
+        RetainPtr websiteDataStore = adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:websiteDataStoreConfiguration.get()]);
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[NSSet setWithObject:WKWebsiteDataTypeIndexedDBDatabases] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(1u, records.count);
+            EXPECT_WK_STREQ(@"example1.com", [[records firstObject] displayName]);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+
+        // Verify SW registrations are gone.
+        done = false;
+        [websiteDataStore fetchDataRecordsOfTypes:[NSSet setWithObject:WKWebsiteDataTypeServiceWorkerRegistrations] completionHandler:^(NSArray<WKWebsiteDataRecord *> *records) {
+            EXPECT_EQ(0u, records.count);
+            done = true;
+        }];
+        TestWebKitAPI::Util::run(&done);
+    }
 }
 
 } // namespace TestWebKitAPI

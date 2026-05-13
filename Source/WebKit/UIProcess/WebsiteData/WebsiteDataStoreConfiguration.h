@@ -34,6 +34,7 @@
 namespace WebKit {
 
 enum class UnifiedOriginStorageLevel : uint8_t;
+enum class TimeBasedEvictionMode : uint8_t;
 
 namespace WebPushD {
 struct WebPushDaemonConnectionConfiguration;
@@ -70,8 +71,9 @@ public:
     std::optional<double> originQuotaRatio() const { return m_originQuotaRatio; }
     void setOriginQuotaRatio(std::optional<double> ratio) { m_originQuotaRatio = ratio; }
 
-    bool timeBasedEvictionEnabled() const { return m_timeBasedEvictionEnabled; }
-    void setTimeBasedEvictionEnabled(bool enabled) { m_timeBasedEvictionEnabled = enabled; }
+    static TimeBasedEvictionMode defaultTimeBasedEvictionMode();
+    TimeBasedEvictionMode timeBasedEvictionMode() const { return m_timeBasedEvictionMode; }
+    void setTimeBasedEvictionMode(TimeBasedEvictionMode mode) { m_timeBasedEvictionMode = mode; }
     Seconds timeBasedEvictionThreshold() const { return m_timeBasedEvictionThreshold; }
     void setTimeBasedEvictionThreshold(Seconds threshold) { m_timeBasedEvictionThreshold = threshold; }
     std::optional<Seconds> lastModificationTimeUpdateIntervalOverride() const { return m_lastModificationTimeUpdateIntervalOverride; }
@@ -312,7 +314,7 @@ private:
     Directories m_directories;
     uint64_t m_perOriginStorageQuota;
     std::optional<double> m_originQuotaRatio;
-    bool m_timeBasedEvictionEnabled { false };
+    TimeBasedEvictionMode m_timeBasedEvictionMode { defaultTimeBasedEvictionMode() };
     Seconds m_timeBasedEvictionThreshold { 180 * 24_h };
     std::optional<Seconds> m_lastModificationTimeUpdateIntervalOverride;
     std::optional<Seconds> m_timeBasedEvictionIntervalOverride;

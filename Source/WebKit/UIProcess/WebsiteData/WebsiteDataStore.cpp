@@ -42,6 +42,7 @@
 #include "RestrictedOpenerType.h"
 #include "ShouldGrandfatherStatistics.h"
 #include "StorageAccessStatus.h"
+#include "TimeBasedEvictionMode.h"
 #include "UnifiedOriginStorageLevel.h"
 #include "WebBackForwardCache.h"
 #include "WebCookieManagerMessages.h"
@@ -1913,13 +1914,16 @@ bool WebsiteDataStore::trackingPreventionEnabled() const
     return m_trackingPreventionEnabled == TrackingPreventionEnabled::Yes;
 }
 
-bool WebsiteDataStore::shouldPerformTimeBasedEviction() const
+TimeBasedEvictionMode WebsiteDataStore::timeBasedEvictionMode() const
 {
     bool isBrowserOrRunningTest = false;
 #if PLATFORM(COCOA)
     isBrowserOrRunningTest = isFullWebBrowserOrRunningTest();
 #endif
-    return isBrowserOrRunningTest && m_configuration->timeBasedEvictionEnabled() && !trackingPreventionEnabled();
+    if (!isBrowserOrRunningTest || trackingPreventionEnabled())
+        return TimeBasedEvictionMode::Disabled;
+
+    return m_configuration->timeBasedEvictionMode();
 }
 
 bool WebsiteDataStore::resourceLoadStatisticsDebugMode() const
@@ -2248,7 +2252,7 @@ WebsiteDataStoreParameters WebsiteDataStore::parameters()
     networkSessionParameters.serviceWorkerProcessTerminationDelayEnabled = m_configuration->serviceWorkerProcessTerminationDelayEnabled();
     networkSessionParameters.inspectionForServiceWorkersAllowed = m_inspectionForServiceWorkersAllowed;
     networkSessionParameters.storageSiteValidationEnabled = m_storageSiteValidationEnabled;
-    networkSessionParameters.shouldPerformTimeBasedEviction = shouldPerformTimeBasedEviction();
+    networkSessionParameters.timeBasedEvictionMode = timeBasedEvictionMode();
     networkSessionParameters.timeBasedEvictionThreshold = m_configuration->timeBasedEvictionThreshold();
     networkSessionParameters.lastModificationTimeUpdateIntervalOverride = m_configuration->lastModificationTimeUpdateIntervalOverride();
     networkSessionParameters.timeBasedEvictionIntervalOverride = m_configuration->timeBasedEvictionIntervalOverride();

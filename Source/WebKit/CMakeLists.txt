@@ -687,6 +687,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/WebGPU/WebGPUVertexBufferLayout.serialization.in
     Shared/WebGPU/WebGPUVertexState.serialization.in
 
+    Shared/WebsiteData/TimeBasedEvictionMode.serialization.in
     Shared/WebsiteData/UnifiedOriginStorageLevel.serialization.in
     Shared/WebsiteData/WebsiteData.serialization.in
     Shared/WebsiteData/WebsiteDataFetchOption.serialization.in

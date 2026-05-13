@@ -26,6 +26,7 @@
 #import "config.h"
 #import "_WKWebsiteDataStoreConfigurationInternal.h"
 
+#import "TimeBasedEvictionMode.h"
 #import "UnifiedOriginStorageLevel.h"
 #import <WebCore/WebCoreObjCExtras.h>
 #import <wtf/RetainPtr.h>
@@ -502,14 +503,31 @@ static WebKit::UnifiedOriginStorageLevel NODELETE toUnifiedOriginStorageLevel(_W
     _configuration->setPerOriginStorageQuota(quota);
 }
 
-- (BOOL)timeBasedEvictionEnabled
+- (_WKTimeBasedEvictionMode)timeBasedEvictionMode
 {
-    return _configuration->timeBasedEvictionEnabled();
+    switch (_configuration->timeBasedEvictionMode()) {
+    case WebKit::TimeBasedEvictionMode::Disabled:
+        return _WKTimeBasedEvictionModeDisabled;
+    case WebKit::TimeBasedEvictionMode::ServiceWorkerRegistrationsOnly:
+        return _WKTimeBasedEvictionModeServiceWorkerRegistrationsOnly;
+    case WebKit::TimeBasedEvictionMode::AllTypes:
+        return _WKTimeBasedEvictionModeAllTypes;
+    }
 }
 
-- (void)setTimeBasedEvictionEnabled:(BOOL)enabled
+- (void)setTimeBasedEvictionMode:(_WKTimeBasedEvictionMode)mode
 {
-    _configuration->setTimeBasedEvictionEnabled(enabled);
+    switch (mode) {
+    case _WKTimeBasedEvictionModeDisabled:
+        _configuration->setTimeBasedEvictionMode(WebKit::TimeBasedEvictionMode::Disabled);
+        break;
+    case _WKTimeBasedEvictionModeServiceWorkerRegistrationsOnly:
+        _configuration->setTimeBasedEvictionMode(WebKit::TimeBasedEvictionMode::ServiceWorkerRegistrationsOnly);
+        break;
+    case _WKTimeBasedEvictionModeAllTypes:
+        _configuration->setTimeBasedEvictionMode(WebKit::TimeBasedEvictionMode::AllTypes);
+        break;
+    }
 }
 
 - (NSTimeInterval)timeBasedEvictionThreshold

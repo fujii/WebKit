@@ -868,6 +868,7 @@ SERIALIZATION_DESCRIPTION_FILES = \
 	Shared/mac/SecItemResponseData.serialization.in \
 	Shared/mac/WebHitTestResultPlatformData.serialization.in \
 	Shared/WebsiteDataStoreParameters.serialization.in \
+	Shared/WebsiteData/TimeBasedEvictionMode.serialization.in \
 	Shared/WebsiteData/UnifiedOriginStorageLevel.serialization.in \
 	Shared/WebsiteData/WebsiteData.serialization.in \
 	Shared/WebsiteData/WebsiteDataFetchOption.serialization.in \

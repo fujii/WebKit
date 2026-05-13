@@ -32,6 +32,12 @@ typedef NS_ENUM(NSInteger, _WKUnifiedOriginStorageLevel) {
     _WKUnifiedOriginStorageLevelStandard
 } WK_API_AVAILABLE(macos(13.3), ios(16.4));
 
+typedef NS_ENUM(NSInteger, _WKTimeBasedEvictionMode) {
+    _WKTimeBasedEvictionModeDisabled,
+    _WKTimeBasedEvictionModeServiceWorkerRegistrationsOnly,
+    _WKTimeBasedEvictionModeAllTypes
+};
+
 NS_ASSUME_NONNULL_BEGIN
 
 WK_CLASS_AVAILABLE(macos(10.13), ios(11.0))
@@ -53,7 +59,7 @@ WK_CLASS_AVAILABLE(macos(10.13), ios(11.0))
 @property (nonatomic) BOOL networkCacheSpeculativeValidationEnabled WK_API_AVAILABLE(macos(10.15.4), ios(13.4));
 @property (nonatomic) BOOL fastServerTrustEvaluationEnabled WK_API_AVAILABLE(macos(10.15.4), ios(13.4));
 @property (nonatomic) NSUInteger perOriginStorageQuota WK_API_AVAILABLE(macos(10.15.4), ios(13.4));
-@property (nonatomic) BOOL timeBasedEvictionEnabled;
+@property (nonatomic) _WKTimeBasedEvictionMode timeBasedEvictionMode;
 @property (nonatomic) NSTimeInterval timeBasedEvictionThreshold;
 @property (nonatomic, nullable, copy) NSNumber *lastModificationTimeUpdateIntervalOverride;
 @property (nonatomic, nullable, copy) NSNumber *timeBasedEvictionIntervalOverride;

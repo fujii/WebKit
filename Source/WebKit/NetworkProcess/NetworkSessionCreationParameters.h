@@ -26,6 +26,7 @@
 #pragma once
 
 #include "ResourceLoadStatisticsParameters.h"
+#include "TimeBasedEvictionMode.h"
 #include "UnifiedOriginStorageLevel.h"
 #include "WebPushDaemonConnectionConfiguration.h"
 #include <WebCore/NetworkStorageSession.h>
@@ -126,7 +127,7 @@ struct NetworkSessionCreationParameters {
     bool serviceWorkerProcessTerminationDelayEnabled { true };
     bool inspectionForServiceWorkersAllowed { true };
     bool storageSiteValidationEnabled { false };
-    bool shouldPerformTimeBasedEviction { false };
+    TimeBasedEvictionMode timeBasedEvictionMode { TimeBasedEvictionMode::Disabled };
     Seconds timeBasedEvictionThreshold { 180 * 24_h };
     std::optional<Seconds> lastModificationTimeUpdateIntervalOverride;
     std::optional<Seconds> timeBasedEvictionIntervalOverride;

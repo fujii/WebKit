@@ -508,6 +508,7 @@ $(PROJECT_DIR)/Shared/WebPushMessage.serialization.in
 $(PROJECT_DIR)/Shared/WebUserContentControllerDataTypes.serialization.in
 $(PROJECT_DIR)/Shared/WebsiteAutoplayPolicy.serialization.in
 $(PROJECT_DIR)/Shared/WebsiteAutoplayQuirk.serialization.in
+$(PROJECT_DIR)/Shared/WebsiteData/TimeBasedEvictionMode.serialization.in
 $(PROJECT_DIR)/Shared/WebsiteData/UnifiedOriginStorageLevel.serialization.in
 $(PROJECT_DIR)/Shared/WebsiteData/WebsiteData.serialization.in
 $(PROJECT_DIR)/Shared/WebsiteData/WebsiteDataFetchOption.serialization.in
