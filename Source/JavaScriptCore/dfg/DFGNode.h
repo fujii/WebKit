@@ -929,6 +929,20 @@ public:
     void NODELETE convertToRegExpMatchFastGlobalWithoutChecks(FrozenValue* regExp);
     void NODELETE convertToRegExpTestInline(FrozenValue* globalObject, FrozenValue* regExp);
 
+    enum DescriptorSlot : unsigned {
+        EnumerableSlot = 0,
+        ConfigurableSlot,
+        ValueSlot,
+        WritableSlot,
+        GetSlot,
+        SetSlot,
+    };
+    static constexpr unsigned numberOfDescriptorSlots = 6;
+    void convertToDefineDataProperty(Graph&, Edge base, Edge property, Edge value, Edge attributes);
+    void convertToDefineAccessorProperty(Graph&, Edge base, Edge property, Edge getter, Edge setter, Edge attributes);
+    void convertToObjectDefinePropertyFromFields(Graph&, Edge target, Edge key, Edge enumerable, Edge configurable, Edge value, Edge writable, Edge getter, Edge setter);
+    void convertToPutByIdDirect(Graph&, Edge base, Edge value, CacheableIdentifier, ECMAMode);
+
     void convertToSetRegExpObjectLastIndex()
     {
         setOp(SetRegExpObjectLastIndex);

@@ -1172,6 +1172,9 @@ private:
         case ObjectDefineProperty:
             compileObjectDefineProperty();
             break;
+        case ObjectDefinePropertyFromFields:
+            compileObjectDefinePropertyFromFields();
+            break;
         case DefineAccessorProperty:
             compileDefineAccessorProperty();
             break;
@@ -5502,7 +5505,7 @@ private:
     void compileDefineDataProperty()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
-        LValue base = lowCell(m_graph.varArgChild(m_node, 0));
+        LValue base = lowObject(m_graph.varArgChild(m_node, 0));
         LValue value  = lowJSValue(m_graph.varArgChild(m_node, 2));
         LValue attributes = lowInt32(m_graph.varArgChild(m_node, 3));
         Edge& propertyEdge = m_graph.varArgChild(m_node, 1);
@@ -5541,10 +5544,26 @@ private:
         vmCall(Void, operationObjectDefineProperty, weakPointer(globalObject), target, key, descriptor);
     }
 
+    void compileObjectDefinePropertyFromFields()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        ASSERT(m_node->op() == ObjectDefinePropertyFromFields);
+        ASSERT(m_graph.varArgNumChildren(m_node) == 8);
+        LValue target = lowObject(m_graph.varArgChild(m_node, 0));
+        LValue key = lowJSValue(m_graph.varArgChild(m_node, 1));
+        LValue enumerable = lowJSValue(m_graph.varArgChild(m_node, 2));
+        LValue configurable = lowJSValue(m_graph.varArgChild(m_node, 3));
+        LValue value = lowJSValue(m_graph.varArgChild(m_node, 4));
+        LValue writable = lowJSValue(m_graph.varArgChild(m_node, 5));
+        LValue getter = lowJSValue(m_graph.varArgChild(m_node, 6));
+        LValue setter = lowJSValue(m_graph.varArgChild(m_node, 7));
+        vmCall(Void, operationObjectDefinePropertyFromFields, weakPointer(globalObject), target, key, enumerable, configurable, value, writable, getter, setter);
+    }
+
     void compileDefineAccessorProperty()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
-        LValue base = lowCell(m_graph.varArgChild(m_node, 0));
+        LValue base = lowObject(m_graph.varArgChild(m_node, 0));
         LValue getter = lowCell(m_graph.varArgChild(m_node, 2));
         LValue setter = lowCell(m_graph.varArgChild(m_node, 3));
         LValue attributes = lowInt32(m_graph.varArgChild(m_node, 4));

@@ -5378,9 +5378,10 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     case DefineDataProperty:
     case DefineAccessorProperty:
     case ObjectDefineProperty:
+    case ObjectDefinePropertyFromFields:
         clobberWorld();
         break;
-        
+
     case InById:
     case InByIdMegamorphic: {
         // FIXME: We can determine when the property definitely exists based on abstract

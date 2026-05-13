@@ -1748,6 +1748,7 @@ private:
         case DefineDataProperty:
         case DefineAccessorProperty:
         case ObjectDefineProperty:
+        case ObjectDefinePropertyFromFields:
         case CallCustomAccessorSetter:
         case DFG::Jump:
         case Branch:

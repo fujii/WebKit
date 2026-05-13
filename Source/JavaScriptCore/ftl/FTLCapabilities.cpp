@@ -431,6 +431,7 @@ inline CapabilityLevel canCompile(Node* node)
     case DefineDataProperty:
     case DefineAccessorProperty:
     case ObjectDefineProperty:
+    case ObjectDefinePropertyFromFields:
     case StringValueOf:
     case StringSlice:
     case StringSubstring:

@@ -2806,6 +2806,7 @@ private:
         case RegExpExecNonGlobalOrSticky:
         case RegExpMatchFastGlobal:
         case GetUndetachedTypeArrayLength:
+        case ObjectDefinePropertyFromFields:
             // These are just nodes that we don't currently expect to see during fixup.
             // If we ever wanted to insert them prior to fixup, then we just have to create
             // fixup rules for them.
@@ -3236,7 +3237,7 @@ private:
         }
 
         case DefineDataProperty: {
-            fixEdge<CellUse>(m_graph.varArgChild(node, 0));
+            fixEdge<ObjectUse>(m_graph.varArgChild(node, 0));
             Edge& propertyEdge = m_graph.varArgChild(node, 1);
             if (propertyEdge->shouldSpeculateSymbol())
                 fixEdge<SymbolUse>(propertyEdge);
@@ -3305,7 +3306,7 @@ private:
         }
 
         case DefineAccessorProperty: {
-            fixEdge<CellUse>(m_graph.varArgChild(node, 0));
+            fixEdge<ObjectUse>(m_graph.varArgChild(node, 0));
             Edge& propertyEdge = m_graph.varArgChild(node, 1);
             if (propertyEdge->shouldSpeculateSymbol())
                 fixEdge<SymbolUse>(propertyEdge);

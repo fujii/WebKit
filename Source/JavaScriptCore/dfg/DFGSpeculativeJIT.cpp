@@ -14298,13 +14298,14 @@ void SpeculativeJIT::compileDefineDataProperty(Node* node)
     static_assert(GPRInfo::numberOfRegisters >= 6, "We are assuming we have enough registers to make this call without incrementally setting up the arguments.");
 #endif
 
-    SpeculateCellOperand base(this, m_graph.varArgChild(node, 0));
-    GPRReg baseGPR = base.gpr();
+    Edge& baseEdge = m_graph.varArgChild(node, 0);
 
+    SpeculateCellOperand base(this, baseEdge);
     JSValueOperand value(this, m_graph.varArgChild(node, 2));
-    JSValueRegs valueRegs = value.jsValueRegs();
-
     SpeculateInt32Operand attributes(this, m_graph.varArgChild(node, 3));
+
+    GPRReg baseGPR = base.gpr();
+    JSValueRegs valueRegs = value.jsValueRegs();
     GPRReg attributesGPR = attributes.gpr();
 
     Edge& propertyEdge = m_graph.varArgChild(node, 1);
@@ -14312,6 +14313,8 @@ void SpeculativeJIT::compileDefineDataProperty(Node* node)
     case StringUse: {
         SpeculateCellOperand property(this, propertyEdge);
         GPRReg propertyGPR = property.gpr();
+
+        speculateObject(baseEdge, baseGPR);
         speculateString(propertyEdge, propertyGPR);
 
         useChildren(node);
@@ -14327,6 +14330,7 @@ void SpeculativeJIT::compileDefineDataProperty(Node* node)
         GPRReg propertyGPR = property.gpr();
         GPRReg identGPR = ident.gpr();
 
+        speculateObject(baseEdge, baseGPR);
         speculateString(propertyEdge, propertyGPR);
         speculateStringIdentAndLoadStorage(propertyEdge, propertyGPR, identGPR);
 
@@ -14339,6 +14343,8 @@ void SpeculativeJIT::compileDefineDataProperty(Node* node)
     case SymbolUse: {
         SpeculateCellOperand property(this, propertyEdge);
         GPRReg propertyGPR = property.gpr();
+
+        speculateObject(baseEdge, baseGPR);
         speculateSymbol(propertyEdge, propertyGPR);
 
         useChildren(node);
@@ -14350,6 +14356,8 @@ void SpeculativeJIT::compileDefineDataProperty(Node* node)
     case UntypedUse: {
         JSValueOperand property(this, propertyEdge);
         JSValueRegs propertyRegs = property.jsValueRegs();
+
+        speculateObject(baseEdge, baseGPR);
 
         useChildren(node);
 
@@ -14372,16 +14380,16 @@ void SpeculativeJIT::compileDefineAccessorProperty(Node* node)
     static_assert(GPRInfo::numberOfRegisters >= 6, "We are assuming we have enough registers to make this call without incrementally setting up the arguments.");
 #endif
 
-    SpeculateCellOperand base(this, m_graph.varArgChild(node, 0));
-    GPRReg baseGPR = base.gpr();
+    Edge& baseEdge = m_graph.varArgChild(node, 0);
 
+    SpeculateCellOperand base(this, baseEdge);
     SpeculateCellOperand getter(this, m_graph.varArgChild(node, 2));
-    GPRReg getterGPR = getter.gpr();
-
     SpeculateCellOperand setter(this, m_graph.varArgChild(node, 3));
-    GPRReg setterGPR = setter.gpr();
-
     SpeculateInt32Operand attributes(this, m_graph.varArgChild(node, 4));
+
+    GPRReg baseGPR = base.gpr();
+    GPRReg getterGPR = getter.gpr();
+    GPRReg setterGPR = setter.gpr();
     GPRReg attributesGPR = attributes.gpr();
 
     Edge& propertyEdge = m_graph.varArgChild(node, 1);
@@ -14389,6 +14397,8 @@ void SpeculativeJIT::compileDefineAccessorProperty(Node* node)
     case StringUse: {
         SpeculateCellOperand property(this, propertyEdge);
         GPRReg propertyGPR = property.gpr();
+
+        speculateObject(baseEdge, baseGPR);
         speculateString(propertyEdge, propertyGPR);
 
         useChildren(node);
@@ -14404,6 +14414,7 @@ void SpeculativeJIT::compileDefineAccessorProperty(Node* node)
         GPRReg propertyGPR = property.gpr();
         GPRReg identGPR = ident.gpr();
 
+        speculateObject(baseEdge, baseGPR);
         speculateString(propertyEdge, propertyGPR);
         speculateStringIdentAndLoadStorage(propertyEdge, propertyGPR, identGPR);
 
@@ -14416,6 +14427,8 @@ void SpeculativeJIT::compileDefineAccessorProperty(Node* node)
     case SymbolUse: {
         SpeculateCellOperand property(this, propertyEdge);
         GPRReg propertyGPR = property.gpr();
+
+        speculateObject(baseEdge, baseGPR);
         speculateSymbol(propertyEdge, propertyGPR);
 
         useChildren(node);
@@ -14427,6 +14440,8 @@ void SpeculativeJIT::compileDefineAccessorProperty(Node* node)
     case UntypedUse: {
         JSValueOperand property(this, propertyEdge);
         JSValueRegs propertyRegs = property.jsValueRegs();
+
+        speculateObject(baseEdge, baseGPR);
 
         useChildren(node);
 
@@ -14456,6 +14471,45 @@ void SpeculativeJIT::compileObjectDefineProperty(Node* node)
 
     flushRegisters();
     callOperation(operationObjectDefineProperty, LinkableConstant::globalObject(*this, node), targetGPR, keyRegs, descriptorGPR);
+    noResult(node);
+}
+
+void SpeculativeJIT::compileObjectDefinePropertyFromFields(Node* node)
+{
+    ASSERT(node->op() == ObjectDefinePropertyFromFields);
+    ASSERT(m_graph.varArgNumChildren(node) == 8);
+
+    // Children layout:
+    //   [0] target (ObjectUse)
+    //   [1] key (UntypedUse)
+    //   [2] enumerable  (UntypedUse or JSConstant(empty) if absent)
+    //   [3] configurable
+    //   [4] value
+    //   [5] writable
+    //   [6] get
+    //   [7] set
+    SpeculateCellOperand target(this, m_graph.varArgChild(node, 0));
+    JSValueOperand key(this, m_graph.varArgChild(node, 1));
+    JSValueOperand enumerable(this, m_graph.varArgChild(node, 2));
+    JSValueOperand configurable(this, m_graph.varArgChild(node, 3));
+    JSValueOperand value(this, m_graph.varArgChild(node, 4));
+    JSValueOperand writable(this, m_graph.varArgChild(node, 5));
+    JSValueOperand getter(this, m_graph.varArgChild(node, 6));
+    JSValueOperand setter(this, m_graph.varArgChild(node, 7));
+
+    GPRReg targetGPR = target.gpr();
+    JSValueRegs keyRegs = key.jsValueRegs();
+    JSValueRegs enumerableRegs = enumerable.jsValueRegs();
+    JSValueRegs configurableRegs = configurable.jsValueRegs();
+    JSValueRegs valueRegs = value.jsValueRegs();
+    JSValueRegs writableRegs = writable.jsValueRegs();
+    JSValueRegs getterRegs = getter.jsValueRegs();
+    JSValueRegs setterRegs = setter.jsValueRegs();
+
+    speculateObject(m_graph.varArgChild(node, 0), targetGPR);
+
+    flushRegisters();
+    callOperation(operationObjectDefinePropertyFromFields, LinkableConstant::globalObject(*this, node), targetGPR, keyRegs, enumerableRegs, configurableRegs, valueRegs, writableRegs, getterRegs, setterRegs);
     noResult(node);
 }
 

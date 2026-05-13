@@ -2178,6 +2178,65 @@ JSC_DEFINE_JIT_OPERATION(operationObjectDefineProperty, void, (JSGlobalObject* g
     OPERATION_RETURN(scope);
 }
 
+JSC_DEFINE_JIT_OPERATION(operationObjectDefinePropertyFromFields, void, (JSGlobalObject* globalObject, JSObject* target, EncodedJSValue encodedKey, EncodedJSValue encodedEnumerable, EncodedJSValue encodedConfigurable, EncodedJSValue encodedValue, EncodedJSValue encodedWritable, EncodedJSValue encodedGetter, EncodedJSValue encodedSetter))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    auto propertyName = JSValue::decode(encodedKey).toPropertyKey(globalObject);
+    OPERATION_RETURN_IF_EXCEPTION(scope);
+
+    JSValue enumerable = JSValue::decode(encodedEnumerable);
+    JSValue configurable = JSValue::decode(encodedConfigurable);
+    JSValue value = JSValue::decode(encodedValue);
+    JSValue writable = JSValue::decode(encodedWritable);
+    JSValue getter = JSValue::decode(encodedGetter);
+    JSValue setter = JSValue::decode(encodedSetter);
+
+    PropertyDescriptor desc;
+    if (enumerable)
+        desc.setEnumerable(enumerable.toBoolean(globalObject));
+    if (configurable)
+        desc.setConfigurable(configurable.toBoolean(globalObject));
+    if (value)
+        desc.setValue(value);
+    if (writable)
+        desc.setWritable(writable.toBoolean(globalObject));
+    if (getter) {
+        if (!getter.isUndefined() && !getter.isCallable()) [[unlikely]] {
+            throwTypeError(globalObject, scope, "Getter must be a function."_s);
+            OPERATION_RETURN(scope);
+        }
+        desc.setGetter(getter);
+    }
+    if (setter) {
+        if (!setter.isUndefined() && !setter.isCallable()) [[unlikely]] {
+            throwTypeError(globalObject, scope, "Setter must be a function."_s);
+            OPERATION_RETURN(scope);
+        }
+        desc.setSetter(setter);
+    }
+
+    if (desc.isAccessorDescriptor()) {
+        if (desc.value()) [[unlikely]] {
+            throwTypeError(globalObject, scope, "Invalid property.  'value' present on property with getter or setter."_s);
+            OPERATION_RETURN(scope);
+        }
+        if (desc.writablePresent()) [[unlikely]] {
+            throwTypeError(globalObject, scope, "Invalid property.  'writable' present on property with getter or setter."_s);
+            OPERATION_RETURN(scope);
+        }
+    }
+
+    ASSERT((desc.attributes() & PropertyAttribute::Accessor) || (!desc.isAccessorDescriptor()));
+
+    scope.release();
+    target->methodTable()->defineOwnProperty(target, globalObject, propertyName, desc, true);
+    OPERATION_RETURN(scope);
+}
+
 ALWAYS_INLINE static void defineDataProperty(JSGlobalObject* globalObject, JSObject* base, PropertyName propertyName, JSValue value, int32_t attributes)
 {
     PropertyDescriptor descriptor = toPropertyDescriptor(value, jsUndefined(), jsUndefined(), DefinePropertyAttributes(attributes));

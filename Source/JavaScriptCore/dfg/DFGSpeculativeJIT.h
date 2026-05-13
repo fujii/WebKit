@@ -1731,6 +1731,7 @@ public:
     void compileDefineDataProperty(Node*);
     void compileDefineAccessorProperty(Node*);
     void compileObjectDefineProperty(Node*);
+    void compileObjectDefinePropertyFromFields(Node*);
     void compileStringSlice(Node*);
     void compileStringSubstring(Node*);
     void compileToUpperCase(Node*);

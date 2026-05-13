@@ -310,6 +310,7 @@ bool doesGC(Graph& graph, Node* node)
     case DefineDataProperty:
     case DefineAccessorProperty:
     case ObjectDefineProperty:
+    case ObjectDefinePropertyFromFields:
     case DeleteById:
     case DeleteByVal:
     case DirectCall:
