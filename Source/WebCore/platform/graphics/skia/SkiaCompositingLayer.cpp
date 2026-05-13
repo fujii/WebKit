@@ -30,6 +30,7 @@
 #include "CoordinatedAnimatedBackingStoreClient.h"
 #include "CoordinatedImageBackingStore.h"
 #include "CoordinatedPlatformLayerBuffer.h"
+#include "CoordinatedPlatformLayerBufferHolePunch.h"
 #include "CoordinatedTileBuffer.h"
 #include "FilterOperations.h"
 #include "FontCache.h"
@@ -480,12 +481,22 @@ void SkiaCompositingLayer::paintSelf(SkCanvas& canvas, PaintContext& context)
                 canvas.clipRect(SkRect(m_contentsClippingRect.rect()));
         }
 
-        if (m_contentsBuffer)
-            m_contentsBuffer->paintToCanvas(canvas, m_contentsRect, paint);
-        else if (auto* buffer = m_imageBackingStore->buffer()) {
-            if (m_contentsTiling.size.isEmpty())
-                buffer->paintToCanvas(canvas, m_contentsRect, paint);
-            else {
+        sk_sp<SkImage> image;
+
+        if (m_contentsBuffer) {
+            if (is<CoordinatedPlatformLayerBufferHolePunch>(*m_contentsBuffer)) {
+#if USE(GSTREAMER)
+                TransformationMatrix matrix = canvas.getLocalToDevice();
+                downcast<CoordinatedPlatformLayerBufferHolePunch>(*m_contentsBuffer).setHolePunchVideoRectangle(enclosingIntRect(matrix.mapRect(m_contentsRect)));
+#endif
+                paint.setColor(SK_ColorTRANSPARENT);
+                canvas.drawRect(SkRect(m_contentsRect), paint);
+            } else
+                image = m_contentsBuffer->skiaImage();
+        } else if (auto* buffer = m_imageBackingStore->buffer()) {
+            image = buffer->skiaImage();
+            if (!m_contentsTiling.size.isEmpty()) {
+                sk_sp<SkImage> tileImage = std::exchange(image, nullptr);
                 SkAutoCanvasRestore autoRestore(&canvas, true);
                 canvas.clipRect(SkRect(m_contentsRect));
 
@@ -501,10 +512,16 @@ void SkiaCompositingLayer::paintSelf(SkCanvas& canvas, PaintContext& context)
                 for (float y = startY; y < m_contentsRect.maxY(); y += m_contentsTiling.size.height()) {
                     for (float x = startX; x < m_contentsRect.maxX(); x += m_contentsTiling.size.width()) {
                         FloatRect tileRect(x, y, m_contentsTiling.size.width(), m_contentsTiling.size.height());
-                        buffer->paintToCanvas(canvas, tileRect, paint);
+                        canvas.drawImageRect(tileImage, SkRect::MakeSize(SkSize::Make(tileImage->dimensions())), SkRect(tileRect),
+                            SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), &paint, SkCanvas::kFast_SrcRectConstraint);
                     }
                 }
             }
+        }
+
+        if (image) {
+            canvas.drawImageRect(image, SkRect::MakeSize(SkSize::Make(image->dimensions())), SkRect(m_contentsRect),
+                SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), &paint, SkCanvas::kFast_SrcRectConstraint);
         }
     }
 

@@ -33,6 +33,7 @@
 #include "TextureMapper.h"
 
 #if USE(SKIA)
+#include "SkiaUtilities.h"
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/core/SkColorFilter.h>
 #include <skia/core/SkColorSpace.h>
@@ -80,21 +81,21 @@ void CoordinatedPlatformLayerBufferRGB::paintToTextureMapper(TextureMapper& text
 }
 
 #if USE(SKIA)
-void CoordinatedPlatformLayerBufferRGB::paintToCanvas(SkCanvas& canvas, const FloatRect& targetRect, const SkPaint& paint)
+sk_sp<SkImage> CoordinatedPlatformLayerBufferRGB::skiaImage()
 {
     waitForContentsIfNeeded();
 
+    ASSERT(!m_texture || !m_texture->colorConvertFlags().contains(TextureMapperFlags::ShouldConvertTextureBGRAToRGBA));
+
     auto* grContext = PlatformDisplay::sharedDisplay().skiaGrContext();
+    ASSERT(grContext);
     GrGLTextureInfo externalTexture;
     externalTexture.fTarget = GL_TEXTURE_2D;
     externalTexture.fID = m_texture ? m_texture->id() : m_textureID;
     externalTexture.fFormat = GL_RGBA8;
     auto backendTexture = GrBackendTextures::MakeGL(m_size.width(), m_size.height(), skgpu::Mipmapped::kNo, externalTexture);
     auto origin = m_flags.contains(TextureMapperFlags::ShouldFlipTexture) ? kBottomLeft_GrSurfaceOrigin : kTopLeft_GrSurfaceOrigin;
-    sk_sp<SkImage> image = SkImages::BorrowTextureFrom(grContext, backendTexture, origin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-
-    ASSERT(!m_texture || !m_texture->colorConvertFlags().contains(TextureMapperFlags::ShouldConvertTextureBGRAToRGBA));
-    canvas.drawImageRect(image, SkRect::MakeWH(m_size.width(), m_size.height()), SkRect(targetRect), SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone), &paint, SkCanvas::kFast_SrcRectConstraint);
+    return SkiaUtilities::borrowBackendTextureAsImage(grContext, backendTexture, origin);
 }
 #endif
 

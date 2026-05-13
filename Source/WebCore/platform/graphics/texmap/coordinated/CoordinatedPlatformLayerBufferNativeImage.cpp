@@ -154,14 +154,14 @@ void CoordinatedPlatformLayerBufferNativeImage::paintToTextureMapper(TextureMapp
 }
 
 #if USE(SKIA)
-void CoordinatedPlatformLayerBufferNativeImage::paintToCanvas(SkCanvas& canvas, const FloatRect& targetRect, const SkPaint& paint)
+sk_sp<SkImage> CoordinatedPlatformLayerBufferNativeImage::skiaImage()
 {
     waitForContentsIfNeeded();
 
     if (!tryEnsureBuffer(UseSkiaForCompositing::Yes))
-        return;
+        return nullptr;
 
-    m_buffer->paintToCanvas(canvas, targetRect, paint);
+    return m_buffer->skiaImage();
 }
 #endif
 
