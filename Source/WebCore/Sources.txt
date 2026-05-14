@@ -4459,6 +4459,7 @@ JSHighlightRegistry.cpp
 JSHistory.cpp
 JSHkdfParams.cpp
 JSHmacKeyParams.cpp
+JSHyperlinkElementUtils.cpp
 JSIDBCursor.cpp
 JSIDBCursorDirection.cpp
 JSIDBCursorWithValue.cpp

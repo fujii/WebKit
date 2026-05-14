@@ -2081,6 +2081,7 @@ set(WebCore_SUPPLEMENTAL_IDL_FILES
     html/HTMLOrSVGOrMathMLElement.idl
     html/HTMLVideoElement+CaptionDisplaySettings.idl
     html/HTMLVideoElement+RequestVideoFrameCallback.idl
+    html/HyperlinkElementUtils.idl
     html/PopoverInvokerElement.idl
 
     html/canvas/CanvasCompositing.idl

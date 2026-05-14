@@ -1386,6 +1386,7 @@ JS_BINDING_IDLS := \
     $(WebCore)/html/HTMLVideoElement.idl \
 	$(WebCore)/html/HTMLVideoElement+CaptionDisplaySettings.idl \
     $(WebCore)/html/HTMLVideoElement+RequestVideoFrameCallback.idl \
+    $(WebCore)/html/HyperlinkElementUtils.idl \
     $(WebCore)/html/ImageBitmap.idl \
     $(WebCore)/html/ImageBitmapOptions.idl \
     $(WebCore)/html/ImageData.idl \

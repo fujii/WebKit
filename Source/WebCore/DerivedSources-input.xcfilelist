@@ -1719,6 +1719,7 @@ $(PROJECT_DIR)/html/HTMLUnknownElement.idl
 $(PROJECT_DIR)/html/HTMLVideoElement+CaptionDisplaySettings.idl
 $(PROJECT_DIR)/html/HTMLVideoElement+RequestVideoFrameCallback.idl
 $(PROJECT_DIR)/html/HTMLVideoElement.idl
+$(PROJECT_DIR)/html/HyperlinkElementUtils.idl
 $(PROJECT_DIR)/html/ImageBitmap.idl
 $(PROJECT_DIR)/html/ImageBitmapOptions.idl
 $(PROJECT_DIR)/html/ImageData.idl
