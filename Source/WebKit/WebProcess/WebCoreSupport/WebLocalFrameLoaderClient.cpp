@@ -57,6 +57,7 @@
 #include "WebFrameNetworkingContext.h"
 #include "WebFullScreenManager.h"
 #include "WebHitTestResultData.h"
+#include "WebInspectorBackend.h"
 #include "WebLoaderStrategy.h"
 #include "WebNavigationDataStore.h"
 #include "WebPage.h"
@@ -207,6 +208,9 @@ void WebLocalFrameLoaderClient::detachedFromParent2()
     RefPtr webPage = m_frame->page();
     if (!webPage)
         return;
+
+    if (RefPtr backend = webPage->inspector(WebPage::LazyCreationPolicy::UseExistingOnly))
+        backend->removeInstrumentationForFrame(m_frame->frameID());
 
     removeStorageAccess();
 

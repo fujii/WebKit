@@ -788,7 +788,7 @@ void WebFrameProxy::notifyParentOfLoadCompletion(WebProcessProxy& childFrameProc
     parentFrameProcess->send(Messages::WebPage::DidFinishLoadInAnotherProcess(frameID()), *webPageID);
 }
 
-std::optional<WebCore::PageIdentifier> WebFrameProxy::webPageIDInCurrentProcess()
+std::optional<WebCore::PageIdentifier> WebFrameProxy::webPageIDInCurrentProcess() const
 {
     if (RefPtr page = m_page.get())
         return page->webPageIDInProcess(protect(process()));

@@ -322,11 +322,13 @@ set(WebKit_MESSAGES_IN_FILES
 
     UIProcess/GPU/GPUProcessProxy
 
-    UIProcess/Model/ModelProcessProxy
+    UIProcess/Inspector/Agents/ProxyingNetworkAgent
 
     UIProcess/Inspector/RemoteWebInspectorUIProxy
     UIProcess/Inspector/WebInspectorBackendProxy
     UIProcess/Inspector/WebInspectorUIProxy
+
+    UIProcess/Model/ModelProcessProxy
 
     UIProcess/Network/NetworkProcessProxy
 
@@ -502,6 +504,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/IPCTester.serialization.in
     Shared/ImageOptions.serialization.in
     Shared/InspectorExtensionTypes.serialization.in
+    Shared/InspectorNetworkTypes.serialization.in
     Shared/JavaScriptCore.serialization.in
     Shared/JavaScriptEvaluationResult.serialization.in
     Shared/LayerTreeContext.serialization.in

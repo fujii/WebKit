@@ -55,6 +55,7 @@
 #include "WebFrameProxyMessages.h"
 #include "WebHistoryItemClient.h"
 #include "WebImage.h"
+#include "WebInspectorBackend.h"
 #include "WebKeyboardEvent.h"
 #include "WebLocalFrameLoaderClient.h"
 #include "WebPage.h"
@@ -180,6 +181,9 @@ Ref<WebFrame> WebFrame::createSubframe(WebPage& page, WebFrame& parent, const At
     coreFrame->tree().setSpecifiedName(frameName);
     ASSERT(ownerElement.document().frame());
     coreFrame->init();
+
+    if (RefPtr backend = Ref { page }->inspector(WebPage::LazyCreationPolicy::UseExistingOnly))
+        backend->ensureInstrumentationForFrame(coreFrame.get());
 
     return frame;
 }
@@ -477,6 +481,13 @@ void WebFrame::createProvisionalFrame(ProvisionalFrameCreationParameters&& param
     localFrame->init();
     if (!localFrame->isMainFrame())
         protect(localFrame->document())->setURL(URL { aboutBlankURL() });
+
+    // If network instrumentation was enabled via WebPageCreationParameters (before
+    // this frame existed), create the FrameNetworkAgentProxy for it now.
+    if (RefPtr page = m_page.get()) {
+        if (RefPtr backend = page->inspector(WebPage::LazyCreationPolicy::UseExistingOnly))
+            backend->ensureInstrumentationForFrame(localFrame.get());
+    }
 
     if (parameters.layerHostingContextIdentifier)
         setLayerHostingContextIdentifier(*parameters.layerHostingContextIdentifier);

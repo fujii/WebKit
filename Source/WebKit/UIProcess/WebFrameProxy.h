@@ -242,7 +242,7 @@ public:
     ProvisionalFrameProxy* provisionalFrame() { return m_provisionalFrame.get(); }
     RefPtr<ProvisionalFrameProxy> takeProvisionalFrame();
     WebProcessProxy& NODELETE provisionalLoadProcess();
-    std::optional<WebCore::PageIdentifier> webPageIDInCurrentProcess();
+    std::optional<WebCore::PageIdentifier> webPageIDInCurrentProcess() const;
     void notifyParentOfLoadCompletion(WebProcessProxy&);
 
     enum class ClearFrameTreeSyncData : bool {

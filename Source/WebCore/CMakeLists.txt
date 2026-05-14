@@ -137,6 +137,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/inspector/agents/frame"
     "${WEBCORE_DIR}/inspector/agents/page"
     "${WEBCORE_DIR}/inspector/agents/worker"
+    "${WEBCORE_DIR}/inspector/hooks"
     "${WEBCORE_DIR}/layout"
     "${WEBCORE_DIR}/layout/formattingContexts"
     "${WEBCORE_DIR}/layout/formattingContexts/block"

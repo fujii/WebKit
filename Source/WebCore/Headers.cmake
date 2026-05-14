@@ -1702,6 +1702,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/track/VTTRegion.h
     html/track/VideoTrackClient.h
 
+    inspector/CommandLineAPIHost.h
     inspector/FrameInspectorController.h
     inspector/InspectorBackendClient.h
     inspector/InspectorDebuggableType.h
@@ -1720,6 +1721,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     inspector/InspectorWebAgentBase.h
     inspector/LegacyWebSocketInspectorInstrumentation.h
     inspector/PageInspectorController.h
+    inspector/UncachedLoadType.h
+    inspector/WebInjectedScriptManager.h
+
+    inspector/hooks/NetworkAgentInstrumentation.h
 
     inspector/agents/InspectorPageAgent.h
 

@@ -43,6 +43,7 @@ namespace Inspector {
 class BackendDispatcher;
 class FrontendChannel;
 class FrontendRouter;
+class ProxyingNetworkAgent;
 }
 
 namespace WebKit {
@@ -95,6 +96,8 @@ public:
     void browserExtensionsEnabled(HashMap<String, String>&&);
     void browserExtensionsDisabled(HashSet<String>&&);
 
+    bool isNetworkInstrumentationEnabled() const;
+
 private:
     WebPageAgentContext NODELETE webPageAgentContext();
     void createLazyAgents();
@@ -114,6 +117,7 @@ private:
     HashMap<String, std::unique_ptr<InspectorTargetProxy>> m_targets;
 
     CheckedPtr<InspectorBrowserAgent> m_enabledBrowserAgent;
+    RefPtr<Inspector::ProxyingNetworkAgent> m_networkAgent;
 
     bool m_didCreateLazyAgents { false };
 };
