@@ -15632,47 +15632,21 @@ IGNORE_CLANG_WARNINGS_END
         setBoolean(m_out.phi(Int32, notCellResult, cellResult));
     }
 
-    LValue wangsInt64Hash(LValue input)
+    LValue rapidHashMix64(LValue input)
     {
-        // key += ~(key << 32);
-        LValue key = input;
-        LValue temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(32));
-        temp = m_out.bitNot(temp);
-        key = m_out.add(key, temp);
-        // key ^= (key >> 22);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(22));
-        key = m_out.bitXor(key, temp);
-        // key += ~(key << 13);
-        temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(13));
-        temp = m_out.bitNot(temp);
-        key = m_out.add(key, temp);
-        // key ^= (key >> 8);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(8));
-        key = m_out.bitXor(key, temp);
-        // key += (key << 3);
-        temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(3));
-        key = m_out.add(key, temp);
-        // key ^= (key >> 15);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(15));
-        key = m_out.bitXor(key, temp);
-        // key += ~(key << 27);
-        temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(27));
-        temp = m_out.bitNot(temp);
-        key = m_out.add(key, temp);
-        // key ^= (key >> 31);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(31));
-        key = m_out.bitXor(key, temp);
-        key = m_out.castToInt32(key);
-
-        return key;
+        // WYHash / rapidhash "mum" mixer. Must match the C++ rapidHashMix64
+        // in HashMapHelper.h and the DFG AssemblyHelpers implementation so
+        // FTL-inlined hashes agree with the runtime hashers used by
+        // operationMapHash and friends. B3 lowers UMulHigh to umulh on ARM64
+        // and to the mulq rdx:rax sequence on x86-64.
+        auto secret1 = m_out.constInt64(0x2d358dccaa6c78a5ULL);
+        auto secret2 = m_out.constInt64(0x8bb84b93962eacc9ULL);
+        auto a = m_out.bitXor(input, secret1);
+        auto b = m_out.bitXor(input, secret2);
+        auto lo = m_out.mul(a, b);
+        auto hi = m_out.uMulHigh(a, b);
+        auto folded = m_out.bitXor(lo, hi);
+        return m_out.castToInt32(folded);
     }
 
     LValue mapHashString(LValue string, Edge& edge)
@@ -15712,7 +15686,7 @@ IGNORE_CLANG_WARNINGS_END
         case ObjectUse: {
             LValue key = lowJSValue(m_node->child1(), ManualOperandSpeculation);
             speculate(m_node->child1());
-            setInt32(wangsInt64Hash(key));
+            setInt32(rapidHashMix64(key));
             return;
         }
 
@@ -15746,7 +15720,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.jump(continuation);
 
             m_out.appendTo(notStringNorHeapBigIntCase, continuation);
-            ValueFromBlock notStringResult = m_out.anchor(wangsInt64Hash(value));
+            ValueFromBlock notStringResult = m_out.anchor(rapidHashMix64(value));
             m_out.jump(continuation);
 
             m_out.appendTo(continuation, lastNext);
@@ -15797,7 +15771,7 @@ IGNORE_CLANG_WARNINGS_END
             unsure(slowCase), unsure(continuation));
 
         m_out.appendTo(straightHash, slowCase);
-        ValueFromBlock fastResult = m_out.anchor(wangsInt64Hash(value));
+        ValueFromBlock fastResult = m_out.anchor(rapidHashMix64(value));
         m_out.jump(continuation);
 
         m_out.appendTo(slowCase, continuation);

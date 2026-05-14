@@ -5398,15 +5398,17 @@ void SpeculativeJIT::compile(Node* node)
             JSValueOperand input(this, node->child1(), ManualOperandSpeculation);
             GPRTemporary result(this, Reuse, input);
             GPRTemporary temp(this);
+            GPRTemporary temp2(this);
 
             GPRReg inputGPR = input.gpr();
             GPRReg resultGPR = result.gpr();
             GPRReg tempGPR = temp.gpr();
+            GPRReg temp2GPR = temp2.gpr();
 
             speculate(node, node->child1());
 
             move(inputGPR, resultGPR);
-            wangsInt64Hash(resultGPR, tempGPR);
+            rapidHashMix64(resultGPR, tempGPR, temp2GPR);
             strictInt32Result(resultGPR, node);
             break;
         }
@@ -5428,11 +5430,15 @@ void SpeculativeJIT::compile(Node* node)
             SpeculateCellOperand input(this, node->child1());
             GPRTemporary result(this);
             std::optional<GPRTemporary> temp;
+            std::optional<GPRTemporary> temp2;
 
             GPRReg tempGPR = InvalidGPRReg;
+            GPRReg temp2GPR = InvalidGPRReg;
             if (node->child1().useKind() == CellUse) {
                 temp.emplace(this);
                 tempGPR = temp->gpr();
+                temp2.emplace(this);
+                temp2GPR = temp2->gpr();
             }
 
             GPRReg inputGPR = input.gpr();
@@ -5447,7 +5453,7 @@ void SpeculativeJIT::compile(Node* node)
                 auto isString = branchIfString(inputGPR);
                 auto isHeapBigInt = branchIfHeapBigInt(inputGPR);
                 move(inputGPR, resultGPR);
-                wangsInt64Hash(resultGPR, tempGPR);
+                rapidHashMix64(resultGPR, tempGPR, temp2GPR);
                 addSlowPathGenerator(slowPathCall(isHeapBigInt, this, operationMapHashHeapBigInt, NeedToSpill, ExceptionCheckRequirement::CheckNotNeeded, resultGPR, TrustedImmPtr(&vm()), inputGPR));
                 done.append(jump());
                 isString.link(this);
@@ -5477,11 +5483,13 @@ void SpeculativeJIT::compile(Node* node)
 
         JSValueOperand input(this, node->child1());
         GPRTemporary temp(this);
+        GPRTemporary temp2(this);
         GPRTemporary result(this);
 
         GPRReg inputGPR = input.gpr();
         GPRReg resultGPR = result.gpr();
         GPRReg tempGPR = temp.gpr();
+        GPRReg temp2GPR = temp2.gpr();
 
         JumpList straightHash;
         JumpList done;
@@ -5498,7 +5506,7 @@ void SpeculativeJIT::compile(Node* node)
 
         straightHash.link(this);
         move(inputGPR, resultGPR);
-        wangsInt64Hash(resultGPR, tempGPR);
+        rapidHashMix64(resultGPR, tempGPR, temp2GPR);
         addSlowPathGenerator(slowPathCall(isHeapBigInt, this, operationMapHashHeapBigInt, NeedToSpill, ExceptionCheckRequirement::CheckNotNeeded, resultGPR, TrustedImmPtr(&vm()), inputGPR));
         done.append(jump());
 
