@@ -76,6 +76,14 @@ ReferencePathOperation::ReferencePathOperation(std::optional<Path>&& path)
 
 // MARK: - ShapePathOperation
 
+ShapePathOperation::ShapePathOperation(Style::BasicShape shape, CSSBoxType referenceBox)
+    : PathOperation(Type::Shape, referenceBox)
+    , m_shape(WTF::move(shape))
+{
+}
+
+ShapePathOperation::~ShapePathOperation() = default;
+
 Ref<ShapePathOperation> ShapePathOperation::create(Style::BasicShape shape, CSSBoxType referenceBox)
 {
     return adoptRef(*new ShapePathOperation(WTF::move(shape), referenceBox));

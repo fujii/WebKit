@@ -140,11 +140,8 @@ public:
 private:
     bool operator==(const PathOperation&) const override;
 
-    ShapePathOperation(Style::BasicShape shape, CSSBoxType referenceBox)
-        : PathOperation(Type::Shape, referenceBox)
-        , m_shape(WTF::move(shape))
-    {
-    }
+    ShapePathOperation(Style::BasicShape, CSSBoxType);
+    ~ShapePathOperation();
 
     Style::BasicShape m_shape;
 };
