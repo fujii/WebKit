@@ -1104,12 +1104,13 @@ static inline bool isSamePair(NSGestureRecognizer *a, NSGestureRecognizer *b, NS
 
 - (BOOL)_isScrollOrZoomGestureRecognizer:(NSGestureRecognizer *)gesture
 {
-    // FIXME: Should we account for any system pan gesture recognizers?
-    return gesture == _panGestureRecognizer || [gesture isKindOfClass:[NSMagnificationGestureRecognizer class]];
+    return gesture == _panGestureRecognizer || isBuiltInScrollViewPanGestureRecognizer(gesture) || [gesture isKindOfClass:[NSMagnificationGestureRecognizer class]];
 }
 
 - (BOOL)_gestureRecognizer:(NSGestureRecognizer *)preventingGestureRecognizer canPreventGestureRecognizer:(NSGestureRecognizer *)preventedGestureRecognizer
 {
+    WK_APPKIT_GESTURE_CONTROLLER_RELEASE_LOG(RefPtr { _page.get() }->logIdentifier(), "Preventing gesture: %@, Prevented gesture: %@", preventingGestureRecognizer, preventedGestureRecognizer);
+
     CheckedPtr viewImpl = _viewImpl.get();
     if (!viewImpl)
         return NO;
