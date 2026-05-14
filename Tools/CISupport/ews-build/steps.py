@@ -3381,6 +3381,7 @@ class CompileWebKit(shell.Compile, AddToLogMixin, ShellMixin):
             if CompileJSC.name not in self.name:
                 build_command += ['-hideShellScriptEnvironment']
             build_command += ['WK_VALIDATE_DEPENDENCIES=YES']
+            build_command += ['WK_ENABLE_SLOW_BUILD_VERIFICATION=YES']
             if buildOnly:
                 # For build-only bots, the expectation is that tests will be run on separate machines,
                 # so we need to package debug info as dSYMs. Only generating line tables makes
