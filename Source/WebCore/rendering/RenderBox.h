@@ -642,6 +642,7 @@ public:
     virtual FloatSize preferredAspectRatioAsSize() const;
 
     bool shouldComputeLogicalWidthFromAspectRatio() const;
+    bool hasFullyConstrainedLogicalHeight() const;
 
 protected:
     RenderBox(Type, Element&, RenderStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });

@@ -5226,6 +5226,13 @@ bool RenderBox::shouldComputeLogicalHeightFromAspectRatio() const
     return h.isAuto() || h.isIntrinsic() || isUnresolveableStretchSize(h) || (!isOutOfFlowPositioned() && h.isPercentOrCalculated() && !percentageLogicalHeightIsResolvable());
 }
 
+bool RenderBox::hasFullyConstrainedLogicalHeight() const
+{
+    // CSS Sizing 3 section 3.2.1: "If the size is being computed in a context where
+    // it is fully constrained (e.g., because both inset properties are specified), the resulting size is definite."
+    return isOutOfFlowPositioned() && style().logicalHeight().isAuto() && !style().logicalTop().isAuto() && !style().logicalBottom().isAuto();
+}
+
 bool RenderBox::shouldComputeLogicalWidthFromAspectRatio() const
 {
     if (shouldIgnoreAspectRatio())

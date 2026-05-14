@@ -1408,6 +1408,17 @@ bool RenderFlexibleBox::flexItemHasComputableAspectRatioAndCrossSizeIsConsidered
         && (flexItemCrossSizeIsDefinite(flexItem, preferredCrossSizeLengthForFlexItem(flexItem)) || hasDefiniteCrossSizeForFlexItem(flexItem));
 }
 
+static bool canResolveFullyConstrainedLogicalHeight(const RenderFlexibleBox& flexBox)
+{
+    // The height is fully constrained by insets (CSS Sizing 3 section 3.2.1), but we can
+    // only resolve it if the containing block's height is itself definite right now.
+    // In nested flex layouts, the containing block may be a flex item that hasn't been
+    // stretched yet - its height is 0 at that point and computeLogicalHeight would give
+    // a wrong answer. This happens when the nested out-of-flow flex is laid out as part of the
+    // anector flex's main-axis sizing, before the stretch phase sets the final cross size.
+    return flexBox.hasFullyConstrainedLogicalHeight() && flexBox.containingBlock()->hasDefiniteLogicalHeight();
+}
+
 bool RenderFlexibleBox::hasDefiniteCrossSizeForFlexItem(const RenderBox& flexItem) const
 {
     // 9.8 https://drafts.csswg.org/css-flexbox/#definite-sizes
@@ -1419,7 +1430,12 @@ bool RenderFlexibleBox::hasDefiniteCrossSizeForFlexItem(const RenderBox& flexIte
             return true;
         // This must be kept in sync with computeMainSizeFromAspectRatioUsing().
         auto& crossSize = isHorizontalFlow() ? style().height() : style().width();
-        return crossSize.isFixed() || (crossSize.isPercent() && availableLogicalHeightForPercentageComputation());
+        if (crossSize.isFixed())
+            return true;
+        if (crossSize.isPercent() && availableLogicalHeightForPercentageComputation())
+            return true;
+        if (canResolveFullyConstrainedLogicalHeight(*this))
+            return true;
     }
     return false;
 }
@@ -2331,12 +2347,15 @@ LayoutUnit RenderFlexibleBox::innerCrossSizeForFlexItem(const RenderBox& flexIte
     auto flexContainerInnerCrossSize = [&] {
         auto isHorizontal = isHorizontalFlow();
         auto size = isHorizontal ? style().height() : style().width();
-        ASSERT(size.isFixed() || (size.isPercent() && availableLogicalHeightForPercentageComputation()));
         auto innerCrossSize = LayoutUnit { };
         if (auto fixedSize = size.tryFixed())
             innerCrossSize = adjustContentBoxLogicalHeightForBoxSizing(LayoutUnit { fixedSize->resolveZoom(style().usedZoomForLength()) });
         else if (size.isPercent())
             innerCrossSize = availableLogicalHeightForPercentageComputation().value_or(0_lu);
+        else if (canResolveFullyConstrainedLogicalHeight(*this))
+            innerCrossSize = std::max(0_lu, computeLogicalHeight(logicalHeight(), 0_lu).extent - borderAndPaddingLogicalHeight() - scrollbarLogicalHeight());
+        else
+            ASSERT_NOT_REACHED();
 
         auto maximumSize = isHorizontal ? style().maxHeight() : style().maxWidth();
         if (auto fixedMaximumSize = maximumSize.tryFixed())
