@@ -237,7 +237,7 @@ JSPromise* JSPromise::rejectWithCaughtException(JSGlobalObject* globalObject, Th
     return this;
 }
 
-void JSPromise::setInlineMicrotaskReaction(VM& vm, InternalMicrotask task, JSValue context)
+void JSPromise::setInlineMicrotaskReaction(VM& vm, InternalMicrotask task, JSPromise* promise, JSValue context)
 {
     ASSERT(status() == Status::Pending);
     ASSERT(inlineReactionKind() == InlineReactionKind::None);
@@ -249,7 +249,7 @@ void JSPromise::setInlineMicrotaskReaction(VM& vm, InternalMicrotask task, JSVal
         | (static_cast<uint16_t>(InlineReactionKind::InternalMicrotask) << inlineReactionKindShift)
         | (static_cast<uint16_t>(task) << inlineReactionMicrotaskShift);
     setSlot(vm, context);
-    setFlags(newFlags);
+    setPackedCell(vm, newFlags, promise);
 }
 
 void JSPromise::setInlineHandlerReaction(VM& vm, InlineReactionKind kind, JSPromise* resultPromise, JSValue handler)
@@ -275,7 +275,8 @@ JSPromiseReaction* JSPromise::spillInlineReaction(VM& vm)
     case InlineReactionKind::InternalMicrotask: {
         InternalMicrotask task = inlineReactionMicrotask();
         JSValue context = m_slot.get();
-        reaction = JSSlimPromiseReaction::create(vm, jsUndefined(), task, context, nullptr);
+        auto* promise = uncheckedDowncast<JSPromise>(payloadCell());
+        reaction = JSSlimPromiseReaction::create(vm, promise ? JSValue(promise) : jsUndefined(), task, context, nullptr);
         break;
     }
     case InlineReactionKind::FulfillHandler:
@@ -373,16 +374,17 @@ void JSPromise::performPromiseThen(VM& vm, JSGlobalObject* globalObject, JSValue
     }
 }
 
-void JSPromise::performPromiseThenWithInternalMicrotask(VM& vm, JSGlobalObject* globalObject, InternalMicrotask task, JSValue promise, JSValue context)
+void JSPromise::performPromiseThenWithInternalMicrotask(VM& vm, JSGlobalObject* globalObject, InternalMicrotask task, JSPromise* promise, JSValue context)
 {
+    JSValue promiseValue = promise ? JSValue(promise) : jsUndefined();
     switch (status()) {
     case JSPromise::Status::Pending: {
-        if (promise.isUndefined() && inlineReactionKind() == InlineReactionKind::None && !payloadCell()) [[likely]] {
-            setInlineMicrotaskReaction(vm, task, context);
+        if (inlineReactionKind() == InlineReactionKind::None && !payloadCell()) [[likely]] {
+            setInlineMicrotaskReaction(vm, task, promise, context);
             break;
         }
         JSPromiseReaction* existing = reactionHead(vm);
-        auto* reaction = JSSlimPromiseReaction::create(vm, promise, task, context, existing);
+        auto* reaction = JSSlimPromiseReaction::create(vm, promiseValue, task, context, existing);
         setPackedCell(vm, flags() | isHandledFlag, reaction);
         break;
     }
@@ -390,13 +392,13 @@ void JSPromise::performPromiseThenWithInternalMicrotask(VM& vm, JSGlobalObject* 
         JSValue settled = settlementValue();
         if (!isHandled())
             globalObject->globalObjectMethodTable()->promiseRejectionTracker(globalObject, this, JSPromiseRejectionOperation::Handle);
-        globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(Status::Rejected), promise, settled, context);
+        globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(Status::Rejected), promiseValue, settled, context);
         markAsHandled();
         break;
     }
     case JSPromise::Status::Fulfilled: {
         JSValue settled = settlementValue();
-        globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(Status::Fulfilled), promise, settled, context);
+        globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(Status::Fulfilled), promiseValue, settled, context);
         break;
     }
     }
@@ -431,10 +433,12 @@ ALWAYS_INLINE void JSPromise::settleInlineInternalMicrotask(VM& vm, JSGlobalObje
     ASSERT(flagsSnapshot & isHandledFlag);
     InternalMicrotask task = static_cast<InternalMicrotask>((flagsSnapshot & inlineReactionMicrotaskMask) >> inlineReactionMicrotaskShift);
     JSValue context = m_slot.get();
+    auto* promise = uncheckedDowncast<JSPromise>(payloadCell());
+    JSValue promiseValue = promise ? JSValue(promise) : jsUndefined();
     uint16_t settledFlags = (flagsSnapshot & ~(inlineReactionKindMask | inlineReactionMicrotaskMask)) | static_cast<uint16_t>(newStatus);
     setSlot(vm, argument);
     setPackedCell(vm, settledFlags, nullptr);
-    globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(newStatus), jsUndefined(), argument, context);
+    globalObject->queueMicrotask(vm, task, static_cast<uint8_t>(newStatus), promiseValue, argument, context);
 }
 
 ALWAYS_INLINE void JSPromise::settleInlineHandler(VM& vm, JSGlobalObject* globalObject, Status newStatus, JSValue argument, uint16_t flagsSnapshot)
@@ -783,7 +787,7 @@ void JSPromise::resolveWithInternalMicrotaskForAsyncAwait(JSGlobalObject* global
     if (resolution.inherits<JSPromise>()) {
         auto* promise = uncheckedDowncast<JSPromise>(resolution);
         if (promiseSpeciesWatchpointIsValid(vm, promise)) [[likely]]
-            return promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, jsUndefined(), context);
+            return promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, nullptr, context);
 
         JSValue constructor;
         JSValue error;
@@ -807,7 +811,7 @@ void JSPromise::resolveWithInternalMicrotaskForAsyncAwait(JSGlobalObject* global
         }
 
         if (constructor == globalObject->promiseConstructor())
-            return promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, jsUndefined(), context);
+            return promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, nullptr, context);
     }
 
     resolveWithInternalMicrotask(globalObject, vm, resolution, task, context);

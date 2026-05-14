@@ -1441,7 +1441,7 @@ void runInternalMicrotask(JSGlobalObject* globalObject, VM& vm, InternalMicrotas
         if (!promiseSpeciesWatchpointIsValid(vm, promise)) [[unlikely]]
             RELEASE_AND_RETURN(scope, promiseResolveThenableJobWithInternalMicrotaskFastSlow(globalObject, promise, task, context));
 
-        promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, jsUndefined(), context);
+        promise->performPromiseThenWithInternalMicrotask(vm, globalObject, task, nullptr, context);
         return;
     }
 

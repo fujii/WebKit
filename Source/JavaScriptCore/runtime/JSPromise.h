@@ -155,7 +155,7 @@ public:
     static void rejectWithInternalMicrotask(VM&, JSGlobalObject*, JSValue argument, InternalMicrotask, JSValue context);
     static void fulfillWithInternalMicrotask(VM&, JSGlobalObject*, JSValue argument, InternalMicrotask, JSValue context);
 
-    void performPromiseThenWithInternalMicrotask(VM&, JSGlobalObject*, InternalMicrotask, JSValue promise, JSValue context);
+    void performPromiseThenWithInternalMicrotask(VM&, JSGlobalObject*, InternalMicrotask, JSPromise*, JSValue context);
 
     bool isThenFastAndNonObservable();
 
@@ -216,8 +216,8 @@ private:
     void setSlot(VM& vm, JSValue value) { m_slot.set(vm, this, value); }
     void clearSlot() { m_slot.clear(); }
 
-    void setInlineMicrotaskReaction(VM&, InternalMicrotask, JSValue context);
-    void setInlineHandlerReaction(VM&, InlineReactionKind, JSPromise* resultPromise, JSValue handler);
+    void setInlineMicrotaskReaction(VM&, InternalMicrotask, JSPromise*, JSValue context);
+    void setInlineHandlerReaction(VM&, InlineReactionKind, JSPromise*, JSValue handler);
     JSPromiseReaction* spillInlineReaction(VM&);
     JSPromiseReaction* reactionHead(VM&);
     void settleInlineInternalMicrotask(VM&, JSGlobalObject*, Status, JSValue argument, uint16_t flags);
