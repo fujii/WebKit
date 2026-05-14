@@ -1756,6 +1756,12 @@ void NetworkConnectionToWebProcess::broadcastConsoleMessage(JSC::MessageSource s
     m_connection->send(Messages::NetworkProcessConnection::BroadcastConsoleMessage(source, level, message), 0);
 }
 
+void NetworkConnectionToWebProcess::dropNonSerializableInProcessCache(WebCore::ProcessIdentifier originProcess, WebCore::NonSerializedDataIdentifier identifier)
+{
+    if (RefPtr connection = m_networkProcess->webProcessConnection(originProcess))
+        connection->m_connection->send(Messages::NetworkProcessConnection::DropNonSerializableInProcessCache(identifier), 0);
+}
+
 void NetworkConnectionToWebProcess::setCORSDisablingPatterns(WebCore::PageIdentifier pageIdentifier, Vector<String>&& patterns)
 {
     m_networkProcess->setCORSDisablingPatterns(*this, pageIdentifier, WTF::move(patterns));

@@ -968,6 +968,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     bindings/js/JSValueInWrappedObjectInlines.h
     bindings/js/JSWindowProxy.h
     bindings/js/ModuleScriptLoader.h
+    bindings/js/NonSerializedDataToken.h
     bindings/js/ReadableStreamDefaultController.h
     bindings/js/RunJavaScriptParameters.h
     bindings/js/ScriptCachedFrameData.h
@@ -2236,6 +2237,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/MessageClientForTesting.h
     platform/MessageForTesting.h
     platform/MessageTargetForTesting.h
+    platform/NonSerializedDataIdentifier.h
     platform/NotImplemented.h
     platform/NowPlayingManager.h
     platform/OrientationNotifier.h

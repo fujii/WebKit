@@ -6382,6 +6382,21 @@ size_t SerializedScriptValue::memoryCost() const
     return m_internals->memoryCost;
 }
 
+std::unique_ptr<Vector<JSC::ArrayBufferContents>>& SerializedScriptValue::sharedBufferContentsArray()
+{
+    return m_internals->sharedBufferContentsArray;
+}
+
+std::optional<SerializedScriptValue::NonSerializedDataToken> SerializedScriptValue::nonSerializedDataToken() const
+{
+    return m_internals->nonSerializedDataToken;
+}
+
+void SerializedScriptValue::setNonSerializedDataToken(std::optional<NonSerializedDataToken> token)
+{
+    m_internals->nonSerializedDataToken = token;
+}
+
 RefPtr<SerializedScriptValue> SerializedScriptValue::convert(JSGlobalObject& globalObject, JSValue value)
 {
     return create(globalObject, value, SerializationForStorage::Yes);

@@ -7985,6 +7985,11 @@ using WebCore::RiceSocket = std::pair<String, WebCore::RTCIceProtocol>;
 };
 #endif
 
+struct WebCore::NonSerializedDataToken {
+    WebCore::ProcessIdentifier processIdentifier;
+    WebCore::NonSerializedDataIdentifier identifier;
+}
+
 headers: <JavaScriptCore/WasmModule.h> <WebCore/ImageBitmap.h> <WebCore/MessagePort.h> <WebCore/OffscreenCanvas.h>
 struct WebCore::SerializedScriptValueInternals {
     Vector<uint8_t> data;
@@ -7997,6 +8002,7 @@ struct WebCore::SerializedScriptValueInternals {
     Vector<Ref<WebCore::WebCodecsEncodedAudioChunkStorage>> serializedAudioChunks;
 #endif
     uint64_t exposedMessagePortCount;
+    std::optional<WebCore::NonSerializedDataToken> nonSerializedDataToken;
     [NotSerialized] Vector<WebCore::FileSystemHandleKeepAlive> fileSystemHandleKeepAlives;
 #if ENABLE(WEB_CODECS)
     [NotSerialized] Vector<WebCore::WebCodecsVideoFrameData> serializedVideoFrames;

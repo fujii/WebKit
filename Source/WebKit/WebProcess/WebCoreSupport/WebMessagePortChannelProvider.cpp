@@ -32,6 +32,7 @@
 #include <WebCore/MessagePort.h>
 #include <WebCore/MessagePortIdentifier.h>
 #include <WebCore/MessageWithMessagePorts.h>
+#include <WebCore/SerializedScriptValue.h>
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebKit {
@@ -86,6 +87,11 @@ void WebMessagePortChannelProvider::messagePortSentToRemote(const WebCore::Messa
         postMessageToRemote(WTF::move(message), port);
 }
 
+void WebMessagePortChannelProvider::dropNonSerializableInProcessCache(WebCore::NonSerializedDataIdentifier identifier)
+{
+    m_nonSerializedDataRegistry.remove(identifier);
+}
+
 void WebMessagePortChannelProvider::messagePortClosed(const MessagePortIdentifier& port)
 {
     m_inProcessPortMessages.remove(port);
@@ -98,9 +104,22 @@ void WebMessagePortChannelProvider::takeAllMessagesForPort(const MessagePortIden
         if (!messageBatchIdentifier)
             return completionHandler({ }, [] { }); // IPC failure.
 
-        auto& inProcessPortMessages = WebMessagePortChannelProvider::singleton().m_inProcessPortMessages;
-        auto iterator = inProcessPortMessages.find(port);
-        if (iterator != inProcessPortMessages.end()) {
+        auto& provider = WebMessagePortChannelProvider::singleton();
+
+        for (auto& message : messages) {
+            if (auto& serializedScriptValue = message.message) {
+                if (auto token = serializedScriptValue->nonSerializedDataToken()) {
+                    if (token->processIdentifier == Process::identifier())
+                        serializedScriptValue->sharedBufferContentsArray() = provider.m_nonSerializedDataRegistry.take(token->identifier);
+                    else
+                        protect(networkProcessConnection())->send(Messages::NetworkConnectionToWebProcess::DropNonSerializableInProcessCache { token->processIdentifier, token->identifier }, 0);
+                    serializedScriptValue->setNonSerializedDataToken(std::nullopt);
+                }
+            }
+        }
+
+        auto iterator = provider.m_inProcessPortMessages.find(port);
+        if (iterator != provider.m_inProcessPortMessages.end()) {
             auto pendingMessages = std::exchange(iterator->value, { });
             messages.appendVector(WTF::move(pendingMessages));
         }
@@ -121,6 +140,14 @@ void WebMessagePortChannelProvider::postMessageToRemote(MessageWithMessagePorts&
 
     for (auto& port : message.transferredPorts)
         messagePortSentToRemote(port.first);
+
+    if (auto& serializedScriptValue = message.message) {
+        if (serializedScriptValue->sharedBufferContentsArray() && !serializedScriptValue->sharedBufferContentsArray()->isEmpty()) {
+            auto identifier = WebCore::NonSerializedDataIdentifier::generate();
+            m_nonSerializedDataRegistry.add(identifier, std::exchange(serializedScriptValue->sharedBufferContentsArray(), nullptr));
+            serializedScriptValue->setNonSerializedDataToken(NonSerializedDataToken { Process::identifier(), identifier });
+        }
+    }
 
     protect(networkProcessConnection())->send(Messages::NetworkConnectionToWebProcess::PostMessageToRemote { message, remoteTarget }, 0);
 }

@@ -28,6 +28,7 @@
 
 #include <JavaScriptCore/ArrayBuffer.h>
 #include <WebCore/FileSystemStorageConnection.h>
+#include <WebCore/NonSerializedDataToken.h>
 #include <WebCore/URLKeepingBlobAlive.h>
 #include <wtf/FastMalloc.h>
 #include <wtf/TZoneMalloc.h>
@@ -86,6 +87,7 @@ struct SerializedScriptValueInternals {
     Vector<Ref<WebCodecsEncodedAudioChunkStorage>> serializedAudioChunks { };
 #endif
     uint64_t exposedMessagePortCount { 0 };
+    std::optional<NonSerializedDataToken> nonSerializedDataToken { };
     Vector<FileSystemHandleKeepAlive> fileSystemHandleKeepAlives { };
 #if ENABLE(WEB_CODECS)
     Vector<WebCodecsVideoFrameData> serializedVideoFrames { };
