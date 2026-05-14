@@ -912,6 +912,33 @@ public:
         m_opInfo2 = OpInfoWrapper();
     }
 
+    void convertToNewPromise(RegisteredStructure structure)
+    {
+        ASSERT(m_op == CreatePromise);
+        setOpAndDefaultFlags(NewPromise);
+        children.reset();
+        m_opInfo = structure;
+        m_opInfo2 = OpInfoWrapper();
+    }
+
+    void convertToPhantomNewPromise()
+    {
+        ASSERT(m_op == NewPromise);
+        setOpAndDefaultFlags(PhantomNewPromise);
+        m_opInfo = OpInfoWrapper();
+        m_opInfo2 = OpInfoWrapper();
+        children = AdjacencyList();
+    }
+
+    void convertToNewResolvedPromise(Edge argument)
+    {
+        ASSERT(m_op == PromiseResolve);
+        setOpAndDefaultFlags(NewResolvedPromise);
+        children = AdjacencyList(AdjacencyList::Fixed, argument);
+        m_opInfo = OpInfoWrapper();
+        m_opInfo2 = OpInfoWrapper();
+    }
+
     void NODELETE convertToNewArrayBuffer(FrozenValue* immutableButterfly);
     void NODELETE convertToNewArrayWithSize();
     void NODELETE convertToNewArrayWithButterfly(Graph&, Node* butterfly);
@@ -2402,6 +2429,7 @@ public:
         case MaterializeNewInternalFieldObject:
         case NewObject:
         case NewInternalFieldObject:
+        case NewPromise:
         case NewStringObject:
         case NewRegExpUntyped:
         case NewMap:
@@ -2610,6 +2638,7 @@ public:
         case PhantomNewAsyncFunction:
         case PhantomNewAsyncGeneratorFunction:
         case PhantomNewInternalFieldObject:
+        case PhantomNewPromise:
         case PhantomCreateActivation:
         case PhantomNewRegExp:
             return true;

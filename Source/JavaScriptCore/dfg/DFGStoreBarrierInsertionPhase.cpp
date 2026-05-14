@@ -406,6 +406,7 @@ private:
             case NewArrayWithSizeAndStructure:
             case NewArrayBuffer:
             case NewInternalFieldObject:
+            case NewPromise:
             case NewTypedArray:
             case NewTypedArrayBuffer:
             case NewRegExp:

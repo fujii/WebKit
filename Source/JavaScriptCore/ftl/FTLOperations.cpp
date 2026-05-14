@@ -164,6 +164,7 @@ JSC_DEFINE_NOEXCEPT_JIT_OPERATION(operationPopulateObjectInOSR, void, (JSGlobalO
     case PhantomSpread:
     case PhantomNewArrayWithSpread:
     case PhantomNewArrayBuffer:
+    case PhantomNewPromise:
         // Those are completely handled by operationMaterializeObjectInOSR
         break;
 
@@ -226,10 +227,6 @@ JSC_DEFINE_NOEXCEPT_JIT_OPERATION(operationPopulateObjectInOSR, void, (JSGlobalO
             break;
         case JSAsyncGeneratorType:
             materialize(uncheckedDowncast<JSAsyncGenerator>(target));
-            break;
-        case JSPromiseType:
-            ASSERT(target->classInfo() == JSPromise::info());
-            materialize(uncheckedDowncast<JSPromise>(target));
             break;
         default:
             RELEASE_ASSERT_NOT_REACHED();
@@ -525,13 +522,24 @@ JSC_DEFINE_NOEXCEPT_JIT_OPERATION(operationMaterializeObjectInOSR, HeapCell*, (J
             return create.operator()<JSGenerator>();
         case JSAsyncGeneratorType:
             return create.operator()<JSAsyncGenerator>();
-        case JSPromiseType:
-            ASSERT(structure->classInfoForCells() == JSPromise::info());
-            return create.operator()<JSPromise>();
         default:
             RELEASE_ASSERT_NOT_REACHED();
             return nullptr;
         }
+    }
+
+    case PhantomNewPromise: {
+        Structure* structure = nullptr;
+        for (unsigned i = materialization->properties().size(); i--;) {
+            const ExitPropertyValue& property = materialization->properties()[i];
+            if (property.location() == PromotedLocationDescriptor(StructurePLoc)) {
+                RELEASE_ASSERT(JSValue::decode(values[i]).asCell()->inherits<Structure>());
+                structure = uncheckedDowncast<Structure>(JSValue::decode(values[i]));
+            }
+        }
+        RELEASE_ASSERT(structure);
+        ASSERT(structure->classInfoForCells() == JSPromise::info());
+        return JSPromise::create(vm, structure);
     }
 
     case PhantomCreateRest:

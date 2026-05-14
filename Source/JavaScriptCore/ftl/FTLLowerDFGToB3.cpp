@@ -1245,6 +1245,9 @@ private:
         case NewInternalFieldObject:
             compileNewInternalFieldObject();
             break;
+        case NewPromise:
+            compileNewPromise();
+            break;
         case NewStringObject:
             compileNewStringObject();
             break;
@@ -1994,6 +1997,7 @@ private:
         case PhantomNewAsyncGeneratorFunction:
         case PhantomNewAsyncFunction:
         case PhantomNewInternalFieldObject:
+        case PhantomNewPromise:
         case PhantomCreateActivation:
         case PhantomDirectArguments:
         case PhantomCreateRest:
@@ -9629,13 +9633,31 @@ IGNORE_CLANG_WARNINGS_END
         case JSAsyncGeneratorType:
             compileNewInternalFieldObjectImpl<JSAsyncGenerator>(operationNewAsyncGenerator);
             break;
-        case JSPromiseType:
-            ASSERT(m_node->structure()->classInfoForCells() == JSPromise::info());
-            compileNewInternalFieldObjectImpl<JSPromise>(operationNewPromise);
-            break;
         default:
             DFG_CRASH(m_graph, m_node, "Bad structure");
         }
+    }
+
+    void compileNewPromise()
+    {
+        ASSERT(m_node->structure()->classInfoForCells() == JSPromise::info());
+        LBasicBlock slowCase = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+        LBasicBlock lastNext = m_out.insertNewBlocksBefore(slowCase);
+
+        LValue object = allocateObject<JSPromise>(m_node->structure(), m_out.intPtrZero, slowCase);
+        m_out.store64(m_out.int64Zero, object, m_heaps.JSPromise_packed);
+        m_out.store64(m_out.constInt64(JSValue::encode(JSValue())), object, m_heaps.JSPromise_slot);
+        mutatorFence();
+        ValueFromBlock fastResult = m_out.anchor(object);
+        m_out.jump(continuation);
+
+        m_out.appendTo(slowCase, continuation);
+        ValueFromBlock slowResult = m_out.anchor(vmCall(pointerType(), operationNewPromise, m_vmValue, frozenPointer(m_graph.freezeStrong(m_node->structure().get()))));
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
+        setJSValue(m_out.phi(pointerType(), fastResult, slowResult));
     }
 
     void compileNewStringObject()
@@ -10085,8 +10107,8 @@ IGNORE_CLANG_WARNINGS_END
 
         m_out.appendTo(fastAllocationCase, slowCase);
         LValue promise = allocateObject<JSPromise>(m_out.phi(pointerType(), promiseStructure, derivedStructure), m_out.intPtrZero, slowCase);
-        m_out.store64(m_out.constInt64(JSValue::encode(jsNumber(static_cast<int32_t>(JSPromise::Status::Pending)))), promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::Flags)]);
-        m_out.store64(m_out.constInt64(JSValue::encode(JSValue())), promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::ReactionsOrResult)]);
+        m_out.store64(m_out.int64Zero, promise, m_heaps.JSPromise_packed);
+        m_out.store64(m_out.constInt64(JSValue::encode(JSValue())), promise, m_heaps.JSPromise_slot);
         mutatorFence();
         ValueFromBlock fastResult = m_out.anchor(promise);
         m_out.jump(continuation);
@@ -18701,10 +18723,6 @@ IGNORE_CLANG_WARNINGS_END
         case JSAsyncGeneratorType:
             compileMaterializeNewInternalFieldObjectImpl<JSAsyncGenerator>(operationNewAsyncGenerator);
             break;
-        case JSPromiseType:
-            ASSERT(m_node->structure()->classInfoForCells() == JSPromise::info());
-            compileMaterializeNewInternalFieldObjectImpl<JSPromise>(operationNewPromise);
-            break;
         default:
             DFG_CRASH(m_graph, m_node, "Bad structure");
         }
@@ -21059,8 +21077,9 @@ IGNORE_CLANG_WARNINGS_END
 
             LValue structure = weakStructure(m_graph.registerStructure(globalObject->promiseStructure()));
             LValue promise = allocateObject<JSPromise>(structure, m_out.intPtrZero, slowCase);
-            m_out.store64(m_out.constInt64(JSValue::encode(jsNumber(static_cast<int32_t>(JSPromise::Status::Fulfilled)))), promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::Flags)]);
-            m_out.store64(argument, promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::ReactionsOrResult)]);
+            static_assert(CompactPointerTuple<JSCell*, uint16_t>::maxNumberOfBitsInPointer == 48, "JSPromise FTL initialization assumes a 48-bit pointer / 16-bit type packing");
+            m_out.store64(m_out.constInt64((static_cast<uint64_t>(JSPromise::Status::Fulfilled) | JSPromise::isFirstResolvingFunctionCalledFlag) << CompactPointerTuple<JSCell*, uint16_t>::maxNumberOfBitsInPointer), promise, m_heaps.JSPromise_packed);
+            m_out.store64(argument, promise, m_heaps.JSPromise_slot);
             mutatorFence();
             ValueFromBlock fastResult = m_out.anchor(promise);
             m_out.jump(continuation);

@@ -1785,6 +1785,7 @@ public:
     void compileCreateAsyncGenerator(Node*);
     void compileNewObject(Node*);
     void compileNewInternalFieldObject(Node*);
+    void compileNewPromise(Node*);
     void compileToPrimitive(Node*);
     void compileToPropertyKey(Node*);
     void compileToPropertyKeyOrNumber(Node*);
