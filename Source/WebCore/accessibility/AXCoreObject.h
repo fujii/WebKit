@@ -207,6 +207,13 @@ enum class AccessibilityButtonState {
 
 enum class AXDirection : bool { Next, Previous };
 
+// Controls what traverseDescendantsIncludingIgnored() does after visiting a descendant.
+enum class AXTraversalResult : uint8_t {
+    SkipSubtree, // Advance to this descendant's next sibling; do not descend into its children.
+    Descend, // Descend into this descendant's children (if any).
+    Stop, // End the traversal immediately.
+};
+
 enum class AccessibilitySortDirection {
     // It's important that Invalid is the first entry, as that means it is the "default value"
     // according to AXIsolatedObject::setProperty, and thus won't be cached unless it's something
@@ -1113,6 +1120,16 @@ public:
         return children(updateChildrenIfNeeded);
     };
 
+    // Walks this object's descendants in pre-order through the core (include-ignored) AX tree,
+    // calling `visitor` once per descendant. `visitor` returns an AXTraversalResult controlling
+    // descent.
+    //
+    // Keeps a cached parent + siblings cursor so sibling walks and subtree ascents reuse one
+    // parentObject() call per hop instead of re-fetching via nextSiblingIncludingIgnored() /
+    // nextInPreOrder().
+    template<typename Visitor>
+    void traverseDescendantsIncludingIgnored(Visitor&&, bool updateChildrenIfNeeded = true);
+
 #if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
     bool onlyAddsUnignoredChildren() const { return isTableColumn() || role() == AccessibilityRole::TableHeaderContainer; }
     virtual AccessibilityChildrenVector unignoredChildren(bool updateChildrenIfNeeded = true);
@@ -1480,6 +1497,61 @@ inline Vector<AXID> axIDs(const AXCoreObject::AccessibilityChildrenVector& objec
     return WTF::map(objects, [](auto& object) {
         return object->objectID();
     });
+}
+
+template<typename Visitor>
+void AXCoreObject::traverseDescendantsIncludingIgnored(Visitor&& visitor, bool updateChildrenIfNeeded)
+{
+    const auto& children = childrenIncludingIgnored(updateChildrenIfNeeded);
+    if (children.isEmpty())
+        return;
+
+    RefPtr descendant = children[0].ptr();
+    RefPtr<AXCoreObject> parent;
+    const AccessibilityChildrenVector* siblings = nullptr;
+
+    while (descendant && descendant != this) {
+        AXTraversalResult result = visitor(*descendant);
+        if (result == AXTraversalResult::Stop)
+            return;
+
+        if (result == AXTraversalResult::Descend && descendant->shouldSetChildIndexInParent()) {
+            // Ignored or invalid descendant: descend into its subtree to look for unignored nested descendants.
+            // Skip descent into Column and TableHeaderContainer, as they add cells despite not being their "true"
+            // parent (the rows are), so descending would either recurse infinitely or walk the wrong sibling
+            // list. This matches the role check in nextInPreOrder().
+            const auto& descendantChildren = descendant->childrenIncludingIgnored(updateChildrenIfNeeded);
+            if (!descendantChildren.isEmpty()) {
+                descendant = descendantChildren[0].ptr();
+                parent = nullptr;
+                continue;
+            }
+        }
+
+        // Either SkipSubtree, or descent wasn't possible. Advance to the next sibling,
+        // or ascend if there isn't one.
+        while (descendant && descendant != this) {
+            if (!parent) {
+                parent = descendant->parentObject();
+                if (!parent) {
+                    siblings = nullptr;
+                    descendant = nullptr;
+                    break;
+                }
+                siblings = &parent->childrenIncludingIgnored();
+            }
+
+            unsigned nextSiblingIndex = descendant->indexInParent() + 1;
+            if (RefPtr nextSibling = nextSiblingIndex < siblings->size() ? (*siblings)[nextSiblingIndex].ptr() : nullptr) {
+                descendant = WTF::move(nextSibling);
+                break;
+            }
+
+            // No next sibling, ascend to parent.
+            descendant = WTF::move(parent);
+            parent = nullptr;
+        }
+    }
 }
 
 #if PLATFORM(MAC)
