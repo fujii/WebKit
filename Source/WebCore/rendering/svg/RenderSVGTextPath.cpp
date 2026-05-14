@@ -25,6 +25,7 @@
 #include "FloatQuad.h"
 #include "RenderBlock.h"
 #include "RenderBoxModelObjectInlines.h"
+#include "RenderElementStyleInlines.h"
 #include "RenderLayer.h"
 #include "RenderObjectInlines.h"
 #include "RenderSVGInlineInlines.h"

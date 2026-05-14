@@ -41,6 +41,7 @@
 #include <JavaScriptCore/Debugger.h>
 #include <JavaScriptCore/JSObject.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/StructureInlines.h>
 #include <wtf/text/MakeString.h>
 
 #if PLATFORM(COCOA)

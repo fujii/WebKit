@@ -30,6 +30,7 @@
 #include "AdvancedPrivacyProtections.h"
 #include "IDBConnectionProxy.h"
 #include "JSDOMExceptionHandling.h"
+#include "JSDOMGlobalObject.h"
 #include "ScriptSourceCode.h"
 #include "SecurityOrigin.h"
 #include "SocketProvider.h"

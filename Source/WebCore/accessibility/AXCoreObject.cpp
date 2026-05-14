@@ -33,6 +33,7 @@
 #include "AXLoggerBase.h"
 #include "AXObjectCache.h"
 #include "AXSearchManager.h"
+#include "AXTextMarker.h"
 #include "AXTreeStoreInlines.h"
 #include "AXUtilities.h"
 #include "DocumentView.h"

@@ -32,6 +32,7 @@
 #include "Exception.h"
 #include "FileSystemWritableFileStream.h"
 #include "StorageConnection.h"
+#include "WorkerFileSystemStorageConnection.h"
 #include "WorkerGlobalScope.h"
 
 namespace WebCore {

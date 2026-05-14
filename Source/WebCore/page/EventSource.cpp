@@ -33,6 +33,7 @@
 #include "config.h"
 #include "EventSource.h"
 
+#include "Blob.h"
 #include "CachedResourceRequestInitiatorTypes.h"
 #include "ContentSecurityPolicy.h"
 #include "ContextDestructionObserverInlines.h"

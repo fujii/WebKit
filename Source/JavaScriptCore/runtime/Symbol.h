@@ -27,7 +27,9 @@
 #pragma once
 
 #include <JavaScriptCore/ErrorType.h>
+#include <JavaScriptCore/JSCell.h>
 #include <JavaScriptCore/PrivateName.h>
+#include <JavaScriptCore/VM.h>
 #include <wtf/Expected.h>
 
 namespace JSC {

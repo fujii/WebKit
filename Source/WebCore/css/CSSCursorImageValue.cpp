@@ -24,6 +24,7 @@
 #include "CSSCursorImageValue.h"
 
 #include "CSSImageValue.h"
+#include "CSSPrimitiveNumericTypes+Serialization.h"
 #include "StyleBuilderState.h"
 #include "StyleCursorImage.h"
 #include "StylePrimitiveNumericTypes+Conversions.h"

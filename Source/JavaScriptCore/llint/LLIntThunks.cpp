@@ -28,6 +28,7 @@
 
 #include "Gate.h"
 #include "InPlaceInterpreter.h"
+#include "JITOperations.h"
 #include "JSCConfig.h"
 #include "JSCJSValueInlines.h"
 #include "JSInterfaceJIT.h"

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <JavaScriptCore/ExceptionHelpers.h>
 #include <JavaScriptCore/GetVM.h>
 #include <JavaScriptCore/HeapCellInlines.h>
 #include <JavaScriptCore/JSGlobalObject.h>

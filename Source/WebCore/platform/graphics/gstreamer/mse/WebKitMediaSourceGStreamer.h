@@ -27,6 +27,7 @@
 
 #include "GStreamerCommon.h"
 #include <wtf/Forward.h>
+#include <wtf/ThreadSafeWeakPtr.h>
 
 namespace WebCore {
 class MediaPlayerPrivateGStreamerMSE;
@@ -55,7 +56,7 @@ GType webkit_media_src_get_type(void);
 
 void webKitMediaSrcEmitStreams(WebKitMediaSrc*, const Vector<RefPtr<WebCore::MediaSourceTrackGStreamer>>&);
 
-void webKitMediaSrcFlush(WebKitMediaSrc*, TrackID);
+void webKitMediaSrcFlush(WebKitMediaSrc*, WebCore::TrackID);
 
 void webKitMediaSrcSetPlayer(WebKitMediaSrc*, ThreadSafeWeakPtr<WebCore::MediaPlayerPrivateGStreamerMSE>&&);
 

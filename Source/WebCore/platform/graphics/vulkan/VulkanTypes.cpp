@@ -37,6 +37,7 @@
 #include <sys/sysmacros.h>
 #include <wtf/Scope.h>
 #include <wtf/text/CStringView.h>
+#include <wtf/text/StringBuilder.h>
 
 #if USE(GBM)
 #include "DRMDeviceManager.h"

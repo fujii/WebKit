@@ -35,6 +35,7 @@
 #include "JSHTMLCollection.h"
 #include "LocalFrame.h"
 #include "WebCoreJSClientData.h"
+#include <JavaScriptCore/JSObjectInlines.h>
 
 namespace WebCore {
 

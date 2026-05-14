@@ -31,6 +31,7 @@
 #include "runtime_method.h"
 #include <JavaScriptCore/Error.h>
 #include <JavaScriptCore/JSCJSValueInlines.h>
+#include <JavaScriptCore/StructureInlinesLight.h>
 
 using namespace WebCore;
 

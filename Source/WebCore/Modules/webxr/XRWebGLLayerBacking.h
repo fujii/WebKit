@@ -27,6 +27,7 @@
 
 #if ENABLE(WEBXR_LAYERS)
 
+#include "ExceptionOr.h"
 #include "GraphicsTypesGL.h"
 #include "IntSize.h"
 #include "XRLayerBacking.h"

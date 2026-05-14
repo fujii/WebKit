@@ -28,6 +28,7 @@
 
 #include "Connection.h"
 #include "MessageSenderInlines.h"
+#include "NetworkProcessMessages.h"
 #include "WebBackForwardList.h"
 #include "WebFrameProxy.h"
 #include "WebPageMessages.h"

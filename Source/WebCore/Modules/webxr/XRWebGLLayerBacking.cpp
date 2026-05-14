@@ -36,6 +36,8 @@
 #include "WebXROpaqueFramebuffer.h"
 #include "WebXRSession.h"
 #include "WebXRWebGLSwapchain.h"
+#include "XRLayerInit.h"
+#include "XRLayerLayout.h"
 #include "XRProjectionLayerInit.h"
 
 #include <wtf/TZoneMallocInlines.h>

@@ -35,6 +35,7 @@
 #include "MessageChannel.h"
 #include "RTCRtpScriptTransformer.h"
 #include "RTCRtpTransformBackend.h"
+#include "ScriptExecutionContext.h"
 #include "Worker.h"
 #include <JavaScriptCore/HeapCellInlines.h>
 #include <wtf/TZoneMallocInlines.h>

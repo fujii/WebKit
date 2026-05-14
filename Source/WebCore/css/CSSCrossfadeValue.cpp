@@ -27,6 +27,7 @@
 #include "config.h"
 #include "CSSCrossfadeValue.h"
 
+#include "CSSPrimitiveNumericTypes+Serialization.h"
 #include "StyleBuilderState.h"
 #include "StyleCrossfadeImage.h"
 #include "StylePrimitiveNumericTypes+Conversions.h"

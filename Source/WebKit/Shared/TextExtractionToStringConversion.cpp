@@ -30,6 +30,7 @@
 #include <WebCore/TextExtractionTypes.h>
 #include <wtf/EnumSet.h>
 #include <wtf/JSONValues.h>
+#include <wtf/RunLoop.h>
 #include <wtf/Scope.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <unicode/ubrk.h>

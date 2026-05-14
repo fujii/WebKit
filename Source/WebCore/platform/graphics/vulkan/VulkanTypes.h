@@ -34,6 +34,7 @@
 #include <expected>
 #include <volk.h>
 #include <wtf/Noncopyable.h>
+#include <wtf/text/WTFString.h>
 
 namespace WebCore {
 

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "Node.h"
 #include <optional>
 #include <wtf/ProcessID.h>
 #include <wtf/RefPtr.h>
@@ -32,7 +33,6 @@
 namespace WebCore {
 
 class ContainerNode;
-class Node;
 
 enum class AccessibilityMode : uint8_t {
     Off = 0,

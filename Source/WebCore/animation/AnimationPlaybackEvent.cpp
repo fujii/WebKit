@@ -26,6 +26,7 @@
 #include "config.h"
 #include "AnimationPlaybackEvent.h"
 
+#include "WebAnimation.h"
 #include "WebAnimationUtilities.h"
 #include <wtf/TZoneMallocInlines.h>
 

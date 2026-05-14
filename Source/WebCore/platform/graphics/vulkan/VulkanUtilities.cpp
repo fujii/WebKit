@@ -33,6 +33,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/Vector.h>
 #include <wtf/text/ASCIILiteral.h>
+#include <wtf/text/CStringView.h>
 #include <wtf/text/MakeString.h>
 #include <wtf/text/StringBuilder.h>
 

@@ -30,6 +30,7 @@
 #include "SuspendedPageProxy.h"
 #include "WebBackForwardCache.h"
 #include "WebBackForwardListFrameItem.h"
+#include "WebBackForwardListItem.h"
 #include "WebProcessMessages.h"
 #include "WebProcessProxy.h"
 #include <wtf/TZoneMallocInlines.h>

@@ -29,6 +29,7 @@
 #include <JavaScriptCore/Forward.h>
 #include <JavaScriptCore/JSCJSValue.h>
 #include <wtf/ThreadSafeRefCounted.h>
+#include <wtf/text/WTFString.h>
 
 typedef const struct OpaqueJSContext* JSContextRef;
 typedef const struct OpaqueJSValue* JSValueRef;
