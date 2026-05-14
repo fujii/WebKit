@@ -5609,9 +5609,6 @@ void WebViewImpl::interpretKeyEvent(NSEvent *event, void(^completionHandler)(BOO
                 hasInsertText = true;
         }
 
-        if (hasInsertText)
-            handled = NO;
-
         LOG(TextInput, "... handleEventByInputMethod%s handled", handled ? "" : " not");
         if (handled) {
             capturedBlock(YES, WTF::move(commands));
