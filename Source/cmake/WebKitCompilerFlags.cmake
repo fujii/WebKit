@@ -7,7 +7,8 @@ function(WEBKIT_CHECK_COMPILER_FLAGS _compiler _result)
     foreach (_flag IN LISTS ARGN)
         # If an equals (=) character is present in a variable name, it will
         # not be cached correctly, and the check will be retried ad nauseam.
-        string(REPLACE "=" "__" _cachevar "${_compiler}_COMPILER_SUPPORTS_${_flag}")
+        # And, an minus (-) character causes a C macro name issue.
+        string(MAKE_C_IDENTIFIER "${_compiler}_COMPILER_SUPPORTS_${_flag}" _cachevar)
         if (CMAKE_${_compiler}_COMPILER_ID STREQUAL "AppleClang")
             set(${_cachevar} TRUE)
         elseif (${_compiler} STREQUAL CXX)
@@ -188,7 +189,8 @@ if (COMPILER_IS_GCC_OR_CLANG)
     endif ()
 
     WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS(-gsimple-template-names)
-    WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS("-mllvm -dwarf-linkage-names=Abstract")
+    # FIXME:
+    #WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS("-mllvm -dwarf-linkage-names=Abstract")
 
     # FIXME: Remove once the strict-aliasing violations exposed by 315506@main are fixed.
     # Enabling strict aliasing (the compiler default at -O2) miscompiles type-punning code
@@ -236,6 +238,9 @@ if (COMPILER_IS_GCC_OR_CLANG)
                                          -Wno-misleading-indentation
                                          -Wno-psabi
                                          -Wno-nullability-completeness)
+
+    # FIXME: ATOMICS_REQUIRE_LIBATOMIC check fails due to -Werror
+    WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-Wno-atomic-alignment)
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         # FIXME: We should probably not be disabling -Wno-maybe-uninitialized?
