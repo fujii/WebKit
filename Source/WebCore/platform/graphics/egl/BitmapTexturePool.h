@@ -57,6 +57,9 @@ public:
 
     void releaseAllTextures();
 
+    // GPU memory investigation.
+    WEBCORE_EXPORT String gpuMemoryDescription();
+
 #if USE(GRAPHICS_LAYER_WC)
     void releaseUnusedTexturesNow() { releaseUnusedTexturesTimerFired(); }
 #endif

@@ -61,6 +61,7 @@ public:
     void invalidateCommittedLayers();
 
     bool layersDidChange() const { return m_didChangeLayers; }
+    unsigned layerCountForDebugging() WTF_IGNORES_THREAD_SAFETY_ANALYSIS { Locker locker { m_layersLock }; return m_layers.size(); }
 
     void waitUntilPaintingComplete();
 

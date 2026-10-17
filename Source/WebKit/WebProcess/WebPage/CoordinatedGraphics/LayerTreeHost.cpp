@@ -37,6 +37,7 @@
 #include "WebPageProxyMessages.h"
 #include "WebProcess.h"
 #include <WebCore/AsyncScrollingCoordinator.h>
+#include <WebCore/BitmapTexturePool.h>
 #include <WebCore/Chrome.h>
 #include <WebCore/Damage.h>
 #include <WebCore/GraphicsLayerCoordinated.h>
@@ -232,6 +233,16 @@ void LayerTreeHost::updateRendering()
     m_imageBackingStores.removeIf([](auto& it) {
         return it.value->hasOneRef();
     });
+
+    if (PlatformDisplay::gpuMemoryDebugLoggingEnabled()) {
+        static MonotonicTime lastLogTime;
+        auto now = MonotonicTime::now();
+        if (now - lastLogTime >= 2_s) {
+            lastLogTime = now;
+            SAFE_FPRINTF(stderr, "GPUMEM main pid=%d layers=%u imageBackingStores=%u\n  skia: %s\n  pool: %s\n", getpid(), m_sceneState->layerCountForDebugging(), m_imageBackingStores.size(),
+                PlatformDisplay::sharedDisplay().skiaGPUMemoryDescription().utf8(), BitmapTexturePool::singleton().gpuMemoryDescription().utf8());
+        }
+    }
 
     if (m_waitUntilPaintingComplete) {
         m_sceneState->waitUntilPaintingComplete();

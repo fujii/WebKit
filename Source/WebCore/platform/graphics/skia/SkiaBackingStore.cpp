@@ -41,8 +41,11 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/gpu/ganesh/SkSurfaceGanesh.h>
 #include <skia/gpu/ganesh/gl/GrGLBackendSurface.h>
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
+#include <wtf/HashSet.h>
+#include <wtf/NeverDestroyed.h>
 #include <wtf/SystemTracing.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/text/MakeString.h>
 
 #if USE(LIBEPOXY)
 #include <epoxy/gl.h>
@@ -52,6 +55,45 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #endif
 
 namespace WebCore {
+
+static HashSet<SkiaBackingStore*>& liveBackingStores()
+{
+    static thread_local NeverDestroyed<HashSet<SkiaBackingStore*>> backingStores;
+    return backingStores.get();
+}
+
+SkiaBackingStore::SkiaBackingStore()
+{
+    liveBackingStores().add(this);
+}
+
+SkiaBackingStore::~SkiaBackingStore()
+{
+    liveBackingStores().remove(this);
+}
+
+String SkiaBackingStore::gpuMemoryDescription()
+{
+    unsigned backingStores = 0, tiles = 0, surfaceTiles = 0, textureTiles = 0;
+    uint64_t surfaceBytes = 0, textureBytes = 0, logicalPixels = 0;
+    for (auto* backingStore : liveBackingStores()) {
+        backingStores++;
+        for (auto& tile : backingStore->m_tiles.values()) {
+            tiles++;
+            logicalPixels += static_cast<uint64_t>(tile.m_rect.width() * tile.m_rect.height());
+            if (tile.m_surface) {
+                surfaceTiles++;
+                surfaceBytes += static_cast<uint64_t>(tile.m_surface->width()) * tile.m_surface->height() * 4;
+            }
+            if (tile.m_texture) {
+                textureTiles++;
+                auto size = tile.m_texture->allocatedSize();
+                textureBytes += static_cast<uint64_t>(size.width()) * size.height() * 4;
+            }
+        }
+    }
+    return makeString("backingStores="_s, backingStores, " tiles="_s, tiles, " logicalArea="_s, logicalPixels / 1000, "Kpx gpuTiles="_s, surfaceTiles, '/', surfaceBytes >> 10, "KiB cpuTiles="_s, textureTiles, '/', textureBytes >> 10, "KiB"_s);
+}
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(SkiaBackingStore);
 

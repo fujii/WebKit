@@ -39,6 +39,8 @@
 #include <WebCore/Page.h>
 #include <WebCore/PlatformDisplay.h>
 #include <WebCore/Settings.h>
+#include <WebCore/CoordinatedTileBuffer.h>
+#include <WebCore/SkiaBackingStore.h>
 #include <WebCore/SkiaCompositingLayer.h>
 #include <WebCore/SkiaDamageRegion.h>
 #include <WebCore/TransformationMatrix.h>
@@ -513,6 +515,16 @@ TargetContents ThreadedCompositor::paintToSkiaCanvas(const TransformationMatrix&
 
     if (auto* surface = canvas->getSurface())
         PlatformDisplay::sharedDisplay().skiaGrContext()->flushAndSubmit(surface, GrSyncCpu::kNo);
+
+    if (PlatformDisplay::gpuMemoryDebugLoggingEnabled()) {
+        static MonotonicTime lastLogTime;
+        auto now = MonotonicTime::now();
+        if (now - lastLogTime >= 2_s) {
+            lastLogTime = now;
+            SAFE_FPRINTF(stderr, "GPUMEM compositor pid=%d %s\n  tiles: %s\n  skia: %s\n", getpid(), m_surface->gpuMemoryDescription().utf8(),
+                SkiaBackingStore::gpuMemoryDescription().utf8(), PlatformDisplay::sharedDisplay().skiaGPUMemoryDescription().utf8());
+        }
+    }
 
     if (hasRunningAnimations)
         requestComposition(CompositionReason::Animation);

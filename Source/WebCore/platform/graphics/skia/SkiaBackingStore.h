@@ -44,8 +44,11 @@ class CoordinatedTileBuffer;
 class SkiaBackingStore {
     WTF_MAKE_TZONE_ALLOCATED(SkiaBackingStore);
 public:
-    SkiaBackingStore() = default;
-    ~SkiaBackingStore() = default;
+    SkiaBackingStore();
+    ~SkiaBackingStore();
+
+    // GPU memory investigation: tiles of every backing store of the calling (compositor) thread.
+    WEBCORE_EXPORT static String gpuMemoryDescription();
 
     float scale() const { return m_scale; }
     bool hasPendingTileUpdates() const { return m_hasPendingTileUpdates; }
@@ -65,6 +68,7 @@ public:
 private:
     class Tile {
         WTF_MAKE_NONCOPYABLE(Tile);
+        friend class SkiaBackingStore;
     public:
         Tile() = default;
         explicit Tile(float scale)

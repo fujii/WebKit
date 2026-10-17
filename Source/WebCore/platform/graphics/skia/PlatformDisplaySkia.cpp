@@ -33,6 +33,7 @@
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/core/SkColorSpace.h>
 #include <skia/core/SkExecutor.h>
+#include <skia/core/SkTraceMemoryDump.h>
 #include <skia/gpu/ganesh/GrBackendSurface.h>
 #include <skia/gpu/ganesh/SkSurfaceGanesh.h>
 #include <skia/gpu/ganesh/gl/GrGLBackendSurface.h>
@@ -54,6 +55,11 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #include <wtf/RAMSize.h>
 #include <wtf/ThreadSafeWeakPtr.h>
 #include <wtf/text/StringToIntegerConversion.h>
+#include <wtf/text/StringBuilder.h>
+#include <wtf/text/MakeString.h>
+#include <map>
+#include <string_view>
+#include <string>
 
 #if USE(LIBDRM)
 #include <fcntl.h>
@@ -418,6 +424,98 @@ void PlatformDisplay::skiaReleaseUnusedResources(WTF::Critical critical)
 void PlatformDisplay::clearSkiaGLContext()
 {
     s_skiaGLContext = nullptr;
+}
+
+// GPU memory investigation: aggregates GrDirectContext::dumpMemoryStatistics() of the current
+// thread's context by resource type, label and cache category.
+class GPUMemoryStatistics final : public SkTraceMemoryDump {
+public:
+    void dumpNumericValue(const char* dumpName, const char* valueName, const char*, uint64_t value) final
+    {
+        auto& resource = m_resources[dumpName];
+        if (std::string_view(valueName) == "size")
+            resource.size = value;
+        else if (std::string_view(valueName) == "purgeable_size")
+            resource.purgeable = true;
+    }
+
+    void dumpStringValue(const char* dumpName, const char* valueName, const char* value) final
+    {
+        auto& resource = m_resources[dumpName];
+        if (std::string_view(valueName) == "type")
+            resource.type = value;
+        else if (std::string_view(valueName) == "label")
+            resource.label = value;
+        else if (std::string_view(valueName) == "category")
+            resource.category = value;
+    }
+
+    void dumpWrappedState(const char* dumpName, bool isWrapped) final { m_resources[dumpName].wrapped = isWrapped; }
+    void setMemoryBacking(const char*, const char*, const char*) final { }
+    void setDiscardableMemoryBacking(const char*, const SkDiscardableMemory&) final { }
+    LevelOfDetail getRequestedDetails() const final { return kObjectsBreakdowns_LevelOfDetail; }
+
+    String description() const
+    {
+        struct Group {
+            uint64_t bytes { 0 };
+            unsigned count { 0 };
+        };
+        std::map<std::string, Group> groups;
+        uint64_t total = 0, purgeable = 0, wrapped = 0;
+        for (const auto& [name, resource] : m_resources) {
+            total += resource.size;
+            if (resource.purgeable)
+                purgeable += resource.size;
+            if (resource.wrapped)
+                wrapped += resource.size;
+            auto key = resource.type + "/" + resource.label + "/" + resource.category + (resource.purgeable ? "/purgeable" : "") + (resource.wrapped ? "/wrapped" : "");
+            auto& group = groups[key];
+            group.bytes += resource.size;
+            group.count++;
+        }
+        StringBuilder builder;
+        builder.append("total="_s, total >> 10, "KiB purgeable="_s, purgeable >> 10, "KiB wrapped="_s, wrapped >> 10, "KiB"_s);
+        Vector<std::pair<std::string, Group>> sorted;
+        for (const auto& group : groups)
+            sorted.append(group);
+        std::sort(sorted.begin(), sorted.end(), [](auto& a, auto& b) { return a.second.bytes > b.second.bytes; });
+        for (const auto& [key, group] : sorted)
+            builder.append("\n    "_s, String::fromUTF8(key.c_str()), ": "_s, group.bytes >> 10, "KiB ("_s, group.count, ')');
+        return builder.toString();
+    }
+
+private:
+    struct Resource {
+        uint64_t size { 0 };
+        std::string type;
+        std::string label;
+        std::string category;
+        bool purgeable { false };
+        bool wrapped { false };
+    };
+    std::map<std::string, Resource> m_resources;
+};
+
+bool PlatformDisplay::gpuMemoryDebugLoggingEnabled()
+{
+    static bool enabled = !!getenv("WEBKIT_GPU_MEMORY_DEBUG");
+    return enabled;
+}
+
+String PlatformDisplay::skiaGPUMemoryDescription()
+{
+    if (!s_skiaGLContext)
+        return "no context"_s;
+    auto* grContext = s_skiaGLContext->skiaGrContext();
+    if (!grContext)
+        return "no context"_s;
+    GPUMemoryStatistics statistics;
+    grContext->dumpMemoryStatistics(&statistics);
+    int count;
+    size_t bytes;
+    grContext->getResourceCacheUsage(&count, &bytes);
+    return makeString("budgeted="_s, bytes >> 10, "KiB limit="_s, grContext->getResourceCacheLimit() >> 10, "KiB "_s, statistics.description());
 }
 
 } // namespace WebCore

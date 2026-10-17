@@ -44,6 +44,7 @@
 #include <wtf/SafeStrerror.h>
 #include <wtf/SystemTracing.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/text/MakeString.h>
 
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/core/SkCanvas.h>
@@ -594,6 +595,17 @@ void AcceleratedSurface::RenderTargetWPEBackend::didRenderFrame()
     wpe_renderer_backend_egl_target_frame_rendered(m_backend);
 }
 #endif
+
+String AcceleratedSurface::gpuMemoryDescription() const
+{
+    unsigned buffers = 0;
+#if ENABLE(DAMAGE_TRACKING)
+    const_cast<SwapChain&>(m_swapChain).forEachTarget([&](auto&) { buffers++; });
+#endif
+    const auto& size = m_swapChain.size();
+    return makeString("swapChain type="_s, static_cast<int>(m_swapChain.type()), " buffers="_s, buffers, " size="_s, size.width(), 'x', size.height(),
+        " colorAndDepthStencil="_s, (static_cast<uint64_t>(size.width()) * size.height() * 8 * buffers) >> 10, "KiB"_s);
+}
 
 AcceleratedSurface::SwapChain::SwapChain(AcceleratedSurface& surface)
     : m_surface(surface)

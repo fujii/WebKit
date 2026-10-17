@@ -32,6 +32,7 @@
 #include "PlatformDisplay.h"
 #include <wtf/MainThread.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/text/MakeString.h>
 
 #if USE(GLIB)
 #include <wtf/glib/RunLoopSourcePriority.h>
@@ -226,6 +227,20 @@ void BitmapTexturePool::exitLimitExceededModeIfNeeded()
         m_releaseUnusedSecondsTolerance = s_releaseUnusedSecondsTolerance;
         m_releaseUnusedTexturesTimerInterval = s_releaseUnusedTexturesTimerInterval;
     }
+}
+
+String BitmapTexturePool::gpuMemoryDescription()
+{
+    Locker locker { m_lock };
+    unsigned inUse = 0;
+    uint64_t inUseBytes = 0;
+    for (auto& entry : m_textures) {
+        if (entry.texture->refCount() > 1) {
+            inUse++;
+            inUseBytes += entry.texture->sizeInBytes();
+        }
+    }
+    return makeString("textures="_s, m_textures.size(), '/', m_poolSizeInBytes >> 10, "KiB inUse="_s, inUse, '/', inUseBytes >> 10, "KiB"_s);
 }
 
 } // namespace WebCore

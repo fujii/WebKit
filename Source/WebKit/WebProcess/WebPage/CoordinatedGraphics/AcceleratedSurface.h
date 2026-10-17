@@ -101,6 +101,9 @@ class AcceleratedSurface final : public ThreadSafeRefCountedAndCanMakeThreadSafe
     WTF_MAKE_TZONE_ALLOCATED(AcceleratedSurface);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(AcceleratedSurface);
 public:
+    // GPU memory investigation.
+    String gpuMemoryDescription() const;
+
     enum class RenderingPurpose {
         Composited,
         NonComposited,
