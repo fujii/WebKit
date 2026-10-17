@@ -300,6 +300,8 @@ void LayerTreeHost::updateRendering()
         return it.value->hasOneRef();
     });
 
+    PlatformDisplay::sharedDisplay().skiaScheduleDeferredCleanup();
+
     if (PlatformDisplay::gpuMemoryDebugLoggingEnabled()) {
         static MonotonicTime lastLogTime;
         auto now = MonotonicTime::now();

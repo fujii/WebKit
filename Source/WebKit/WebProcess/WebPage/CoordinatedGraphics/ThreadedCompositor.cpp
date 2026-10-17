@@ -515,6 +515,7 @@ TargetContents ThreadedCompositor::paintToSkiaCanvas(const TransformationMatrix&
 
     if (auto* surface = canvas->getSurface())
         PlatformDisplay::sharedDisplay().skiaGrContext()->flushAndSubmit(surface, GrSyncCpu::kNo);
+    PlatformDisplay::sharedDisplay().skiaScheduleDeferredCleanup();
 
     if (PlatformDisplay::gpuMemoryDebugLoggingEnabled()) {
         static MonotonicTime lastLogTime;

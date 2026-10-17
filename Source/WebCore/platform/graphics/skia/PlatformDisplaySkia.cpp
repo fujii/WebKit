@@ -53,6 +53,10 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #include <wtf/MemoryPressureHandler.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/RAMSize.h>
+#include <wtf/RunLoop.h>
+#if USE(GLIB_EVENT_LOOP)
+#include <wtf/glib/RunLoopSourcePriority.h>
+#endif
 #include <wtf/ThreadSafeWeakPtr.h>
 #include <wtf/text/StringToIntegerConversion.h>
 #include <wtf/text/StringBuilder.h>
@@ -333,7 +337,56 @@ public:
         }
     }
 
+    // Purges the resources that were not used for the cleanup delay. Rendering starts the timer if it
+    // is not running, so it fires every cleanup delay while rendering goes on, and again while purgeable
+    // resources remain. Without this, unused textures (tiles that were dropped, decoded images, atlases,
+    // offscreen surfaces...) stay in the cache until it reaches its limit, which is 256MB per
+    // thread on devices with 4GB of RAM or more, because nothing else releases them unless the
+    // system is under memory pressure.
+    void scheduleDeferredCleanup()
+    {
+        auto delay = resourceCleanupDelay();
+        if (!delay)
+            return;
+        if (!m_deferredCleanupTimer) {
+            m_deferredCleanupTimer = makeUnique<RunLoop::Timer>(RunLoop::currentSingleton(), "SkiaGLContext::DeferredCleanupTimer"_s, this, &SkiaGLContext::deferredCleanupTimerFired);
+#if USE(GLIB_EVENT_LOOP)
+            m_deferredCleanupTimer->setPriority(RunLoopSourcePriority::ReleaseUnusedResourcesTimer);
+#endif
+        }
+        if (!m_deferredCleanupTimer->isActive())
+            m_deferredCleanupTimer->startOneShot(*delay);
+    }
+
 private:
+    static std::optional<Seconds> resourceCleanupDelay()
+    {
+        static std::optional<Seconds> delay = [] -> std::optional<Seconds> {
+            String envString = String::fromLatin1(getenv("WEBKIT_SKIA_RESOURCE_CLEANUP_DELAY"));
+            if (envString.isEmpty())
+                return 5_s;
+            auto seconds = parseInteger<unsigned>(envString).value_or(0);
+            if (!seconds)
+                return std::nullopt;
+            return Seconds(seconds);
+        }();
+        return delay;
+    }
+
+    void deferredCleanupTimerFired()
+    {
+        Locker locker { m_lock };
+        if (!m_skiaGLContext)
+            return;
+
+        GLContext::ScopedGLContextCurrent scopedCurrent(*m_skiaGLContext);
+        auto delay = *resourceCleanupDelay();
+        m_skiaGrContext->performDeferredCleanup(std::chrono::milliseconds(static_cast<int64_t>(delay.milliseconds())));
+        // Resources that were used too recently to be purged now are checked again later.
+        if (m_skiaGrContext->getResourceCachePurgeableBytes())
+            m_deferredCleanupTimer->startOneShot(delay);
+    }
+
     explicit SkiaGLContext(PlatformDisplay& display)
         : SkiaGLContext(GLContext::createOffscreen(display))
     {
@@ -368,6 +421,7 @@ private:
     std::unique_ptr<GLContext> m_skiaGLContext WTF_GUARDED_BY_LOCK(m_lock);
     sk_sp<GrDirectContext> m_skiaGrContext WTF_GUARDED_BY_LOCK(m_lock);
     mutable Lock m_lock;
+    std::unique_ptr<RunLoop::Timer> m_deferredCleanupTimer;
     unsigned m_sampleCount { 0 };
     size_t m_maxResourceCacheBytes { 0 };
 };
@@ -413,6 +467,12 @@ unsigned PlatformDisplay::msaaSampleCount() const
 size_t PlatformDisplay::maxSkiaResourceCacheBytes() const
 {
     return s_skiaGLContext ? s_skiaGLContext->maxResourceCacheBytes() : 0;
+}
+
+void PlatformDisplay::skiaScheduleDeferredCleanup()
+{
+    if (s_skiaGLContext)
+        s_skiaGLContext->scheduleDeferredCleanup();
 }
 
 void PlatformDisplay::skiaReleaseUnusedResources(WTF::Critical critical)

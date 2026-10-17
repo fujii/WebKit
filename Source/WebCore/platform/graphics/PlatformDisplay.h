@@ -124,6 +124,7 @@ public:
     unsigned msaaSampleCount() const;
     size_t maxSkiaResourceCacheBytes() const;
     void skiaReleaseUnusedResources(WTF::Critical);
+    WEBCORE_EXPORT void skiaScheduleDeferredCleanup();
     WEBCORE_EXPORT static bool gpuMemoryDebugLoggingEnabled();
     WEBCORE_EXPORT String skiaGPUMemoryDescription();
 #endif
