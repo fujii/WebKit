@@ -122,7 +122,11 @@ std::unique_ptr<ImageBufferSkiaAcceleratedBackend> ImageBufferSkiaAcceleratedBac
     RELEASE_ASSERT(grContext);
 
     auto imageInfo = SkImageInfo::Make(backendSize.width(), backendSize.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType, parameters.colorSpace.platformColorSpace());
-    auto msaaSampleCount = PlatformDisplay::sharedDisplay().msaaSampleCount();
+    // Only canvas uses MSAA. Layer tiles are painted without it (see CoordinatedAcceleratedTileBuffer), so
+    // the other buffers, which hold the same kind of content (e.g. the source and result images of CSS
+    // filters painted for every repaint of the layer), don't need it either. A multisampled surface takes
+    // sample count + 1 times the memory of a regular one.
+    auto msaaSampleCount = parameters.purpose == RenderingPurpose::Canvas ? PlatformDisplay::sharedDisplay().msaaSampleCount() : 0;
     uint32_t flags = 0;
     if (parameters.purpose == RenderingPurpose::Canvas && msaaSampleCount && shouldEnableDynamicMSAA()) {
         flags |= SkSurfaceProps::kDynamicMSAA_Flag;
