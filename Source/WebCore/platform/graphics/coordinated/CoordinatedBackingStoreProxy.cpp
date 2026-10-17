@@ -422,7 +422,11 @@ IntSize CoordinatedBackingStoreProxy::computeTileSize(const IntSize& viewportSiz
             if (m_contentsRect.width() <= baseSize.width() / 4)
                 divisor = 1;
             int height = roundUpToMultipleOfNonPowerOfTwo(divisor, baseSize.height()) / divisor;
-            return { width, std::max(height, minGPUTileHeight) };
+            // Use a multiple of the minimum height: GPUs allocate textures in tiles of their own (e.g. 64KB
+            // blocks of 128x128 pixels at 32 bits per pixel on AMD), so a tile a bit taller than that, like a
+            // quarter of a 1080 pixels high viewport (270 pixels, padded to 384 rows), would take ~1.42 times
+            // the memory it needs.
+            return { width, std::max(height / minGPUTileHeight * minGPUTileHeight, minGPUTileHeight) };
         };
 
         IntSize baseSize = viewportSize;
