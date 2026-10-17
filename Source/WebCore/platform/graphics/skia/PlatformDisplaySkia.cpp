@@ -236,6 +236,10 @@ static unsigned initializeMSAASampleCount(GrDirectContext* grContext)
         // If the creation of the surface failed, disable MSAA.
         if (!surface)
             sampleCount = 0;
+
+        // Otherwise the test surface (8MB with 8 samples) would stay in the cache as a scratch resource.
+        surface = nullptr;
+        grContext->purgeUnlockedResources(GrPurgeResourceOptions::kScratchResourcesOnly);
     });
 
     return sampleCount;
