@@ -46,6 +46,7 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/utils/SkNWayCanvas.h>
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/text/TextStream.h>
 
 #if USE(COORDINATED_GRAPHICS)
 #if USE(TEXTURE_MAPPER)
@@ -131,6 +132,12 @@ std::unique_ptr<ImageBufferSkiaAcceleratedBackend> ImageBufferSkiaAcceleratedBac
     auto surface = SkSurfaces::RenderTarget(grContext, skgpu::Budgeted::kYes, imageInfo, msaaSampleCount, kTopLeft_GrSurfaceOrigin, &properties);
     if (!surface || !surface->getCanvas())
         return nullptr;
+
+    if (PlatformDisplay::gpuMemoryDebugLoggingEnabled()) {
+        TextStream purpose(TextStream::LineMode::SingleLine);
+        purpose << parameters.purpose;
+        SAFE_FPRINTF(stderr, "GPUMEM imagebuffer pid=%d %dx%d purpose=%s msaa=%u dynamicMSAA=%d\n", getpid(), backendSize.width(), backendSize.height(), purpose.release().utf8(), msaaSampleCount, !!(flags & SkSurfaceProps::kDynamicMSAA_Flag));
+    }
 
     return create(parameters, creationContext, WTF::move(surface));
 }
