@@ -48,6 +48,10 @@
 #include <WebCore/PlatformDisplay.h>
 #include <WebCore/ProcessCapabilities.h>
 #include <WebCore/RenderLayerBacking.h>
+#include <wtf/text/TextStream.h>
+#include <wtf/text/StringBuilder.h>
+#include <WebCore/RenderLayerCompositor.h>
+#include <WebCore/RenderLayer.h>
 #include <WebCore/RenderView.h>
 #include <WebCore/ScrollingThread.h>
 #include <WebCore/Settings.h>
@@ -173,6 +177,68 @@ bool LayerTreeHost::canUpdateRendering() const
     return !m_isWaitingForRenderer;
 }
 
+
+// GPU memory investigation: the composited layers of the main frame grouped by compositing reasons.
+static String compositedLayersDescription(WebPage& webPage)
+{
+    RefPtr frameView = webPage.localMainFrameView();
+    auto* renderView = frameView ? frameView->renderView() : nullptr;
+    if (!renderView || !renderView->layer())
+        return "no render view"_s;
+
+    struct Group {
+        unsigned count { 0 };
+        unsigned drawing { 0 };
+        uint64_t area { 0 };
+    };
+    HashMap<String, Group> groups;
+    struct Entry {
+        uint64_t area;
+        String description;
+    };
+    Vector<Entry> entries;
+    auto& compositor = renderView->compositor();
+    Function<void(RenderLayer&)> visit = [&](RenderLayer& layer) {
+        if (auto* backing = layer.backing()) {
+            TextStream reasons(TextStream::LineMode::SingleLine);
+            reasons << compositor.reasonsForCompositing(layer);
+            uint64_t area = 0;
+            unsigned drawing = 0;
+            for (auto* graphicsLayer : { backing->graphicsLayer(), backing->foregroundLayer(), backing->backgroundLayer(), backing->scrolledContentsLayer() }) {
+                if (graphicsLayer && graphicsLayer->drawsContent()) {
+                    drawing++;
+                    area += static_cast<uint64_t>(graphicsLayer->size().width() * graphicsLayer->size().height());
+                }
+            }
+            auto& group = groups.add(reasons.release(), Group { }).iterator->value;
+            group.count++;
+            group.drawing += drawing;
+            group.area += area;
+            if (area) {
+                TextStream entry(TextStream::LineMode::SingleLine);
+                entry << layer.renderer().debugDescription() << " " << backing->graphicsLayer()->size() << " " << compositor.reasonsForCompositing(layer);
+                entries.append({ area, entry.release() });
+            }
+        }
+        for (auto* child = layer.firstChild(); child; child = child->nextSibling())
+            visit(*child);
+    };
+    visit(*renderView->layer());
+
+    StringBuilder builder;
+    Vector<std::pair<String, Group>> sortedGroups;
+    for (auto& [key, group] : groups)
+        sortedGroups.append({ key, group });
+    std::ranges::sort(sortedGroups, [](auto& a, auto& b) { return a.second.area > b.second.area; });
+    for (auto& [key, group] : sortedGroups)
+        builder.append("\n    "_s, group.count, " layers, "_s, group.drawing, " drawing, "_s, group.area / 1000, "Kpx: "_s, key);
+    std::ranges::sort(entries, [](auto& a, auto& b) { return a.area > b.area; });
+    builder.append("\n  largest:"_s);
+    for (size_t i = 0; i < std::min<size_t>(entries.size(), 15); ++i)
+        builder.append("\n    "_s, entries[i].area / 1000, "Kpx "_s, entries[i].description);
+    return builder.toString();
+}
+
 void LayerTreeHost::updateRendering()
 {
     invalidateRenderingUpdateRunLoopObserver();
@@ -241,6 +307,9 @@ void LayerTreeHost::updateRendering()
             lastLogTime = now;
             SAFE_FPRINTF(stderr, "GPUMEM main pid=%d layers=%u imageBackingStores=%u\n  skia: %s\n  pool: %s\n", getpid(), m_sceneState->layerCountForDebugging(), m_imageBackingStores.size(),
                 PlatformDisplay::sharedDisplay().skiaGPUMemoryDescription().utf8(), BitmapTexturePool::singleton().gpuMemoryDescription().utf8());
+            static bool dumpLayers = String::fromLatin1(getenv("WEBKIT_GPU_MEMORY_DEBUG")) == "2"_s;
+            if (dumpLayers)
+                SAFE_FPRINTF(stderr, "GPUMEM layers pid=%d%s\n", getpid(), compositedLayersDescription(page.get()).utf8());
         }
     }
 
