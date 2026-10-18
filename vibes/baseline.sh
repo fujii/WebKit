@@ -16,9 +16,10 @@ log() { echo "- $(date -Is) baseline: $*" >> $V/LOG.md; echo "$*"; }
 rm -f "$VIBES_BASELINE_DONE"
 pin_tools || exit 1
 old=$V/metrics/old-$(date +%Y%m%d-%H%M%S)
-shopt -s nullglob
-previous=($V/metrics/mm/baseline-* $V/metrics/noise.json $V/metrics/noise.txt $V/lt/baseline-subset*)
-shopt -u nullglob
+previous=()
+for f in $V/metrics/mm/baseline-* $V/metrics/noise.json $V/metrics/noise.txt $V/lt/baseline-subset*; do
+    [ -e "$f" ] && previous+=("$f")
+done
 if [ ${#previous[@]} -gt 0 ]; then
     mkdir -p "$old" && mv "${previous[@]}" "$old/" || exit 1
 fi
