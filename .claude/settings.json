@@ -6,5 +6,41 @@
         "path": ".claude/plugins"
       }
     }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(Tools/Scripts/build-webkit:*)",
+      "Bash(Tools/Scripts/run-webkit-tests:*)",
+      "Bash(Tools/Scripts/run-benchmark:*)",
+      "Bash(perf:*)",
+      "Bash(sysprof-cli:*)",
+      "Bash(vibes/*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git switch:*)",
+      "Bash(git worktree:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git revert:*)",
+      "Bash(git rebase:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(git show:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git-webkit pr:*)",
+      "Bash(Tools/Scripts/git-webkit pr:*)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git commit * --no-verify*)",
+      "Edit(vibes/*.sh)",
+      "Edit(vibes/*.py)",
+      "Edit(vibes/*.ini)",
+      "Write(vibes/*.sh)",
+      "Write(vibes/*.py)",
+      "Write(vibes/*.ini)",
+      "Edit(.claude/settings.json)",
+      "Write(.claude/settings.json)"
+    ]
   }
 }
