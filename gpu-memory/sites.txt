@@ -1,0 +1,11 @@
+# Public pages, no login. One URL per line.
+https://www.reddit.com/r/popular/
+https://x.com/WebKit
+https://www.youtube.com/
+https://github.com/WebKit/WebKit
+https://en.wikipedia.org/wiki/WebKit
+https://www.nytimes.com/
+https://edition.cnn.com/
+https://www.amazon.com/
+https://www.yahoo.co.jp/
+https://webkit.org/

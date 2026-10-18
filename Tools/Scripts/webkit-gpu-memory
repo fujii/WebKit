@@ -1,0 +1,727 @@
+#!/usr/bin/env python3
+# Copyright (C) 2026 Igalia S.L.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, write to the
+# Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+# Boston, MA 02110-1301, USA.
+
+"""Measure the GPU memory used by a browser while it loads and scrolls pages.
+
+Drives WebKitGTK/WPE MiniBrowser (W3C WebDriver), Google Chrome (Chrome
+DevTools Protocol) or Firefox (WebDriver BiDi) through the same scenario
+for each URL: load, wait, scroll down step by step, then stay idle. The
+GPU memory of the whole browser process tree is sampled during all of it
+from the kernel's per-client DRM memory accounting in
+/proc/<pid>/fdinfo/<fd> (see Documentation/gpu/drm-usage-stats.rst), the
+same interface tools like nvtop read.
+
+Accounting:
+  - fdinfo is per open file, but several fds can refer to the same DRM
+    client (dup()), so clients are deduplicated by (drm-pdev,
+    drm-client-id).
+  - drm-total-<region> counts every buffer object a client has a handle
+    to, including ones imported from another process (dma-buf). A buffer
+    shared between two processes of the tree (e.g. a WebKit WebProcess
+    swap chain buffer imported by the UIProcess) is counted in both.
+    drm-shared-<region> is the part shared with someone else. So
+    sum(total) is an upper bound of the memory the tree uses and
+    sum(total - shared) ("private") a lower bound.
+  - Regions are vram/gtt/cpu (amdgpu), system/stolen (i915/xe), etc.
+    Kernels without drm-total-* fall back to the legacy drm-memory-*.
+
+Example:
+  Tools/Scripts/webkit-gpu-memory --wpe --release https://webkit.org
+  Tools/Scripts/webkit-gpu-memory --browser chrome --repeat 3 --json out.json https://www.reddit.com/r/popular/
+  Tools/Scripts/webkit-gpu-memory --browser firefox --urls-file sites.txt
+"""
+
+import argparse
+import json
+import os
+import re
+import shutil
+import signal
+import socket
+import statistics
+import subprocess
+import sys
+import tempfile
+import time
+from urllib import error as urlerror
+from urllib import request
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+RUN_WEBDRIVER = os.path.join(SCRIPT_DIR, 'run-webdriver')
+
+UNIT_MULTIPLIERS = {
+    '': 1, 'b': 1,
+    'kb': 1000, 'kib': 1024,
+    'mb': 1000 ** 2, 'mib': 1024 ** 2,
+    'gb': 1000 ** 3, 'gib': 1024 ** 3,
+}
+FDINFO_KEY_RE = re.compile(r'^(drm-[\w.-]+):\s*(\S+)\s*(\S+)?\s*$')
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description='Measure GPU memory used by a browser while it loads and scrolls pages.')
+    parser.add_argument('urls', metavar='url', nargs='*', help='URL(s) to load')
+    parser.add_argument('--browser', choices=('minibrowser', 'chrome', 'firefox'), default='minibrowser',
+                        help='Browser to measure (default: minibrowser, which needs --gtk/--wpe and --release/--debug)')
+    parser.add_argument('--gtk', action='store_const', dest='platform', const='gtk', help='Use the GTK MiniBrowser')
+    parser.add_argument('--wpe', action='store_const', dest='platform', const='wpe', help='Use the WPE MiniBrowser')
+    parser.add_argument('--release', action='store_const', dest='configuration', const='Release', help='Use a Release build')
+    parser.add_argument('--debug', action='store_const', dest='configuration', const='Debug', help='Use a Debug build')
+    parser.add_argument('--build-dir', help='MiniBrowser build directory (default: WebKitBuild/<PORT>/<Configuration> of this checkout)')
+    parser.add_argument('--browser-binary', help='Path to the chrome or firefox binary')
+    parser.add_argument('--browser-arg', action='append', default=[], help='Extra argument for the browser (repeatable)')
+    parser.add_argument('--profile', help='Chrome/Firefox profile directory to use instead of a new one, e.g. one where a bot check was passed')
+    parser.add_argument('--keep-x11', action='store_true', help='Keep DISPLAY for Chrome/Firefox (by default they only get WAYLAND_DISPLAY)')
+    parser.add_argument('--urls-file', help='File with one URL per line (# starts a comment)')
+    parser.add_argument('--size', default='1280x720', help='Viewport size WIDTHxHEIGHT in CSS pixels (default: 1280x720)')
+    parser.add_argument('--load-wait', type=float, default=10.0, help='Seconds to wait after the load event (default: 10)')
+    parser.add_argument('--scroll-steps', type=int, default=20, help='Number of scroll steps of 80%% of the viewport height (default: 20)')
+    parser.add_argument('--scroll-interval', type=float, default=1.0, help='Seconds between scroll steps (default: 1)')
+    parser.add_argument('--idle', type=float, default=30.0, help='Seconds to stay idle after scrolling (default: 30)')
+    parser.add_argument('--interval', type=float, default=1.0, help='Seconds between samples while waiting (default: 1)')
+    parser.add_argument('--repeat', type=int, default=1, help='Run every URL this many times, each in a fresh browser (default: 1)')
+    parser.add_argument('--json', metavar='FILE', help='Write the full report, with every sample, to FILE')
+    parser.add_argument('--startup-timeout', type=float, default=30.0, help='Seconds to wait for the browser/driver to start (default: 30)')
+    parser.add_argument('--verbose', action='store_true', help='Print every sample')
+
+    options = parser.parse_args(argv)
+    if options.urls_file:
+        with open(options.urls_file) as urls_file:
+            for line in urls_file:
+                line = line.split('#', 1)[0].strip()
+                if line:
+                    options.urls.append(line)
+    if not options.urls:
+        parser.error('no URL given')
+    if options.browser == 'minibrowser' and (not options.platform or not options.configuration):
+        parser.error('--browser=minibrowser needs one of --gtk/--wpe and one of --release/--debug')
+    match = re.fullmatch(r'(\d+)x(\d+)', options.size)
+    if not match:
+        parser.error('--size must be WIDTHxHEIGHT')
+    options.width, options.height = int(match.group(1)), int(match.group(2))
+    return options
+
+
+# --- GPU memory sampling ----------------------------------------------------
+
+def children_of(pid):
+    children = set()
+    try:
+        tids = os.listdir(f'/proc/{pid}/task')
+    except OSError:
+        return children
+    for tid in tids:
+        try:
+            with open(f'/proc/{pid}/task/{tid}/children') as children_file:
+                children.update(int(child) for child in children_file.read().split())
+        except OSError:
+            continue
+    return children
+
+
+def descendant_pids(root_pid):
+    seen = {root_pid}
+    frontier = [root_pid]
+    while frontier:
+        next_frontier = []
+        for pid in frontier:
+            for child in children_of(pid):
+                if child not in seen:
+                    seen.add(child)
+                    next_frontier.append(child)
+        frontier = next_frontier
+    return seen
+
+
+def process_label(pid):
+    try:
+        with open(f'/proc/{pid}/comm') as comm_file:
+            name = comm_file.read().strip()
+        with open(f'/proc/{pid}/cmdline', 'rb') as cmdline_file:
+            args = cmdline_file.read().split(b'\0')
+    except OSError:
+        return '?'
+    for arg in args:
+        if arg.startswith(b'--type='):
+            return f'{name}:{arg[7:].decode(errors="replace")}'
+    return name
+
+
+def to_bytes(value, unit):
+    return int(value) * UNIT_MULTIPLIERS.get((unit or '').lower(), 1)
+
+
+def read_drm_clients(pid):
+    """Returns {(pdev, client_id): {'driver': str, 'total': {region: bytes}, 'shared': {region: bytes}}}."""
+    clients = {}
+    try:
+        fds = os.listdir(f'/proc/{pid}/fdinfo')
+    except OSError:
+        return clients
+    for fd in fds:
+        try:
+            with open(f'/proc/{pid}/fdinfo/{fd}') as fdinfo_file:
+                content = fdinfo_file.read()
+        except OSError:
+            continue
+        if 'drm-client-id' not in content:
+            continue
+        keys = {}
+        for line in content.splitlines():
+            match = FDINFO_KEY_RE.match(line)
+            if match:
+                keys[match.group(1)] = (match.group(2), match.group(3))
+        client_key = (keys.get('drm-pdev', ('?',))[0], keys['drm-client-id'][0])
+        if client_key in clients:
+            continue
+        total, shared, legacy = {}, {}, {}
+        for key, (value, unit) in keys.items():
+            if not value.isdigit():
+                continue
+            if key.startswith('drm-total-'):
+                total[key[len('drm-total-'):]] = to_bytes(value, unit)
+            elif key.startswith('drm-shared-'):
+                shared[key[len('drm-shared-'):]] = to_bytes(value, unit)
+            elif key.startswith('drm-memory-'):
+                legacy[key[len('drm-memory-'):]] = to_bytes(value, unit or 'KiB')
+        clients[client_key] = {
+            'driver': keys.get('drm-driver', ('?',))[0],
+            'total': total or legacy,
+            'shared': shared,
+        }
+    return clients
+
+
+def add_regions(target, source):
+    for region, value in source.items():
+        target[region] = target.get(region, 0) + value
+
+
+def snapshot_gpu_memory(root_pids, phase):
+    pids = set()
+    for root_pid in root_pids:
+        pids |= descendant_pids(root_pid)
+    seen_clients = set()
+    processes = []
+    tree_total, tree_shared = {}, {}
+    devices = set()
+    for pid in sorted(pids):
+        process_total, process_shared = {}, {}
+        for client_key, client in read_drm_clients(pid).items():
+            if client_key in seen_clients:
+                continue
+            seen_clients.add(client_key)
+            devices.add(f'{client_key[0]} ({client["driver"]})')
+            add_regions(process_total, client['total'])
+            add_regions(process_shared, client['shared'])
+        if not sum(process_total.values()):
+            continue
+        add_regions(tree_total, process_total)
+        add_regions(tree_shared, process_shared)
+        processes.append({
+            'pid': pid,
+            'name': process_label(pid),
+            'total': process_total,
+            'shared': process_shared,
+        })
+    total_bytes = sum(tree_total.values())
+    return {
+        'time': time.time(),
+        'phase': phase,
+        'devices': sorted(devices),
+        'processes': processes,
+        'total': tree_total,
+        'shared': tree_shared,
+        'total_bytes': total_bytes,
+        'private_bytes': total_bytes - sum(tree_shared.values()),
+    }
+
+
+def format_mib(num_bytes):
+    return f'{num_bytes / (1024 * 1024):.1f}'
+
+
+# --- Browser drivers --------------------------------------------------------
+
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(('127.0.0.1', 0))
+        return sock.getsockname()[1]
+
+
+def wait_for_port(port, timeout):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection(('127.0.0.1', port), timeout=0.5):
+                return True
+        except OSError:
+            time.sleep(0.2)
+    return False
+
+
+def http_json(method, url, body=None, timeout=60):
+    data = json.dumps(body).encode('utf-8') if body is not None else None
+    req = request.Request(url, data=data, method=method)
+    if data is not None:
+        req.add_header('Content-Type', 'application/json')
+    try:
+        with request.urlopen(req, timeout=timeout) as response:
+            raw = response.read()
+    except urlerror.HTTPError as error:
+        raw = error.read()
+    return json.loads(raw) if raw else {}
+
+
+def terminate_process_group(process):
+    if not process:
+        return
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+    except OSError:
+        pass
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+        except OSError:
+            pass
+        process.wait()
+
+
+METRICS_SCRIPT = 'return JSON.stringify({width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio, scrollY: window.scrollY, scrollHeight: document.documentElement.scrollHeight, title: document.title});'
+SCROLL_SCRIPT = 'window.scrollBy(0, Math.round(window.innerHeight * 0.8)); return window.scrollY;'
+
+
+def wayland_only_environment(options):
+    # With DISPLAY set, Firefox (and Chrome, depending on its ozone defaults) may open on the X11 desktop
+    # instead of the Wayland compositor given by WAYLAND_DISPLAY.
+    env = dict(os.environ)
+    if not options.keep_x11:
+        env.pop('DISPLAY', None)
+        env['MOZ_ENABLE_WAYLAND'] = '1'
+    return env
+
+
+def use_profile(options, prefix):
+    if options.profile:
+        os.makedirs(options.profile, exist_ok=True)
+        return options.profile, False
+    return tempfile.mkdtemp(prefix=prefix), True
+
+
+class MiniBrowserDriver:
+    """WebKitGTK/WPE MiniBrowser through WebKitWebDriver/WPEWebDriver."""
+
+    def __init__(self, options):
+        self.options = options
+        self.webdriver_process = None
+        self.session_id = None
+        self.root_pids = []
+        options.build_dir = options.build_dir and os.path.abspath(options.build_dir)
+        build_dir = options.build_dir or os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'WebKitBuild', options.platform.upper(), options.configuration)
+        self.binary = os.path.join(build_dir, 'bin', 'MiniBrowser')
+        if not os.path.isfile(self.binary):
+            raise RuntimeError(f'{self.binary} not found... did you run build-webkit?')
+
+    def command(self, method, path, body=None):
+        parsed = http_json(method, f'http://127.0.0.1:{self.port}{path}', body)
+        value = parsed.get('value')
+        if isinstance(value, dict) and 'error' in value:
+            raise RuntimeError(f'WebDriver error for {method} {path}: {value}')
+        return value
+
+    def start(self):
+        self.port = find_free_port()
+        if self.options.build_dir:
+            # run-webdriver would make the UI process spawn the WebProcess of the default build directory.
+            build_dir = self.options.build_dir
+            env = dict(os.environ)
+            env['WEBKIT_EXEC_PATH'] = os.path.join(build_dir, 'bin')
+            env['WEBKIT_INJECTED_BUNDLE_PATH'] = os.path.join(build_dir, 'lib')
+            env['WEBKIT_INSPECTOR_RESOURCES_PATH'] = os.path.join(build_dir, 'share')
+            env['LD_LIBRARY_PATH'] = ':'.join(filter(None, [os.path.join(build_dir, 'lib'), env.get('LD_LIBRARY_PATH')]))
+            driver_name = 'WPEWebDriver' if self.options.platform == 'wpe' else 'WebKitWebDriver'
+            args = [os.path.join(build_dir, 'bin', driver_name), f'--port={self.port}', '--host=127.0.0.1']
+            self.webdriver_process = subprocess.Popen(args, start_new_session=True, env=env)
+        else:
+            args = [RUN_WEBDRIVER, f'--{self.options.configuration.lower()}', f'--{self.options.platform}', '--port', str(self.port)]
+            self.webdriver_process = subprocess.Popen(args, start_new_session=True)
+        if not wait_for_port(self.port, self.options.startup_timeout):
+            raise RuntimeError('Timed out waiting for the WebDriver to start listening')
+        browser_args = ['--automation']
+        if self.options.platform == 'wpe':
+            browser_args.append(f'--size={self.options.width}x{self.options.height}')
+        browser_args += self.options.browser_arg
+        options_key = 'wpe:browserOptions' if self.options.platform == 'wpe' else 'webkitgtk:browserOptions'
+        value = self.command('POST', '/session', {
+            'capabilities': {'alwaysMatch': {options_key: {'binary': self.binary, 'args': browser_args}}},
+        })
+        self.session_id = value['sessionId']
+        self.root_pids = [value['capabilities']['webkit:processID']]
+        self.fit_viewport()
+
+    def fit_viewport(self):
+        for _ in range(3):
+            metrics = self.evaluate(METRICS_SCRIPT)
+            if not metrics:
+                break
+            metrics = json.loads(metrics)
+            delta_width, delta_height = self.options.width - metrics['width'], self.options.height - metrics['height']
+            if not delta_width and not delta_height:
+                break
+            rect = self.command('GET', f'/session/{self.session_id}/window/rect')
+            try:
+                self.command('POST', f'/session/{self.session_id}/window/rect', {
+                    'width': rect['width'] + delta_width, 'height': rect['height'] + delta_height})
+            except RuntimeError:
+                break
+            time.sleep(0.5)
+
+    def navigate(self, url):
+        self.command('POST', f'/session/{self.session_id}/url', {'url': url})
+
+    def evaluate(self, script):
+        return self.command('POST', f'/session/{self.session_id}/execute/sync', {'script': script, 'args': []})
+
+    def stop(self):
+        if self.session_id:
+            try:
+                self.command('DELETE', f'/session/{self.session_id}')
+            except (RuntimeError, OSError):
+                pass
+        terminate_process_group(self.webdriver_process)
+
+
+class WebSocketSession:
+    def __init__(self, url, timeout):
+        import websocket
+        self.connection = websocket.create_connection(url, timeout=timeout, suppress_origin=True)
+        self.last_id = 0
+
+    def send(self, method, params=None):
+        self.last_id += 1
+        self.connection.send(json.dumps({'id': self.last_id, 'method': method, 'params': params or {}}))
+        while True:
+            reply = json.loads(self.connection.recv())
+            if reply.get('id') != self.last_id:
+                continue
+            if 'error' in reply:
+                raise RuntimeError(f'{method} failed: {reply}')
+            return reply.get('result', {})
+
+    def wait_for_event(self, method, timeout):
+        deadline = time.time() + timeout
+        self.connection.settimeout(1)
+        try:
+            while time.time() < deadline:
+                try:
+                    message = json.loads(self.connection.recv())
+                except Exception:
+                    continue
+                if message.get('method') == method:
+                    return message.get('params', {})
+        finally:
+            self.connection.settimeout(120)
+        return None
+
+    def close(self):
+        self.connection.close()
+
+
+class ChromeDriver:
+    """Google Chrome through the Chrome DevTools Protocol."""
+
+    def __init__(self, options):
+        self.options = options
+        self.binary = options.browser_binary or shutil.which('google-chrome') or shutil.which('chromium')
+        if not self.binary:
+            raise RuntimeError('google-chrome not found, use --browser-binary')
+        self.process = None
+        self.profile = None
+        self.session = None
+
+    def start(self):
+        self.profile, self.remove_profile = use_profile(self.options, 'webkit-gpu-memory-chrome-')
+        self.port = find_free_port()
+        args = [self.binary, f'--user-data-dir={self.profile}', f'--remote-debugging-port={self.port}',
+                '--no-first-run', '--no-default-browser-check', '--disable-sync', '--password-store=basic',
+                f'--window-size={self.options.width},{self.options.height}']
+        if not self.options.keep_x11:
+            args.append('--ozone-platform=wayland')
+        args += self.options.browser_arg + ['about:blank']
+        self.process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=wayland_only_environment(self.options))
+        self.root_pids = [self.process.pid]
+        if not wait_for_port(self.port, self.options.startup_timeout):
+            raise RuntimeError('Timed out waiting for Chrome to start listening')
+        deadline = time.time() + self.options.startup_timeout
+        pages = []
+        while not pages and time.time() < deadline:
+            pages = [target for target in http_json('GET', f'http://127.0.0.1:{self.port}/json/list') if target.get('type') == 'page']
+            if not pages:
+                time.sleep(0.2)
+        self.target_id = pages[0]['id']
+        self.session = WebSocketSession(pages[0]['webSocketDebuggerUrl'], 120)
+        # On Wayland the window goes back to --window-size a couple of seconds after startup, so let it settle first.
+        time.sleep(3)
+        self.fit_viewport()
+
+    def fit_viewport(self):
+        # --window-size is the outer size; resize the window until the viewport matches.
+        browser = WebSocketSession(http_json('GET', f'http://127.0.0.1:{self.port}/json/version')['webSocketDebuggerUrl'], 30)
+        try:
+            window_id = browser.send('Browser.getWindowForTarget', {'targetId': self.target_id})['windowId']
+            for _ in range(3):
+                metrics = self.evaluate(METRICS_SCRIPT)
+                if not metrics:
+                    break
+                metrics = json.loads(metrics)
+                delta_width, delta_height = self.options.width - metrics['width'], self.options.height - metrics['height']
+                if not delta_width and not delta_height:
+                    break
+                bounds = browser.send('Browser.getWindowBounds', {'windowId': window_id})['bounds']
+                browser.send('Browser.setWindowBounds', {'windowId': window_id, 'bounds': {
+                    'width': bounds['width'] + delta_width, 'height': bounds['height'] + delta_height}})
+                time.sleep(0.5)
+        finally:
+            browser.close()
+
+    def navigate(self, url):
+        self.session.send('Page.navigate', {'url': url})
+        deadline = time.time() + 60
+        time.sleep(0.5)
+        while time.time() < deadline and self.evaluate('return document.readyState;') != 'complete':
+            time.sleep(0.2)
+
+    def evaluate(self, script):
+        result = self.session.send('Runtime.evaluate', {'expression': f'(function() {{ {script} }})()', 'returnByValue': True})
+        return result.get('result', {}).get('value')
+
+    def layer_summary(self):
+        self.session.send('LayerTree.enable')
+        # layerTreeDidChange is only sent on a change, so cause one.
+        self.evaluate('window.scrollBy(0, 1); requestAnimationFrame(() => window.scrollBy(0, -1));')
+        params = None
+        deadline = time.time() + 10
+        while not (params and params.get('layers')) and time.time() < deadline:
+            params = self.session.wait_for_event('LayerTree.layerTreeDidChange', deadline - time.time())
+        self.session.send('LayerTree.disable')
+        layers = (params or {}).get('layers') or []
+        drawing = [layer for layer in layers if layer.get('drawsContent')]
+        return {
+            'layers': len(layers),
+            'drawing_layers': len(drawing),
+            'drawing_area_kpx': int(sum(layer['width'] * layer['height'] for layer in drawing) / 1000),
+        }
+
+    def stop(self):
+        if self.session:
+            self.session.close()
+        terminate_process_group(self.process)
+        if self.profile and self.remove_profile:
+            shutil.rmtree(self.profile, ignore_errors=True)
+
+
+FIREFOX_PREFS = {
+    'browser.shell.checkDefaultBrowser': False,
+    'browser.startup.homepage_override.mstone': 'ignore',
+    'browser.aboutwelcome.enabled': False,
+    'datareporting.policy.dataSubmissionEnabled': False,
+    'toolkit.telemetry.reportingpolicy.firstRun': False,
+    'app.update.disabledForTesting': True,
+    'browser.tabs.warnOnClose': False,
+}
+
+
+class FirefoxDriver:
+    """Firefox through WebDriver BiDi."""
+
+    def __init__(self, options):
+        self.options = options
+        candidates = [options.browser_binary, os.path.expanduser('~/firefox/firefox'), shutil.which('firefox')]
+        self.binary = next((path for path in candidates if path and os.path.isfile(path)), None)
+        if not self.binary:
+            raise RuntimeError('firefox not found, use --browser-binary')
+        self.process = None
+        self.profile = None
+        self.session = None
+
+    def start(self):
+        self.profile, self.remove_profile = use_profile(self.options, 'webkit-gpu-memory-firefox-')
+        with open(os.path.join(self.profile, 'user.js'), 'w') as prefs_file:
+            for name, value in FIREFOX_PREFS.items():
+                prefs_file.write(f'user_pref({json.dumps(name)}, {json.dumps(value)});\n')
+        self.port = find_free_port()
+        args = [self.binary, '--no-remote', '--profile', self.profile, f'--remote-debugging-port={self.port}',
+                '--width', str(self.options.width), '--height', str(self.options.height)] + self.options.browser_arg + ['about:blank']
+        self.process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=wayland_only_environment(self.options))
+        self.root_pids = [self.process.pid]
+        if not wait_for_port(self.port, self.options.startup_timeout):
+            raise RuntimeError('Timed out waiting for Firefox to start listening')
+        self.session = WebSocketSession(f'ws://127.0.0.1:{self.port}/session', 120)
+        self.session.send('session.new', {'capabilities': {}})
+        self.context = self.session.send('browsingContext.getTree')['contexts'][0]['context']
+        self.fit_viewport()
+
+    def fit_viewport(self):
+        try:
+            client_window = self.session.send('browser.getClientWindows')['clientWindows'][0]
+        except RuntimeError:
+            return
+        for _ in range(3):
+            metrics = self.evaluate(METRICS_SCRIPT)
+            if not metrics:
+                break
+            metrics = json.loads(metrics)
+            delta_width, delta_height = self.options.width - metrics['width'], self.options.height - metrics['height']
+            if not delta_width and not delta_height:
+                break
+            try:
+                client_window = self.session.send('browser.setClientWindowState', {
+                    'clientWindow': client_window['clientWindow'], 'state': 'normal',
+                    'width': client_window['width'] + delta_width, 'height': client_window['height'] + delta_height})
+            except RuntimeError:
+                break
+            time.sleep(0.5)
+
+    def navigate(self, url):
+        self.session.send('browsingContext.navigate', {'context': self.context, 'url': url, 'wait': 'complete'})
+
+    def evaluate(self, script):
+        result = self.session.send('script.evaluate', {
+            'expression': f'(function() {{ {script} }})()', 'target': {'context': self.context}, 'awaitPromise': False})
+        return result.get('result', {}).get('value')
+
+    def stop(self):
+        if self.session:
+            self.session.close()
+        terminate_process_group(self.process)
+        if self.profile and self.remove_profile:
+            shutil.rmtree(self.profile, ignore_errors=True)
+
+
+DRIVERS = {'minibrowser': MiniBrowserDriver, 'chrome': ChromeDriver, 'firefox': FirefoxDriver}
+
+
+# --- Scenario ---------------------------------------------------------------
+
+def run_scenario(driver, url, options):
+    samples = []
+
+    def sample(phase):
+        snapshot = snapshot_gpu_memory(driver.root_pids, phase)
+        samples.append(snapshot)
+        if options.verbose:
+            print(f'  [{phase:6}] total={format_mib(snapshot["total_bytes"])} MiB private={format_mib(snapshot["private_bytes"])} MiB', file=sys.stderr)
+
+    def wait(phase, seconds):
+        deadline = time.time() + seconds
+        while time.time() < deadline:
+            time.sleep(min(options.interval, max(0, deadline - time.time())))
+            sample(phase)
+
+    sample('start')
+    driver.navigate(url)
+    # Info bars and the like can shrink the viewport after a navigation.
+    driver.fit_viewport()
+    sample('loaded')
+    wait('load', options.load_wait)
+    for _ in range(options.scroll_steps):
+        driver.evaluate(SCROLL_SCRIPT)
+        time.sleep(options.scroll_interval)
+        sample('scroll')
+    metrics = driver.evaluate(METRICS_SCRIPT)
+    wait('idle', options.idle)
+    layers = driver.layer_summary() if hasattr(driver, 'layer_summary') else None
+    return {'url': url, 'metrics': json.loads(metrics) if metrics else {}, 'layers': layers, 'samples': samples}
+
+
+def summarize(run):
+    samples = run['samples']
+
+    def last_of(phase):
+        matching = [sample for sample in samples if sample['phase'] == phase]
+        return matching[-1] if matching else samples[-1]
+
+    return {
+        'load': last_of('load'),
+        'peak': max(samples, key=lambda sample: sample['total_bytes']),
+        'idle': last_of('idle'),
+    }
+
+
+def describe_processes(snapshot):
+    descriptions = []
+    for process in snapshot['processes']:
+        regions = ','.join(f'{region}:{format_mib(value)}' for region, value in sorted(process['total'].items()) if value)
+        shared = sum(process['shared'].values())
+        descriptions.append(f'{process["name"]}={format_mib(sum(process["total"].values()))}({regions}; shared {format_mib(shared)})')
+    return ', '.join(descriptions)
+
+
+def print_summary(report):
+    print(f'browser: {report["browser"]}  (MiB; "private" = total minus buffers shared with another process)')
+    print(f'{"url":<45} {"run":>3} {"viewport":>16} | {"load":>7} {"peak":>7} {"idle":>7} | {"idle private":>12} | idle by process')
+    for run in report['runs']:
+        summary = summarize(run)
+        metrics = run['metrics']
+        viewport = f'{metrics.get("width")}x{metrics.get("height")}@{metrics.get("dpr")}'
+        if metrics.get('scrollHeight') is not None and metrics['scrollHeight'] <= metrics.get('height', 0) + 10:
+            viewport += ' NOSCROLL'
+        if run.get('layers'):
+            viewport += f' layers={run["layers"]["layers"]}/{run["layers"]["drawing_layers"]}'
+        print(f'{run["url"][:45]:<45} {run["index"]:>3} {viewport:>16} | '
+              f'{format_mib(summary["load"]["total_bytes"]):>7} {format_mib(summary["peak"]["total_bytes"]):>7} {format_mib(summary["idle"]["total_bytes"]):>7} | '
+              f'{format_mib(summary["idle"]["private_bytes"]):>12} | {describe_processes(summary["idle"])}')
+    devices = sorted({device for run in report['runs'] for sample in run['samples'] for device in sample['devices']})
+    print(f'DRM devices: {", ".join(devices) or "none"}')
+    urls = list(dict.fromkeys(run['url'] for run in report['runs']))
+    if len(report['runs']) > len(urls):
+        print('medians (total):')
+        for url in urls:
+            summaries = [summarize(run) for run in report['runs'] if run['url'] == url]
+            medians = {key: statistics.median(summary[key]['total_bytes'] for summary in summaries) for key in ('load', 'peak', 'idle')}
+            print(f'  {url[:45]:<45} n={len(summaries)} load={format_mib(medians["load"])} peak={format_mib(medians["peak"])} idle={format_mib(medians["idle"])}')
+
+
+def main(argv):
+    options = parse_args(argv)
+    report = {'browser': options.browser, 'options': {key: value for key, value in vars(options).items() if key != 'urls'}, 'runs': []}
+    for index in range(options.repeat):
+        for url in options.urls:
+            driver = DRIVERS[options.browser](options)
+            try:
+                driver.start()
+                run = run_scenario(driver, url, options)
+            except Exception as error:
+                print(f'{url}: run {index + 1} failed: {error!r}', file=sys.stderr)
+                continue
+            finally:
+                driver.stop()
+            run['index'] = index + 1
+            report['runs'].append(run)
+    if options.json:
+        with open(options.json, 'w') as json_file:
+            json.dump(report, json_file, indent=1)
+    print_summary(report)
+    return 0 if report['runs'] else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
