@@ -22,7 +22,7 @@ fi
 echo "- $(date -Is) loop start, deadline $(date -d @$deadline -Is)" >> $V/LOG.md
 usage=$V/metrics/usage.tsv
 [ -f $usage ] || printf 'iter\tstart\tsec\trc\terror\tcost_usd\tturns\tmodel:in/out/cache_read/cache_write/cost\tresult\n' > $usage
-i=$(ls $V/logs/iter-*.json 2>/dev/null | wc -l); fails=0
+i=$(ls $V/logs/iter-*.json 2>/dev/null | wc -l); fails=0; idles=0
 while [ $(date +%s) -lt $((deadline - 900)) ] && [ ! -f "$VIBES_STOP" ]; do
     i=$((i + 1)); n=$(printf %03d $i); rm -f $V/next-action
     start=$(date +%s)
@@ -63,10 +63,18 @@ PY
         continue
     fi
     fails=0
-    if [ "$(cat $V/next-action 2>/dev/null)" = wait-gate ]; then
+    action=$(cat $V/next-action 2>/dev/null)
+    [ "$action" = idle ] && idles=$((idles + 1)) || idles=0
+    if [ "$action" = wait-gate ]; then
         echo "$(date -Is) waiting for the gate"
         w=0
         while pgrep -f 'gate-run.sh' > /dev/null && [ $w -lt 7200 ] && [ $(date +%s) -lt $deadline ]; do sleep 60; w=$((w + 60)); done
+    elif [ "$action" = idle ]; then
+        # Nothing to do: do not start the next session right away (empty iterations cost tokens and hit the plan
+        # limit). Stop after 3 idle iterations in a row.
+        [ $idles -ge 3 ] && { echo "- $(date -Is) loop: stopped after $idles idle iterations" >> $V/LOG.md; break; }
+        echo "$(date -Is) idle ($idles); sleeping 15 min"
+        sleep 900
     fi
 done
 echo "- $(date -Is) loop end ($i iterations)" >> $V/LOG.md

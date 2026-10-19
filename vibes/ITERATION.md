@@ -2,8 +2,9 @@ You are the orchestrator of WPE Vibes, for ONE iteration. You run non-interactiv
 You run in the main worktree. Read CLAUDE.md (rules), then `tail -30 vibes/LOG.md`, `cat vibes/BACKLOG.md`,
 `pgrep -af 'gate-run.sh|qgate.sh check|gate.sh check'`, `cat vibes/run/heavy.job`.
 
-Run deadline: {DEADLINE} (now: {NOW}). Do not start work that cannot finish before the deadline; near the deadline only
-record state.
+Run deadline: {DEADLINE} (now: {NOW}). Do not start worker or discovery work that cannot finish before the deadline.
+Gates are different: they run unattended and their verdict is read by the next run or the human, so start a gate
+whenever one is due, even if it ends after the deadline.
 
 Do exactly one of these, in this order of preference, then stop:
 1. A gate finished (vibes/gates/<label>.txt ends with PASS/REJECT/BORDERLINE and the BACKLOG row says Gate): on PASS of
@@ -21,7 +22,14 @@ Do exactly one of these, in this order of preference, then stop:
    Review; DROPPED/BLOCKED -> Dropped/On hold with the reason.
    A gate may be running while the worker works; that is fine (heavy jobs share the lock). Starting a gate while
    another one runs is fine too: it waits for it (its gates file says "waiting" until then).
-4. Nothing to do but wait for a running gate: write `wait-gate` to vibes/next-action and stop.
+4. No ready Todo task in any track (all are On hold, Dropped, waiting for a gate, or blocked): discover new work. Run the
+   `vibes-discover` agent on the track to work on (the "Priority" note in BACKLOG.md, else the rotation), with the
+   prompt "Track <P|M|Q>. Existing rows: <IDs and one-line ideas, including Dropped/On hold ones>. Deadline {DEADLINE}."
+   Add its candidates (at most 3) as Todo rows with their evidence in Notes; skip duplicates of existing rows. If it
+   finds nothing for that track, try the next track in the same iteration (at most 2 discovery runs per iteration).
+5. Nothing to do but wait for a running gate: write `wait-gate` to vibes/next-action and stop.
+   Nothing to do at all (no gate running, discovery found nothing new, or the deadline is too close for any work):
+   write `idle` to vibes/next-action and stop; the loop then sleeps and ends after a few idle iterations.
 
 Always before stopping: update vibes/BACKLOG.md (state, track, notes) and append 1-3 lines to vibes/LOG.md
 (`- <date -Is> ...`). Keep your own context small: delegate reading and analysis to agents, read only their reports.
