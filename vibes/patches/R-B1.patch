@@ -1,0 +1,189 @@
+From be0eef7450df8f3b9166a27b1eba8fc9a4ebfeea Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Fri, 16 Oct 2026 23:52:06 +0900
+Subject: [PATCH] [Skia] Unpremultiply 8-bit pixel buffers with a lookup table
+ built by Skia
+
+Converting premultiplied RGBA8/BGRA8 pixels to unpremultiplied ones with
+SkPixmap::readPixels() runs the generic SkRasterPipeline with float stages
+(load_8888, unpremul, store_8888) for every pixel. getImageData() does this
+every frame in MotionMark Images, where it takes about 17% of the main thread.
+
+Each output component only depends on the input component and the alpha of the
+pixel, so build a 256 x 256 table once with SkPixmap::readPixels() itself and
+use it for premultiplied to unpremultiplied conversions between 8-bit formats
+in the same color space. The results are bit-identical to Skia's by
+construction. Opaque pixels are copied when Skia leaves them unchanged.
+
+* Source/WebCore/platform/graphics/PixelBufferConversion.cpp:
+(WebCore::unpremultiplyTable):
+(WebCore::unpremultiplyImagePixelsSkia):
+(WebCore::unpremultiplyImagePixelsSkiaIfPossible):
+(WebCore::convertImagePixelsSkia):
+
+(cherry picked from commit 053caf54b578ffb5fdb098d89b79088278b43bee)
+---
+ .../graphics/PixelBufferConversion.cpp        | 122 ++++++++++++++++++
+ 1 file changed, 122 insertions(+)
+
+diff --git a/Source/WebCore/platform/graphics/PixelBufferConversion.cpp b/Source/WebCore/platform/graphics/PixelBufferConversion.cpp
+index 45e399f415c8..b3e500dc021c 100644
+--- a/Source/WebCore/platform/graphics/PixelBufferConversion.cpp
++++ b/Source/WebCore/platform/graphics/PixelBufferConversion.cpp
+@@ -33,8 +33,11 @@
+ #include "PixelBuffer.h"
+ #include "PixelFormat.h"
+ #include <array>
++#include <mutex>
+ #include <wtf/CheckedArithmetic.h>
++#include <wtf/NeverDestroyed.h>
+ #include <wtf/StdLibExtras.h>
++#include <wtf/Vector.h>
+ #include <wtf/text/ParsingUtilities.h>
+ #include <wtf/text/TextStream.h>
+ 
+@@ -45,6 +48,7 @@
+ #endif
+ #elif USE(SKIA)
+ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
++#include <skia/core/SkColorSpace.h>
+ #include <skia/core/SkPixmap.h>
+ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
+ #endif
+@@ -335,6 +339,121 @@ static bool platformConvertImagePixels(const ConstPixelBufferConversionView& sou
+ 
+ #elif USE(SKIA)
+ 
++// Unpremultiplying 8-bit components with SkPixmap::readPixels() runs SkRasterPipeline per pixel
++// with float stages, which is slow for the common getImageData() case. The result of every 8-bit
++// component only depends on the component value and the alpha value of the pixel, so a table with
++// all 256 x 256 combinations, produced by SkPixmap::readPixels() itself, gives exactly the same
++// results as Skia does. The table is indexed with alpha * 256 + component.
++using UnpremultiplyTable = std::array<uint8_t, 256 * 256>;
++
++static const UnpremultiplyTable* unpremultiplyTable()
++{
++    static std::once_flag onceFlag;
++    static LazyNeverDestroyed<UnpremultiplyTable> table;
++    static bool isValid = false;
++    std::call_once(onceFlag, [] {
++        table.construct();
++
++        // One row per alpha value, one column per component value. Components bigger than the
++        // alpha are invalid premultiplied values, but they are included so that any input gives the
++        // same result as Skia.
++        Vector<uint32_t> premultiplied(256 * 256);
++        Vector<uint32_t> unpremultiplied(256 * 256);
++        for (unsigned alpha = 0; alpha < 256; ++alpha) {
++            for (unsigned component = 0; component < 256; ++component)
++                premultiplied[alpha * 256 + component] = component | component << 8 | component << 16 | alpha << 24;
++        }
++
++        auto colorSpace = SkColorSpace::MakeSRGB();
++        auto sourceInfo = SkImageInfo::Make(256, 256, kRGBA_8888_SkColorType, kPremul_SkAlphaType, colorSpace);
++        auto destinationInfo = SkImageInfo::Make(256, 256, kRGBA_8888_SkColorType, kUnpremul_SkAlphaType, colorSpace);
++        SkPixmap sourcePixmap(sourceInfo, premultiplied.span().data(), 256 * sizeof(uint32_t));
++        if (!sourcePixmap.readPixels(destinationInfo, unpremultiplied.mutableSpan().data(), 256 * sizeof(uint32_t)))
++            return;
++
++        for (unsigned alpha = 0; alpha < 256; ++alpha) {
++            for (unsigned component = 0; component < 256; ++component) {
++                uint32_t pixel = unpremultiplied[alpha * 256 + component];
++                uint8_t result = pixel & 0xff;
++                // Every color component goes through the same stages, and alpha is kept as is.
++                if (((pixel >> 8) & 0xff) != result || ((pixel >> 16) & 0xff) != result || (pixel >> 24) != alpha)
++                    return;
++                table.get()[alpha * 256 + component] = result;
++            }
++        }
++        isValid = true;
++    });
++    return isValid ? &table.get() : nullptr;
++}
++
++template<bool swapComponentOrder>
++static void unpremultiplyImagePixelsSkia(const UnpremultiplyTable& table, const ConstPixelBufferConversionView& source, const PixelBufferConversionView& destination, const IntSize& destinationSize)
++{
++    size_t rowBytes = static_cast<size_t>(destinationSize.width()) * 4;
++    // Fully opaque pixels are only copied if Skia leaves them unchanged.
++    bool opaqueIsIdentity = true;
++    for (unsigned component = 0; component < 256; ++component)
++        opaqueIsIdentity &= table[255 * 256 + component] == component;
++
++    for (int y = 0; y < destinationSize.height(); ++y) {
++        // The source and the destination may be the same buffer, so every pixel is read before it is written.
++        auto sourceRow = source.rows.subspan(static_cast<size_t>(y) * source.bytesPerRow, rowBytes);
++        auto destinationRow = destination.rows.subspan(static_cast<size_t>(y) * destination.bytesPerRow, rowBytes);
++        WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
++        const uint8_t* sourcePixel = sourceRow.data();
++        uint8_t* destinationPixel = destinationRow.data();
++        const uint8_t* tableData = table.data();
++        for (size_t x = 0; x < rowBytes; x += 4) {
++            uint8_t c0 = sourcePixel[x + 0];
++            uint8_t c1 = sourcePixel[x + 1];
++            uint8_t c2 = sourcePixel[x + 2];
++            uint8_t alpha = sourcePixel[x + 3];
++            if (alpha != 255 || !opaqueIsIdentity) {
++                const uint8_t* alphaRow = tableData + alpha * 256;
++                c0 = alphaRow[c0];
++                c1 = alphaRow[c1];
++                c2 = alphaRow[c2];
++            }
++            if constexpr (swapComponentOrder)
++                std::swap(c0, c2);
++            destinationPixel[x + 0] = c0;
++            destinationPixel[x + 1] = c1;
++            destinationPixel[x + 2] = c2;
++            destinationPixel[x + 3] = alpha;
++        }
++        WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
++    }
++}
++
++static bool unpremultiplyImagePixelsSkiaIfPossible(const ConstPixelBufferConversionView& source, const PixelBufferConversionView& destination, const IntSize& destinationSize)
++{
++    auto is8888 = [](PixelFormat pixelFormat) {
++        return pixelFormat == PixelFormat::RGBA8 || pixelFormat == PixelFormat::BGRA8;
++    };
++    if (!is8888(source.format.pixelFormat) || !is8888(destination.format.pixelFormat))
++        return false;
++    if (source.format.alphaFormat != AlphaPremultiplication::Premultiplied || destination.format.alphaFormat != AlphaPremultiplication::Unpremultiplied)
++        return false;
++    // With equal color spaces Skia only unpremultiplies, and possibly swaps the components.
++    if (source.format.colorSpace != destination.format.colorSpace)
++        return false;
++    // SkPixmap::readPixels() fails for rows that are not a whole number of pixels; let it handle that.
++    if (source.bytesPerRow % 4 || destination.bytesPerRow % 4)
++        return false;
++    if (destinationSize.width() <= 0 || destinationSize.height() <= 0)
++        return false;
++
++    auto* table = unpremultiplyTable();
++    if (!table)
++        return false;
++
++    if (pixelComponentOrder(source.format.pixelFormat) != pixelComponentOrder(destination.format.pixelFormat))
++        unpremultiplyImagePixelsSkia<true>(*table, source, destination, destinationSize);
++    else
++        unpremultiplyImagePixelsSkia<false>(*table, source, destination, destinationSize);
++    return true;
++}
++
+ static bool convertImagePixelsSkia(const ConstPixelBufferConversionView& source, const PixelBufferConversionView& destination, const IntSize& destinationSize)
+ {
+     auto toSkiaColorType = [](const PixelFormat& pixelFormat) -> std::optional<SkColorType> {
+@@ -358,6 +477,9 @@ static bool convertImagePixelsSkia(const ConstPixelBufferConversionView& source,
+         ASSERT_NOT_REACHED();
+         return SkAlphaType::kUnknown_SkAlphaType;
+     };
++    if (unpremultiplyImagePixelsSkiaIfPossible(source, destination, destinationSize))
++        return true;
++
+     auto sourceSkiaColorType = toSkiaColorType(source.format.pixelFormat);
+     if (!sourceSkiaColorType)
+         return false;
+
+base-commit: 265f57b72451756352251fd7226ed08a59a51386
+-- 
+2.53.0
+

@@ -1,0 +1,349 @@
+From 471e472121b1b5c9986114e353baaa1cd829457f Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Sun, 18 Oct 2026 01:50:25 +0900
+Subject: [PATCH] [WPE] Support wp_fractional_scale_v1 in the Wayland platform
+
+At a fractional output scale (e.g. 150%) the compositor advertises the
+ceiled integer scale in wl_output, so WPEPlatform rendered 2x buffers that
+the compositor then downscaled: 1.78x the pixels (and GPU memory) needed.
+
+When the compositor provides wp_fractional_scale_manager_v1 and
+wp_viewporter, create a wp_fractional_scale_v1 and a wp_viewport for the
+toplevel surface, like GTK does. The preferred scale (in 1/120 units)
+becomes the toplevel scale, the buffer scale stays 1, and the viewport
+destination is set to the view size in logical pixels before each commit.
+The maximized-state buffer size check allows the sub-pixel difference
+caused by truncating the scaled view size.
+
+Without the protocols (e.g. Weston) nothing changes.
+
+* Source/WebKit/WPEPlatform/wpe/wayland/CMakeLists.txt:
+* Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWayland.cpp:
+* Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWaylandPrivate.h:
+* Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWayland.cpp:
+* Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWaylandPrivate.h:
+* Source/WebKit/WPEPlatform/wpe/wayland/WPEViewWayland.cpp:
+---
+ .../WPEPlatform/wpe/wayland/CMakeLists.txt    | 25 ++++++
+ .../wpe/wayland/WPEDisplayWayland.cpp         | 26 ++++++
+ .../wpe/wayland/WPEDisplayWaylandPrivate.h    |  9 ++
+ .../wpe/wayland/WPEToplevelWayland.cpp        | 89 +++++++++++++++++--
+ .../wpe/wayland/WPEToplevelWaylandPrivate.h   |  1 +
+ .../wpe/wayland/WPEViewWayland.cpp            |  8 +-
+ 6 files changed, 149 insertions(+), 9 deletions(-)
+
+diff --git a/Source/WebKit/WPEPlatform/wpe/wayland/CMakeLists.txt b/Source/WebKit/WPEPlatform/wpe/wayland/CMakeLists.txt
+index 128f0d8dfadb..25b264009163 100644
+--- a/Source/WebKit/WPEPlatform/wpe/wayland/CMakeLists.txt
++++ b/Source/WebKit/WPEPlatform/wpe/wayland/CMakeLists.txt
+@@ -198,6 +198,31 @@ if (EXISTS "${WAYLAND_PROTOCOLS_DATADIR}/unstable/xdg-decoration/xdg-decoration-
+     list(APPEND WPEPlatformWayland_DEFINITIONS USE_XDG_DECORATION_UNSTABLE_V1=1)
+ endif ()
+ 
++if (EXISTS "${WAYLAND_PROTOCOLS_DATADIR}/staging/fractional-scale/fractional-scale-v1.xml" AND EXISTS "${WAYLAND_PROTOCOLS_DATADIR}/stable/viewporter/viewporter.xml")
++    foreach (protocol_xml "staging/fractional-scale/fractional-scale-v1" "stable/viewporter/viewporter")
++        get_filename_component(protocol_name ${protocol_xml} NAME)
++        add_custom_command(
++            OUTPUT ${WPEPlatform_DERIVED_SOURCES_DIR}/wpe/wayland/${protocol_name}-protocol.c
++            MAIN_DEPENDENCY ${WAYLAND_PROTOCOLS_DATADIR}/${protocol_xml}.xml
++            DEPENDS ${WPEPlatform_DERIVED_SOURCES_DIR}/wpe/wayland/${protocol_name}-client-protocol.h
++            COMMAND ${WAYLAND_SCANNER} private-code
++                ${WAYLAND_PROTOCOLS_DATADIR}/${protocol_xml}.xml
++                ${WPEPlatform_DERIVED_SOURCES_DIR}/wpe/wayland/${protocol_name}-protocol.c
++            VERBATIM)
++
++        add_custom_command(
++            OUTPUT ${WPEPlatform_DERIVED_SOURCES_DIR}/wpe/wayland/${protocol_name}-client-protocol.h
++            MAIN_DEPENDENCY ${WAYLAND_PROTOCOLS_DATADIR}/${protocol_xml}.xml
++            COMMAND ${WAYLAND_SCANNER} client-header
++                ${WAYLAND_PROTOCOLS_DATADIR}/${protocol_xml}.xml
++                ${WPEPlatform_DERIVED_SOURCES_DIR}/wpe/wayland/${protocol_name}-client-protocol.h
++            VERBATIM)
++
++        list(APPEND WPEPlatformWayland_SOURCES ${WPEPlatform_DERIVED_SOURCES_DIR}/wpe/wayland/${protocol_name}-protocol.c)
++    endforeach ()
++    list(APPEND WPEPlatformWayland_DEFINITIONS USE_WP_FRACTIONAL_SCALE_V1=1)
++endif ()
++
+ add_library(WPEPlatformWayland OBJECT ${WPEPlatformWayland_SOURCES})
+ target_compile_definitions(WPEPlatformWayland PRIVATE ${WPEPlatformWayland_DEFINITIONS})
+ target_include_directories(WPEPlatformWayland PRIVATE ${WPEPlatformWayland_PRIVATE_INCLUDE_DIRECTORIES})
+diff --git a/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWayland.cpp b/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWayland.cpp
+index 316471462cd7..c9477472f1d7 100644
+--- a/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWayland.cpp
++++ b/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWayland.cpp
+@@ -106,6 +106,10 @@ struct _WPEDisplayWaylandPrivate {
+ #endif
+ #if USE(XDG_DECORATION_UNSTABLE_V1)
+     struct zxdg_decoration_manager_v1* xdgDecorationManager;
++#endif
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    struct wp_fractional_scale_manager_v1* fractionalScaleManager;
++    struct wp_viewporter* viewporter;
+ #endif
+     Vector<std::pair<uint32_t, uint64_t>> linuxDMABufFormats;
+     std::unique_ptr<WPE::WaylandSeat> wlSeat;
+@@ -248,6 +252,10 @@ static void wpeDisplayWaylandDispose(GObject* object)
+ #if USE(XDG_DECORATION_UNSTABLE_V1)
+     g_clear_pointer(&priv->xdgDecorationManager, zxdg_decoration_manager_v1_destroy);
+ #endif
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    g_clear_pointer(&priv->fractionalScaleManager, wp_fractional_scale_manager_v1_destroy);
++    g_clear_pointer(&priv->viewporter, wp_viewporter_destroy);
++#endif
+ #if USE(LIBDRM)
+     g_clear_pointer(&priv->dmabufFeedback, zwp_linux_dmabuf_feedback_v1_destroy);
+ #endif
+@@ -307,6 +315,12 @@ const struct wl_registry_listener registryListener = {
+ #if USE(XDG_DECORATION_UNSTABLE_V1)
+         else if (interfaceName == "zxdg_decoration_manager_v1"_s)
+             priv->xdgDecorationManager = static_cast<struct zxdg_decoration_manager_v1*>(wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, 1));
++#endif
++#if USE(WP_FRACTIONAL_SCALE_V1)
++        else if (interfaceName == "wp_fractional_scale_manager_v1"_s)
++            priv->fractionalScaleManager = static_cast<struct wp_fractional_scale_manager_v1*>(wl_registry_bind(registry, name, &wp_fractional_scale_manager_v1_interface, 1));
++        else if (interfaceName == "wp_viewporter"_s)
++            priv->viewporter = static_cast<struct wp_viewporter*>(wl_registry_bind(registry, name, &wp_viewporter_interface, 1));
+ #endif
+     },
+     // global_remove
+@@ -661,6 +675,18 @@ struct zxdg_decoration_manager_v1* wpeDisplayWaylandGetXDGDecorationManager(WPED
+ }
+ #endif // USE(XDG_DECORATION_UNSTABLE_V1)
+ 
++#if USE(WP_FRACTIONAL_SCALE_V1)
++struct wp_fractional_scale_manager_v1* wpeDisplayWaylandGetFractionalScaleManager(WPEDisplayWayland* display)
++{
++    return display->priv->fractionalScaleManager;
++}
++
++struct wp_viewporter* wpeDisplayWaylandGetViewporter(WPEDisplayWayland* display)
++{
++    return display->priv->viewporter;
++}
++#endif // USE(WP_FRACTIONAL_SCALE_V1)
++
+ struct zwp_linux_explicit_synchronization_v1* wpeDisplayWaylandGetLinuxExplicitSync(WPEDisplayWayland* display)
+ {
+     return display->priv->linuxExplicitSync;
+diff --git a/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWaylandPrivate.h b/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWaylandPrivate.h
+index 33f29c1d9143..aae5fd0fe9ef 100644
+--- a/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWaylandPrivate.h
++++ b/Source/WebKit/WPEPlatform/wpe/wayland/WPEDisplayWaylandPrivate.h
+@@ -34,6 +34,11 @@
+ #include "xdg-decoration-unstable-v1-client-protocol.h"
+ #endif
+ 
++#if USE(WP_FRACTIONAL_SCALE_V1)
++#include "fractional-scale-v1-client-protocol.h"
++#include "viewporter-client-protocol.h"
++#endif
++
+ struct xdg_wm_base* wpeDisplayWaylandGetXDGWMBase(WPEDisplayWayland*);
+ WPE::WaylandSeat* wpeDisplayWaylandGetSeat(WPEDisplayWayland*);
+ WPE::WaylandCursor* wpeDisplayWaylandGetCursor(WPEDisplayWayland*);
+@@ -47,3 +52,7 @@ struct zwp_pointer_constraints_v1* wpeDisplayWaylandGetPointerConstraints(WPEDis
+ struct zwp_relative_pointer_manager_v1* wpeDisplayWaylandGetRelativePointerManager(WPEDisplayWayland*);
+ struct wp_presentation* wpeDisplayWaylandGetPresentation(WPEDisplayWayland*);
+ struct zxdg_decoration_manager_v1* wpeDisplayWaylandGetXDGDecorationManager(WPEDisplayWayland*);
++#if USE(WP_FRACTIONAL_SCALE_V1)
++struct wp_fractional_scale_manager_v1* wpeDisplayWaylandGetFractionalScaleManager(WPEDisplayWayland*);
++struct wp_viewporter* wpeDisplayWaylandGetViewporter(WPEDisplayWayland*);
++#endif
+diff --git a/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWayland.cpp b/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWayland.cpp
+index 0c1a9c7b5422..e8c6817b17cb 100644
+--- a/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWayland.cpp
++++ b/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWayland.cpp
+@@ -239,6 +239,15 @@ struct _WPEToplevelWaylandPrivate {
+ 
+     struct zwp_linux_dmabuf_feedback_v1* dmabufFeedback;
+     struct zwp_linux_surface_synchronization_v1* surfaceSync;
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    struct wp_fractional_scale_v1* fractionalScale;
++    struct wp_viewport* viewport;
++    std::optional<double> preferredFractionalScale;
++    struct {
++        int width;
++        int height;
++    } viewportDestination;
++#endif
+     std::unique_ptr<DMABufFeedback> pendingDMABufFeedback;
+     std::unique_ptr<DMABufFeedback> committedDMABufFeedback;
+     GRefPtr<WPEBufferFormats> preferredBufferFormats;
+@@ -371,9 +380,28 @@ const struct xdg_toplevel_listener xdgToplevelListener = {
+ #endif
+ };
+ 
++static void wpeToplevelWaylandSetBufferScale(WPEToplevelWayland* toplevel, double scale)
++{
++    auto* priv = toplevel->priv;
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    // With a viewport the surface size is the viewport destination, so the buffer scale must stay 1.
++    if (priv->viewport)
++        return;
++#endif
++    if (wl_surface_get_version(priv->wlSurface) >= WL_SURFACE_SET_BUFFER_SCALE_SINCE_VERSION)
++        wl_surface_set_buffer_scale(priv->wlSurface, scale);
++}
++
+ static void wpeToplevelWaylandUpdateScale(WPEToplevelWayland* toplevel)
+ {
+     auto* priv = toplevel->priv;
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    if (priv->preferredFractionalScale) {
++        wpe_toplevel_scale_changed(WPE_TOPLEVEL(toplevel), *priv->preferredFractionalScale);
++        return;
++    }
++#endif
++
+     if (priv->screens.isEmpty())
+         return;
+ 
+@@ -381,12 +409,23 @@ static void wpeToplevelWaylandUpdateScale(WPEToplevelWayland* toplevel)
+     for (const auto& screen : priv->screens)
+         scale = std::max(scale, wpe_screen_get_scale(screen.get()));
+ 
+-    if (wl_surface_get_version(priv->wlSurface) >= WL_SURFACE_SET_BUFFER_SCALE_SINCE_VERSION)
+-        wl_surface_set_buffer_scale(priv->wlSurface, scale);
+-
++    wpeToplevelWaylandSetBufferScale(toplevel, scale);
+     wpe_toplevel_scale_changed(WPE_TOPLEVEL(toplevel), scale);
+ }
+ 
++#if USE(WP_FRACTIONAL_SCALE_V1)
++static const struct wp_fractional_scale_v1_listener fractionalScaleListener = {
++    // preferred_scale
++    [](void* data, struct wp_fractional_scale_v1*, uint32_t scale)
++    {
++        // The scale is sent in units of 1/120.
++        auto* toplevel = WPE_TOPLEVEL_WAYLAND(data);
++        toplevel->priv->preferredFractionalScale = scale / 120.;
++        wpeToplevelWaylandUpdateScale(toplevel);
++    }
++};
++#endif
++
+ static const struct wl_surface_listener surfaceListener = {
+     // enter
+     [](void* data, struct wl_surface*, struct wl_output* wlOutput)
+@@ -558,6 +597,15 @@ static void wpeToplevelWaylandConstructed(GObject *object)
+     auto* wlCompositor = wpe_display_wayland_get_wl_compositor(display);
+     priv->wlSurface = wl_compositor_create_surface(wlCompositor);
+     wl_surface_add_listener(priv->wlSurface, &surfaceListener, object);
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    auto* fractionalScaleManager = wpeDisplayWaylandGetFractionalScaleManager(display);
++    auto* viewporter = wpeDisplayWaylandGetViewporter(display);
++    if (fractionalScaleManager && viewporter) {
++        priv->fractionalScale = wp_fractional_scale_manager_v1_get_fractional_scale(fractionalScaleManager, priv->wlSurface);
++        wp_fractional_scale_v1_add_listener(priv->fractionalScale, &fractionalScaleListener, object);
++        priv->viewport = wp_viewporter_get_viewport(viewporter, priv->wlSurface);
++    }
++#endif
+     if (auto* xdgWMBase = wpeDisplayWaylandGetXDGWMBase(display)) {
+         priv->xdgSurface = xdg_wm_base_get_xdg_surface(xdgWMBase, priv->wlSurface);
+         xdg_surface_add_listener(priv->xdgSurface, &xdgSurfaceListener, object);
+@@ -591,10 +639,14 @@ static void wpeToplevelWaylandConstructed(GObject *object)
+     // Set the first screen as the default one until enter screen is emitted.
+     if (wpe_display_get_n_screens(WPE_DISPLAY(display))) {
+         priv->currentScreen = wpe_display_get_screen(WPE_DISPLAY(display), 0);
+-        auto scale = wpe_screen_get_scale(priv->currentScreen.get());
+-        if (wl_surface_get_version(priv->wlSurface) >= WL_SURFACE_SET_BUFFER_SCALE_SINCE_VERSION)
+-            wl_surface_set_buffer_scale(priv->wlSurface, scale);
+-        wpe_toplevel_scale_changed(toplevel, scale);
++#if USE(WP_FRACTIONAL_SCALE_V1)
++        if (!priv->preferredFractionalScale)
++#endif
++        {
++            auto scale = wpe_screen_get_scale(priv->currentScreen.get());
++            wpeToplevelWaylandSetBufferScale(WPE_TOPLEVEL_WAYLAND(toplevel), scale);
++            wpe_toplevel_scale_changed(toplevel, scale);
++        }
+     }
+ 
+     if (auto* explicitSync = wpeDisplayWaylandGetLinuxExplicitSync(display))
+@@ -614,6 +666,10 @@ static void wpeToplevelWaylandDispose(GObject* object)
+     g_clear_pointer(&priv->xdgToplevel, xdg_toplevel_destroy);
+     g_clear_pointer(&priv->dmabufFeedback, zwp_linux_dmabuf_feedback_v1_destroy);
+     g_clear_pointer(&priv->surfaceSync, zwp_linux_surface_synchronization_v1_destroy);
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    g_clear_pointer(&priv->fractionalScale, wp_fractional_scale_v1_destroy);
++    g_clear_pointer(&priv->viewport, wp_viewport_destroy);
++#endif
+     g_clear_pointer(&priv->xdgSurface, xdg_surface_destroy);
+     g_clear_pointer(&priv->wlSurface, wl_surface_destroy);
+ 
+@@ -920,6 +976,25 @@ void wpeToplevelWaylandViewVisibilityChanged(WPEToplevelWayland* toplevel, WPEVi
+     }
+ }
+ 
++void wpeToplevelWaylandUpdateViewportDestination(WPEToplevelWayland* toplevel, int width, int height)
++{
++#if USE(WP_FRACTIONAL_SCALE_V1)
++    auto* priv = toplevel->priv;
++    if (!priv->viewport || width <= 0 || height <= 0)
++        return;
++
++    if (priv->viewportDestination.width == width && priv->viewportDestination.height == height)
++        return;
++
++    wp_viewport_set_destination(priv->viewport, width, height);
++    priv->viewportDestination = { width, height };
++#else
++    UNUSED_PARAM(toplevel);
++    UNUSED_PARAM(width);
++    UNUSED_PARAM(height);
++#endif
++}
++
+ struct zwp_linux_surface_synchronization_v1* wpeToplevelWaylandGetSurfaceSync(WPEToplevelWayland* toplevel)
+ {
+     return toplevel->priv->surfaceSync;
+diff --git a/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWaylandPrivate.h b/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWaylandPrivate.h
+index 22d9a96d9141..28540f950590 100644
+--- a/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWaylandPrivate.h
++++ b/Source/WebKit/WPEPlatform/wpe/wayland/WPEToplevelWaylandPrivate.h
+@@ -37,4 +37,5 @@ WPEView* wpeToplevelWaylandGetVisibleFocusedView(WPEToplevelWayland*);
+ void wpeToplevelWaylandSetIsUnderTouch(WPEToplevelWayland*, bool);
+ WPEView* wpeToplevelWaylandGetVisibleViewUnderTouch(WPEToplevelWayland*);
+ void wpeToplevelWaylandViewVisibilityChanged(WPEToplevelWayland*, WPEView*);
++void wpeToplevelWaylandUpdateViewportDestination(WPEToplevelWayland*, int width, int height);
+ struct zwp_linux_surface_synchronization_v1* wpeToplevelWaylandGetSurfaceSync(WPEToplevelWayland*);
+diff --git a/Source/WebKit/WPEPlatform/wpe/wayland/WPEViewWayland.cpp b/Source/WebKit/WPEPlatform/wpe/wayland/WPEViewWayland.cpp
+index 753733c6fde3..1a3cc9c1b83f 100644
+--- a/Source/WebKit/WPEPlatform/wpe/wayland/WPEViewWayland.cpp
++++ b/Source/WebKit/WPEPlatform/wpe/wayland/WPEViewWayland.cpp
+@@ -37,6 +37,7 @@
+ #include "presentation-time-client-protocol.h"
+ #endif
+ #include "relative-pointer-unstable-v1-client-protocol.h"
++#include <cmath>
+ #include <gio/gio.h>
+ #include <wtf/Borrow.h>
+ #include <wtf/Deque.h>
+@@ -562,9 +563,10 @@ static gboolean wpeViewWaylandRenderBuffer(WPEView* view, WPEBuffer* buffer, con
+     if (wpe_toplevel_get_state(toplevel) & WPE_TOPLEVEL_STATE_MAXIMIZED) {
+         // The surface is maximized. The window geometry specified in the configure
+         // event must be obeyed by the client, or the xdg_wm_base.invalid_surface_state
+-        // error is raised.
++        // error is raised. With a fractional scale the buffer size is the truncated
++        // scaled view size, so allow a difference of less than one pixel.
+         auto scale = wpe_view_get_scale(view);
+-        if (wpe_view_get_width(view) * scale != wpe_buffer_get_width(buffer) || wpe_view_get_height(view) * scale != wpe_buffer_get_height(buffer)) {
++        if (std::abs(wpe_view_get_width(view) * scale - wpe_buffer_get_width(buffer)) >= 1 || std::abs(wpe_view_get_height(view) * scale - wpe_buffer_get_height(buffer)) >= 1) {
+             wpe_view_buffer_rendered(view, buffer);
+             return TRUE;
+         }
+@@ -575,6 +577,8 @@ static gboolean wpeViewWaylandRenderBuffer(WPEView* view, WPEBuffer* buffer, con
+ 
+     wpeToplevelWaylandUpdateOpaqueRegion(WPE_TOPLEVEL_WAYLAND(toplevel));
+ 
++    wpeToplevelWaylandUpdateViewportDestination(WPE_TOPLEVEL_WAYLAND(toplevel), wpe_view_get_width(view), wpe_view_get_height(view));
++
+     auto* wlSurface = wpe_view_wayland_get_wl_surface(WPE_VIEW_WAYLAND(view));
+     wl_surface_attach(wlSurface, wlBuffer, 0, 0);
+ 
+
+base-commit: d4f5758aa860e003344b16d23d147704365454cd
+-- 
+2.53.0
+

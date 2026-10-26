@@ -1,0 +1,190 @@
+From 812b077fe307da5182676778c422ed8f761a67be Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Mon, 19 Oct 2026 06:03:47 +0900
+Subject: [PATCH] [WPE] Give the headless WPEPlatform display a virtual
+ 1920x1080 screen
+
+The headless display had no screen, so WebCore fell back to the view
+bounds as the screen rectangle, and LocalDOMWindow::adjustWindowRect()
+clamped every window.resizeTo()/resizeBy() request to the current view
+size. The toplevel was never resized and no resize event was ever
+dispatched, so the tests waiting for one timed out in WebKitTestRunner.
+
+Add a 1920x1080 virtual screen (about 96 DPI, 60 Hz, without a sync
+observer, so the display link still uses the timer) to the headless
+display and return it from the headless toplevel.
+
+* LayoutTests/platform/wpe/TestExpectations: Remove the expectations of
+the tests that now pass.
+* Source/WebKit/WPEPlatform/wpe/headless/WPEDisplayHeadless.cpp:
+(wpe_screen_headless_class_init): Return no sync observer, so that
+DisplayVBlankMonitorWPE is not created and does not open a DRM device.
+(wpeDisplayHeadlessConnect):
+(wpeDisplayHeadlessGetNScreens):
+(wpeDisplayHeadlessGetScreen):
+(wpe_display_headless_class_init):
+* Source/WebKit/WPEPlatform/wpe/headless/WPEToplevelHeadless.cpp:
+(wpeToplevelHeadlessGetScreen):
+(wpe_toplevel_headless_class_init):
+---
+ LayoutTests/platform/wpe/TestExpectations     | 12 -----
+ .../wpe/headless/WPEDisplayHeadless.cpp       | 46 ++++++++++++++++++-
+ .../wpe/headless/WPEToplevelHeadless.cpp      |  7 +++
+ 3 files changed, 52 insertions(+), 13 deletions(-)
+
+diff --git a/LayoutTests/platform/wpe/TestExpectations b/LayoutTests/platform/wpe/TestExpectations
+index cab1d30298eb..b63545cc26ef 100644
+--- a/LayoutTests/platform/wpe/TestExpectations
++++ b/LayoutTests/platform/wpe/TestExpectations
+@@ -684,10 +684,6 @@ imported/w3c/web-platform-tests/content-security-policy/reporting/report-only-in
+ 
+ webkit.org/b/183902 fast/dom/frame-loading-via-document-write.html [ Timeout ]
+ 
+-webkit.org/b/168164 fast/picture/viewport-resize.html [ Timeout ]
+-
+-webkit.org/b/142292 fast/images/animated-gif-window-resizing.html [ Timeout ]
+-
+ #////////////////////////////////////////////////////////////////////////////////////////
+ # 8. TESTS FAILING
+ #////////////////////////////////////////////////////////////////////////////////////////
+@@ -767,11 +763,6 @@ Bug(WPE) storage/storageinfo-request-quota.html [ Failure ]
+ Bug(WPE) storage/storagequota-query-usage.html [ Failure ]
+ Bug(WPE) storage/storagequota-request-quota.html [ Failure ]
+ 
+-Bug(WPE) css3/viewport-percentage-lengths/viewport-percentage-lengths-anonymous-block.html [ Timeout ]
+-Bug(WPE) css3/viewport-percentage-lengths/viewport-percentage-lengths-percent-size-child.html [ Timeout ]
+-Bug(WPE) css3/viewport-percentage-lengths/viewport-percentage-lengths-relative-font-size.html [ Timeout ]
+-Bug(WPE) css3/viewport-percentage-lengths/viewport-percentage-lengths-resize.html [ Timeout ]
+-
+ Bug(WPE) css3/font-feature-settings-font-face-rendering.html [ ImageOnlyFailure ]
+ Bug(WPE) css3/font-feature-settings-rendering.html [ ImageOnlyFailure ]
+ Bug(WPE) css3/font-variant-all.html [ ImageOnlyFailure ]
+@@ -806,7 +797,6 @@ webkit.org/b/188509 fast/dom/Window/new-window-opener.html [ Failure ]
+ webkit.org/b/188509 fast/dom/Window/window-onFocus.html [ Failure ]
+ webkit.org/b/188509 fast/dom/Window/window-resize.html [ Failure ]
+ webkit.org/b/188509 fast/dom/Window/window-resize-and-move-arguments.html [ Failure ]
+-webkit.org/b/188509 fast/dom/Window/window-resize-contents.html [ Timeout ]
+ webkit.org/b/188509 fast/dom/Window/window-resize-nan.html [ Failure ]
+ 
+ webkit.org/b/188660 fast/loader/local-CSS-from-local.html [ Failure ]
+@@ -1228,8 +1218,6 @@ webkit.org/b/160119 [ arm64 ] editing/selection/caret-at-bidi-boundary.html [ Pa
+ 
+ imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-margin-005.html [ Failure ]
+ 
+-webkit.org/b/314811 imported/w3c/web-platform-tests/css/mediaqueries/test_media_queries.html [ Failure ]
+-
+ webkit.org/b/315825 [ Release arm64 ] editing/spelling/spelling-marker-includes-hyphen.html [ ImageOnlyFailure ]
+ 
+ webkit.org/b/316418 imported/w3c/web-platform-tests/html/semantics/popovers/popover-events.html [ Pass Failure ]
+diff --git a/Source/WebKit/WPEPlatform/wpe/headless/WPEDisplayHeadless.cpp b/Source/WebKit/WPEPlatform/wpe/headless/WPEDisplayHeadless.cpp
+index aefc200ef58e..03354103136c 100644
+--- a/Source/WebKit/WPEPlatform/wpe/headless/WPEDisplayHeadless.cpp
++++ b/Source/WebKit/WPEPlatform/wpe/headless/WPEDisplayHeadless.cpp
+@@ -49,6 +49,30 @@
+ #include <xf86drm.h>
+ #endif
+ 
++// A virtual screen, so that the web content sees a screen larger than the
++// view and window.resizeTo() can make the toplevel grow. Without any screen,
++// the screen rectangle falls back to the view bounds, so DOMWindow clamps
++// every resize request to the current view size.
++#define WPE_TYPE_SCREEN_HEADLESS (wpe_screen_headless_get_type())
++G_DECLARE_FINAL_TYPE(WPEScreenHeadless, wpe_screen_headless, WPE, SCREEN_HEADLESS, WPEScreen)
++
++struct _WPEScreenHeadlessPrivate {
++};
++WEBKIT_DEFINE_FINAL_TYPE(WPEScreenHeadless, wpe_screen_headless, WPE_TYPE_SCREEN, WPEScreen)
++
++static void wpe_screen_headless_class_init(WPEScreenHeadlessClass* klass)
++{
++    // There is no real output to synchronize with, so the display link uses a timer.
++    WPE_SCREEN_CLASS(klass)->get_sync_observer = [](WPEScreen*) -> WPEScreenSyncObserver* { return nullptr; };
++}
++
++static constexpr int headlessScreenWidth = 1920;
++static constexpr int headlessScreenHeight = 1080;
++// Physical size in millimeters giving about 96 DPI, the DPI assumed when there is no screen.
++static constexpr int headlessScreenPhysicalWidth = 508;
++static constexpr int headlessScreenPhysicalHeight = 286;
++static constexpr int headlessScreenRefreshRate = 60000;
++
+ /**
+  * WPEDisplayHeadless:
+  *
+@@ -63,6 +87,7 @@
+  */
+ struct _WPEDisplayHeadlessPrivate {
+     std::optional<GRefPtr<WPEDRMDevice>> drmDevice;
++    GRefPtr<WPEScreen> screen;
+ #if USE(GBM)
+     UnixFileDescriptor gbmDeviceFD;
+     struct gbm_device* gbmDevice;
+@@ -83,11 +108,28 @@ static void wpeDisplayHeadlessDispose(GObject* object)
+     G_OBJECT_CLASS(wpe_display_headless_parent_class)->dispose(object);
+ }
+ 
+-static gboolean wpeDisplayHeadlessConnect(WPEDisplay*, GError**)
++static gboolean wpeDisplayHeadlessConnect(WPEDisplay* display, GError**)
+ {
++    auto* priv = WPE_DISPLAY_HEADLESS(display)->priv;
++    priv->screen = adoptGRef(WPE_SCREEN(g_object_new(WPE_TYPE_SCREEN_HEADLESS, "id", 1, nullptr)));
++    wpe_screen_set_position(priv->screen.get(), 0, 0);
++    wpe_screen_set_size(priv->screen.get(), headlessScreenWidth, headlessScreenHeight);
++    wpe_screen_set_physical_size(priv->screen.get(), headlessScreenPhysicalWidth, headlessScreenPhysicalHeight);
++    wpe_screen_set_refresh_rate(priv->screen.get(), headlessScreenRefreshRate);
+     return TRUE;
+ }
+ 
++static guint wpeDisplayHeadlessGetNScreens(WPEDisplay* display)
++{
++    return WPE_DISPLAY_HEADLESS(display)->priv->screen ? 1 : 0;
++}
++
++static WPEScreen* wpeDisplayHeadlessGetScreen(WPEDisplay* display, guint index)
++{
++    auto* priv = WPE_DISPLAY_HEADLESS(display)->priv;
++    return index ? nullptr : priv->screen.get();
++}
++
+ static WPEView* wpeDisplayHeadlessCreateView(WPEDisplay* display)
+ {
+     return WPE_VIEW(g_object_new(WPE_TYPE_VIEW_HEADLESS, "display", display, nullptr));
+@@ -180,6 +222,8 @@ static void wpe_display_headless_class_init(WPEDisplayHeadlessClass* displayHead
+     displayClass->create_toplevel = wpeDisplayHeadlessCreateToplevel;
+     displayClass->get_egl_display = wpeDisplayHeadlessGetEGLDisplay;
+     displayClass->get_drm_device = wpeDisplayHeadlessGetDRMDevice;
++    displayClass->get_n_screens = wpeDisplayHeadlessGetNScreens;
++    displayClass->get_screen = wpeDisplayHeadlessGetScreen;
+ }
+ 
+ /**
+diff --git a/Source/WebKit/WPEPlatform/wpe/headless/WPEToplevelHeadless.cpp b/Source/WebKit/WPEPlatform/wpe/headless/WPEToplevelHeadless.cpp
+index 915cf1cb4f8d..7b9e91395d0d 100644
+--- a/Source/WebKit/WPEPlatform/wpe/headless/WPEToplevelHeadless.cpp
++++ b/Source/WebKit/WPEPlatform/wpe/headless/WPEToplevelHeadless.cpp
+@@ -60,6 +60,12 @@ static gboolean wpeToplevelHeadlessResize(WPEToplevel* toplevel, int width, int
+     return TRUE;
+ }
+ 
++static WPEScreen* wpeToplevelHeadlessGetScreen(WPEToplevel* toplevel)
++{
++    auto* display = wpe_toplevel_get_display(toplevel);
++    return display ? wpe_display_get_screen(display, 0) : nullptr;
++}
++
+ static gboolean wpeToplevelHeadlessSetFullscreen(WPEToplevel* toplevel, gboolean fullscreen)
+ {
+     auto state = wpe_toplevel_get_state(toplevel);
+@@ -77,6 +83,7 @@ static void wpe_toplevel_headless_class_init(WPEToplevelHeadlessClass* toplevelH
+     objectClass->constructed = wpeToplevelHeadlessConstructed;
+ 
+     WPEToplevelClass* toplevelClass = WPE_TOPLEVEL_CLASS(toplevelHeadlessClass);
++    toplevelClass->get_screen = wpeToplevelHeadlessGetScreen;
+     toplevelClass->resize = wpeToplevelHeadlessResize;
+     toplevelClass->set_fullscreen = wpeToplevelHeadlessSetFullscreen;
+ }
+
+base-commit: 82698439da7980187f771a6e52b96d2089b48649
+-- 
+2.53.0
+

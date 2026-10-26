@@ -1,5 +1,8 @@
 # WPE Vibes knowledge
 
+Commit hashes and `task-*` branches below are from before 2026-10-26; since then the change of a task lives in
+`vibes/patches/<ID>.patch` (CLAUDE.md "Patches").
+
 ## B7 (ImageQualityController / BitmapImageDescriptor::sourceSize per paint)
 - 2026-10-18: no profile yet (heavy jobs blocked by baseline + gates g10-g14). Static analysis only.
 - Per painted bitmap (RenderImage, StyleCachedImage, StyleCanvasImage), `ImageQualityController::chooseInterpolationQuality`
@@ -65,7 +68,7 @@ Ramp noise with the host idle (0.9-2.0%) is far below the noise seen in daytime 
   is within the offset range (the gate build instance in g16 was itself ~3% slow). Cheap control for future A/Bs:
   alternate rebuilds of both sides in the same worktree and compare instance means, not runs.
 
-## M3 (process swap fixes, branch task-m3 = task-r-m3 rebased on 1c6fb3c6bdf2: a716430bc3d3 m3a, ee9758ac3446 m3b)
+## M3 (process swap fixes, vibes/patches/M3.patch; was branch task-m3 = task-r-m3 rebased on 1c6fb3c6bdf2: a716430bc3d3 m3a, ee9758ac3446 m3b)
 - Rebase was clean. Code check of m3a: every DrawingAreaCoordinatedGraphics use of m_renderer is null-checked except
   sendEnterAcceleratedCompositingModeIfNeeded() (RELEASE_ASSERT), which returns early on the suspended drawing area
   (m_compositingAccordingToProxyMessages is already true); a restore from a SuspendedPageProxy always gets a new
@@ -224,7 +227,7 @@ Ramp noise with the host idle (0.9-2.0%) is far below the noise seen in daytime 
   silently fails after huge (1 GiB+, MSAA x samples) canvases are still alive (not GC'd yet) -> GPU OOM in Mesa.
   Not reproduced locally (heavy lock held by gate g18-m3). Would only be checkable with a new test.
 
-## B9 (Suits SW clip masks, branch task-b9, 2026-10-19)
+## B9 (Suits SW clip masks, vibes/patches/B9.patch, 2026-10-19)
 - Suits: half of the particles are `<rect clip-path=url(#shape-N)>` (objectBoundingBox bezier paths). Legacy SVG
   `pathOnlyClipping` -> `GraphicsContextSkia::clipPath` -> AA SkCanvas::clipPath.
 - GPU tiles are recorded as DDLs on the SkiaGPUWorker threads (CoordinatedTileBuffer m_recorder) and played back on the
@@ -244,7 +247,7 @@ Ramp noise with the host idle (0.9-2.0%) is far below the noise seen in daytime 
   svg/clip-path + css3/masking on w1: 122 tests all as expected. Costs: 1 MB CPU per ClipStack that uses the atlas
   (held until DDL playback) + one 1024x1024 A8 budgeted texture per atlas (scratch-reusable).
 
-## Q7 window.resizeTo() timeouts (headless display has no screen)
+## Q7 window.resizeTo() timeouts (headless display has no screen; vibes/patches/Q7.patch)
 - Repro on main: all 7 targets time out (viewport-percentage-lengths-{resize,anonymous-block,percent-size-child,relative-font-size}, fast/picture/viewport-resize, fast/dom/Window/window-resize-contents, fast/images/animated-gif-window-resizing).
 - Root cause: WPEDisplayHeadless had no WPEScreen, so PlatformScreenWPE screenAvailableRect() fell back to the widget bounds (= view size 800x600) and LocalDOMWindow::adjustWindowRect() clamped every resizeTo to the current size: no toplevel resize, no resize event. WKTR/toplevel resize path itself was fine.
 - Fix (task-q7 09e619f576ad): virtual 1920x1080 screen (508x286 mm ~96 DPI, 60 Hz, no sync observer -> display link keeps the timer) in WPEDisplayHeadless, returned by WPEToplevelHeadless get_screen.

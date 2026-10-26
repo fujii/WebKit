@@ -1,0 +1,400 @@
+From bfff304f4191a5894c0533c6aa0462d321c8eee3 Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Mon, 19 Oct 2026 01:21:35 +0900
+Subject: [PATCH] [Skia] Pack the SW clip masks of a DDL recording into one
+ texture
+
+Tiles are painted by recording a GrDeferredDisplayList on the painting
+workers. A recording context cannot use the atlas path renderer, and
+GPU tiles have no MSAA, so every anti-aliased clip that is not
+analytic (for example an SVG clip-path) is rendered as a CPU mask, and
+each mask becomes its own texture, uploaded when the compositor plays
+the DDL back. MotionMark Suits draws about a thousand of them per
+frame.
+
+When recording a DDL, render masks up to 256x256 into a 1024x1024 CPU
+atlas owned by the clip stack and sample them from a single lazy
+proxy that uploads the area used by masks on instantiation. The mask
+pixels and the sampling (subset, nearest filtering) are unchanged.
+Larger masks and direct contexts keep the existing path.
+
+* Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.cpp:
+* Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.h:
+---
+ .../skia/src/gpu/ganesh/ClipStack.cpp         | 209 +++++++++++++++++-
+ .../skia/src/gpu/ganesh/ClipStack.h           |  18 ++
+ 2 files changed, 220 insertions(+), 7 deletions(-)
+
+diff --git a/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.cpp b/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.cpp
+index 3c3e896439e0..d3941e690047 100644
+--- a/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.cpp
++++ b/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.cpp
+@@ -13,7 +13,9 @@
+ #include "include/core/SkMatrix.h"
+ #include "include/core/SkPath.h"
+ #include "include/core/SkPoint.h"
++#include "include/core/SkPixmap.h"
+ #include "include/core/SkRRect.h"
++#include "include/core/SkRefCnt.h"
+ #include "include/core/SkRegion.h"
+ #include "include/core/SkSamplingOptions.h"
+ #include "include/core/SkScalar.h"
+@@ -22,6 +24,7 @@
+ #include "include/gpu/ganesh/GrDirectContext.h"
+ #include "include/gpu/ganesh/GrRecordingContext.h"
+ #include "include/gpu/ganesh/GrTypes.h"
++#include "include/private/SkMalloc.h"
+ #include "include/private/SkTArray.h"
+ #include "include/private/SkTo.h"
+ #include "include/private/gpu/ganesh/GrTypesPriv.h"
+@@ -31,6 +34,7 @@
+ #include "src/core/SkTaskGroup.h"
+ #include "src/core/SkTraceEvent.h"
+ #include "src/core/SkVx.h"
++#include "src/gpu/RectanizerSkyline.h"
+ #include "src/gpu/SkBackingFit.h"
+ #include "src/gpu/Swizzle.h"
+ #include "src/gpu/ganesh/GrAppliedClip.h"
+@@ -43,9 +47,12 @@
+ #include "src/gpu/ganesh/GrFPArgs.h"
+ #include "src/gpu/ganesh/GrFragmentProcessor.h"
+ #include "src/gpu/ganesh/GrFragmentProcessors.h"
++#include "src/gpu/ganesh/GrGpu.h"
+ #include "src/gpu/ganesh/GrProxyProvider.h"
+ #include "src/gpu/ganesh/GrRecordingContextPriv.h"
+ #include "src/gpu/ganesh/GrRenderTargetProxy.h"
++#include "src/gpu/ganesh/GrResourceProvider.h"
++#include "src/gpu/ganesh/GrResourceProviderPriv.h"
+ #include "src/gpu/ganesh/GrSWMaskHelper.h"
+ #include "src/gpu/ganesh/GrSamplerState.h"
+ #include "src/gpu/ganesh/GrSurfaceProxy.h"
+@@ -417,6 +424,102 @@ GrSurfaceProxyView render_sw_mask(GrRecordingContext* context,
+     }
+ }
+ 
++// CPU pixels of a SW mask atlas. They are shared with the lazy proxy callback, which uploads the
++// area used by masks when the DDL is played back.
++class SWMaskAtlasPixels : public SkNVRefCnt<SWMaskAtlasPixels> {
++public:
++    explicit SWMaskAtlasPixels(SkISize dimensions)
++            : fDimensions(dimensions)
++            , fPixels(static_cast<uint8_t*>(sk_calloc_throw(dimensions.area()))) {}
++    ~SWMaskAtlasPixels() { sk_free(fPixels); }
++
++    SkISize dimensions() const { return fDimensions; }
++    size_t rowBytes() const { return fDimensions.width(); }
++    uint8_t* row(int y) { return fPixels + y * this->rowBytes(); }
++    const uint8_t* pixels() const { return fPixels; }
++
++    // The area that holds masks: the top left corner of the atlas.
++    SkISize usedSize() const { return fUsedSize; }
++    void addUsedRect(const SkIRect& rect) {
++        fUsedSize = {std::max(fUsedSize.width(), rect.right()),
++                     std::max(fUsedSize.height(), rect.bottom())};
++    }
++
++private:
++    SkISize fDimensions;
++    uint8_t* fPixels;
++    SkISize fUsedSize = {0, 0};
++};
++
++GrSurfaceProxyView make_sw_mask_atlas_view(GrRecordingContext* context,
++                                           sk_sp<SWMaskAtlasPixels> pixels) {
++    const GrCaps* caps = context->priv().caps();
++    GrBackendFormat format = caps->getDefaultBackendFormat(GrColorType::kAlpha_8,
++                                                           GrRenderable::kNo);
++    if (!format.isValid()) {
++        return {};
++    }
++    auto proxy = context->priv().proxyProvider()->createLazyProxy(
++            [pixels](GrResourceProvider* resourceProvider,
++                     const GrSurfaceProxy::LazySurfaceDesc& desc) {
++                GrMipLevel mipLevel = {pixels->pixels(), pixels->rowBytes(), nullptr};
++                const GrCaps* caps = resourceProvider->caps();
++                SkISize usedSize = pixels->usedSize();
++                if (usedSize != desc.fDimensions &&
++                    caps->writePixelsRowBytesSupport() &&
++                    caps->supportedWritePixelsColorType(GrColorType::kAlpha_8, desc.fFormat,
++                                                        GrColorType::kAlpha_8).fColorType ==
++                            GrColorType::kAlpha_8) {
++                    // Upload only the area that holds masks; the rest is never sampled.
++                    auto texture = resourceProvider->createTexture(desc.fDimensions,
++                                                                   desc.fFormat,
++                                                                   desc.fTextureType,
++                                                                   desc.fRenderable,
++                                                                   desc.fSampleCnt,
++                                                                   desc.fMipmapped,
++                                                                   desc.fBudgeted,
++                                                                   desc.fProtected,
++                                                                   desc.fLabel);
++                    if (texture && (usedSize.isEmpty() || resourceProvider->priv().gpu()->writePixels(
++                            texture.get(),
++                            SkIRect::MakeSize(usedSize),
++                            GrColorType::kAlpha_8,
++                            GrColorType::kAlpha_8,
++                            &mipLevel,
++                            1))) {
++                        return GrSurfaceProxy::LazyCallbackResult(std::move(texture));
++                    }
++                }
++                return GrSurfaceProxy::LazyCallbackResult(
++                        resourceProvider->createTexture(desc.fDimensions,
++                                                        desc.fFormat,
++                                                        desc.fTextureType,
++                                                        GrColorType::kAlpha_8,
++                                                        desc.fRenderable,
++                                                        desc.fSampleCnt,
++                                                        desc.fBudgeted,
++                                                        desc.fFit,
++                                                        desc.fProtected,
++                                                        mipLevel,
++                                                        desc.fLabel));
++            },
++            format,
++            pixels->dimensions(),
++            skgpu::Mipmapped::kNo,
++            GrMipmapStatus::kNotAllocated,
++            GrInternalSurfaceFlags::kNone,
++            SkBackingFit::kExact,
++            skgpu::Budgeted::kYes,
++            GrProtected::kNo,
++            GrSurfaceProxy::UseAllocator::kYes,
++            "ClipStack_SWMaskAtlas");
++    if (!proxy) {
++        return {};
++    }
++    skgpu::Swizzle swizzle = caps->getReadSwizzle(format, GrColorType::kAlpha_8);
++    return {std::move(proxy), kMaskOrigin, swizzle};
++}
++
+ void render_stencil_mask(GrRecordingContext* rContext,
+                          skgpu::ganesh::SurfaceDrawContext* sdc,
+                          uint32_t genID,
+@@ -824,6 +927,12 @@ bool ClipStack::Mask::appliesToDraw(const SaveRecord& current, const SkIRect& dr
+ void ClipStack::Mask::invalidate(GrProxyProvider* proxyProvider) {
+     SkASSERT(proxyProvider);
+     SkASSERT(fKey.isValid()); // Should only be invalidated once
++    if (fAtlasView) {
++        // The key was never assigned to a proxy.
++        fAtlasView = {};
++        fKey.reset();
++        return;
++    }
+     proxyProvider->processInvalidUniqueKey(
+             fKey, nullptr, GrProxyProvider::InvalidateGPUResource::kYes);
+     fKey.reset();
+@@ -1188,6 +1297,55 @@ static constexpr int kMaxAnalyticFPs = 4;
+ // across our set of GMs, SKPs, and SVGs used for testing.
+ static constexpr int kNumStackMasks = 4;
+ 
++// Packs the small SW masks of a DDL recording into one texture, so that playing back the DDL
++// uploads one texture instead of one per mask.
++class ClipStack::SWMaskAtlas {
++public:
++    static constexpr int kSize = 1024;
++    static constexpr int kMaxMaskSize = 256;
++
++    static bool CanHold(const SkIRect& bounds) {
++        return bounds.width() <= kMaxMaskSize && bounds.height() <= kMaxMaskSize;
++    }
++
++    static std::unique_ptr<SWMaskAtlas> Make(GrRecordingContext* context) {
++        auto pixels = sk_make_sp<SWMaskAtlasPixels>(SkISize::Make(kSize, kSize));
++        auto view = make_sw_mask_atlas_view(context, pixels);
++        if (!view) {
++            return nullptr;
++        }
++        return std::unique_ptr<SWMaskAtlas>(new SWMaskAtlas(std::move(pixels), std::move(view)));
++    }
++
++    // Copies the mask into the atlas. Returns false if the atlas is full.
++    bool addMask(const SkPixmap& mask, SkIPoint* location) {
++        SkIPoint16 location16;
++        if (!fRectanizer.addRect(mask.width(), mask.height(), &location16)) {
++            return false;
++        }
++        for (int y = 0; y < mask.height(); ++y) {
++            memcpy(fPixels->row(location16.y() + y) + location16.x(), mask.addr8(0, y),
++                   mask.width());
++        }
++        fPixels->addUsedRect(SkIRect::MakeXYWH(location16.x(), location16.y(), mask.width(),
++                                               mask.height()));
++        *location = {location16.x(), location16.y()};
++        return true;
++    }
++
++    const GrSurfaceProxyView& view() const { return fView; }
++
++private:
++    SWMaskAtlas(sk_sp<SWMaskAtlasPixels> pixels, GrSurfaceProxyView view)
++            : fRectanizer(kSize, kSize)
++            , fPixels(std::move(pixels))
++            , fView(std::move(view)) {}
++
++    skgpu::RectanizerSkyline fRectanizer;
++    sk_sp<SWMaskAtlasPixels> fPixels;
++    GrSurfaceProxyView fView;
++};
++
+ ClipStack::ClipStack(const SkIRect& deviceBounds, const SkMatrix* ctm, bool forceAA)
+         : fElements(kElementStackIncrement)
+         , fSaves(kSaveStackIncrement)
+@@ -1532,7 +1690,7 @@ GrClip::Effect ClipStack::apply(GrRecordingContext* rContext,
+             // Must use a texture mask to represent the combined clip elements since the stencil
+             // cannot be used, or cannot handle smooth clips.
+             std::tie(hasSWMask, clipFP) = GetSWMaskFP(
+-                     rContext, &fMasks, cs, scissorBounds, elementsForMask.begin(),
++                     rContext, &fMasks, &fSWMaskAtlas, cs, scissorBounds, elementsForMask.begin(),
+                      elementsForMask.size(), std::move(clipFP));
+         }
+ 
+@@ -1647,6 +1805,7 @@ void ClipStack::clip(RawElement&& element) {
+ }
+ 
+ GrFPResult ClipStack::GetSWMaskFP(GrRecordingContext* context, Mask::Stack* masks,
++                                  std::unique_ptr<SWMaskAtlas>* atlas,
+                                   const SaveRecord& current, const SkIRect& bounds,
+                                   const Element** elements, int count,
+                                   std::unique_ptr<GrFragmentProcessor> clipFP) {
+@@ -1654,14 +1813,20 @@ GrFPResult ClipStack::GetSWMaskFP(GrRecordingContext* context, Mask::Stack* mask
+     GrSurfaceProxyView maskProxy;
+ 
+     SkIRect maskBounds; // may not be 'bounds' if we reuse a large clip mask
++    SkIPoint atlasOffset = {0, 0}; // location of the mask in its texture
+     // Check the existing masks from this save record for compatibility
+     for (const Mask& m : masks->ritems()) {
+         if (m.genID() != current.genID()) {
+             break;
+         }
+         if (m.appliesToDraw(current, bounds)) {
+-            maskProxy = proxyProvider->findCachedProxyWithColorTypeFallback(
+-                    m.key(), kMaskOrigin, GrColorType::kAlpha_8, 1);
++            if (m.atlasView()) {
++                maskProxy = m.atlasView();
++                atlasOffset = m.atlasOffset();
++            } else {
++                maskProxy = proxyProvider->findCachedProxyWithColorTypeFallback(
++                        m.key(), kMaskOrigin, GrColorType::kAlpha_8, 1);
++            }
+             if (maskProxy) {
+                 maskBounds = m.bounds();
+                 break;
+@@ -1669,8 +1834,37 @@ GrFPResult ClipStack::GetSWMaskFP(GrRecordingContext* context, Mask::Stack* mask
+         }
+     }
+ 
++    // A DDL recording renders SW masks synchronously, and each one would be a separate texture
++    // upload at playback. Pack the small ones into an atlas instead.
++    if (!maskProxy && !context->asDirectContext() && SWMaskAtlas::CanHold(bounds)) {
++        SkAutoPixmapStorage pixels;
++        GrSWMaskHelper helper(&pixels);
++        if (helper.init(bounds)) {
++            for (int i = 0; i < count; ++i) {
++                draw_to_sw_mask(&helper, *(elements[i]), i == 0);
++            }
++            if (*atlas && !(*atlas)->addMask(pixels, &atlasOffset)) {
++                // The atlas is full. Draws recorded so far keep a reference to it.
++                atlas->reset();
++            }
++            if (!*atlas) {
++                *atlas = SWMaskAtlas::Make(context);
++                if (*atlas && !(*atlas)->addMask(pixels, &atlasOffset)) {
++                    atlas->reset();
++                }
++            }
++            if (*atlas) {
++                maskProxy = (*atlas)->view();
++                maskBounds = bounds;
++                // Register the mask so later draws with the same clip can reuse it.
++                masks->emplace_back(current, bounds).setAtlasLocation(maskProxy, atlasOffset);
++            }
++        }
++    }
++
+     if (!maskProxy) {
+         // No existing mask was found, so need to render a new one
++        atlasOffset = {0, 0};
+         maskProxy = render_sw_mask(context, bounds, elements, count);
+         if (!maskProxy) {
+             // If we still don't have one, there's nothing we can do
+@@ -1688,11 +1882,12 @@ GrFPResult ClipStack::GetSWMaskFP(GrRecordingContext* context, Mask::Stack* mask
+ 
+     GrSamplerState samplerState(GrSamplerState::WrapMode::kClampToBorder,
+                                 GrSamplerState::Filter::kNearest);
+-    // Maps the device coords passed to the texture effect to the top-left corner of the mask, and
+-    // make sure that the draw bounds are pre-mapped into the mask's space as well.
+-    auto m = SkMatrix::Translate(-maskBounds.fLeft, -maskBounds.fTop);
++    // Maps the device coords passed to the texture effect to the top-left corner of the mask in
++    // its texture, and make sure that the draw bounds are pre-mapped into the mask's space as well.
++    auto m = SkMatrix::Translate(atlasOffset.fX - maskBounds.fLeft,
++                                 atlasOffset.fY - maskBounds.fTop);
+     auto subset = SkRect::Make(bounds);
+-    subset.offset(-maskBounds.fLeft, -maskBounds.fTop);
++    subset.offset(atlasOffset.fX - maskBounds.fLeft, atlasOffset.fY - maskBounds.fTop);
+     // We scissor to bounds. The mask's texel centers are aligned to device space
+     // pixel centers. Hence this domain of texture coordinates.
+     auto domain = subset.makeInset(0.5, 0.5);
+diff --git a/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.h b/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.h
+index 1c3f713d214e..85ead32394e4 100644
+--- a/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.h
++++ b/Source/ThirdParty/skia/src/gpu/ganesh/ClipStack.h
+@@ -19,6 +19,7 @@
+ #include "src/gpu/ResourceKey.h"
+ #include "src/gpu/ganesh/GrClip.h"
+ #include "src/gpu/ganesh/GrFragmentProcessor.h"
++#include "src/gpu/ganesh/GrSurfaceProxyView.h"
+ #include "src/gpu/ganesh/geometry/GrShape.h"
+ 
+ #include <cstdint>
+@@ -211,6 +212,15 @@ private:
+         bool appliesToDraw(const SaveRecord& current, const SkIRect& drawBounds) const;
+         void invalidate(GrProxyProvider* proxyProvider);
+ 
++        // Masks rendered into a SWMaskAtlas are not found through their unique key: they keep a
++        // view of the atlas and their location in it.
++        void setAtlasLocation(GrSurfaceProxyView view, SkIPoint offset) {
++            fAtlasView = std::move(view);
++            fAtlasOffset = offset;
++        }
++        const GrSurfaceProxyView& atlasView() const { return fAtlasView; }
++        SkIPoint atlasOffset() const { return fAtlasOffset; }
++
+         SkDEBUGCODE(const SaveRecord* owner() const { return fOwner; })
+     private:
+         UniqueKey fKey;
+@@ -221,6 +231,9 @@ private:
+         SkIRect     fBounds;
+         uint32_t    fGenID;
+ 
++        GrSurfaceProxyView fAtlasView;
++        SkIPoint           fAtlasOffset = {0, 0};
++
+         SkDEBUGCODE(const SaveRecord* fOwner;)
+     };
+ 
+@@ -321,7 +334,11 @@ private:
+ 
+     // Generate or find a cached SW coverage mask and return an FP that samples it.
+     // 'elements' is an array of pointers to elements in the stack.
++    // When recording a DDL, small SW masks are packed into a shared atlas that is uploaded with a
++    // single texture write when the DDL is played back.
++    class SWMaskAtlas;
+     static GrFPResult GetSWMaskFP(GrRecordingContext* context, Mask::Stack* masks,
++                                  std::unique_ptr<SWMaskAtlas>* atlas,
+                                   const SaveRecord& current, const SkIRect& bounds,
+                                   const Element** elements, int count,
+                                   std::unique_ptr<GrFragmentProcessor> clipFP);
+@@ -334,6 +351,7 @@ private:
+     // NOTE: These fields can go away once a context has a dedicated clip atlas
+     mutable Mask::Stack      fMasks;
+     mutable GrProxyProvider* fProxyProvider;
++    mutable std::unique_ptr<SWMaskAtlas> fSWMaskAtlas;
+ 
+     const SkIRect            fDeviceBounds;
+     const SkMatrix*          fCTM;
+
+base-commit: 82698439da7980187f771a6e52b96d2089b48649
+-- 
+2.53.0
+

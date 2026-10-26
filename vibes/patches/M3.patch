@@ -1,0 +1,148 @@
+From 5c9e111630e68244092471f207715d727a91d57e Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Sat, 17 Oct 2026 17:57:58 +0900
+Subject: [PATCH 1/2] [GTK][WPE] Destroy the renderer of a page suspended for a
+ process swap
+
+When a cross-site navigation swaps processes, the previous page is kept in the back/forward cache of its
+process (SuspendedPageProxy) for up to 30 minutes. Its drawing area keeps the LayerTreeHost alive: the
+compositing thread with its Skia GPU context, the swap chain and the tiles, although the UI process no
+longer shows it. If the page is restored, the UI process creates a new drawing area and
+WebPage::reinitializeWebPage() replaces the old one, so the old renderer is never used again.
+
+This also happens for the initial about:blank page when the first navigation gets a
+Cross-Origin-Opener-Policy browsing context group switch (x.com, youtube.com), which left a second web
+process with ~75 MiB of GPU memory.
+
+Destroy the renderer as soon as the page is suspended for the process swap.
+
+* Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.cpp:
+(WebKit::DrawingAreaCoordinatedGraphics::didSuspendForProcessSwap):
+* Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.h:
+* Source/WebKit/WebProcess/WebPage/DrawingArea.h:
+(WebKit::DrawingArea::didSuspendForProcessSwap):
+* Source/WebKit/WebProcess/WebPage/WebPage.cpp:
+(WebKit::WebPage::setIsSuspended):
+---
+ .../DrawingAreaCoordinatedGraphicsGLib.cpp               | 9 +++++++++
+ .../DrawingAreaCoordinatedGraphicsGLib.h                 | 1 +
+ Source/WebKit/WebProcess/WebPage/DrawingArea.h           | 1 +
+ Source/WebKit/WebProcess/WebPage/WebPage.cpp             | 9 ++++++++-
+ 4 files changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.cpp b/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.cpp
+index f188f71c7802..00acdfaedf27 100644
+--- a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.cpp
++++ b/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.cpp
+@@ -174,6 +174,15 @@ void DrawingAreaCoordinatedGraphics::releaseMemory(WTF::Critical critical)
+         m_renderer->releaseMemory(critical);
+ }
+ 
++void DrawingAreaCoordinatedGraphics::didSuspendForProcessSwap()
++{
++    // The page is now in the back/forward cache of this process and the UI process shows the new page with another
++    // drawing area. If this page is restored, the UI process creates a new drawing area too, and
++    // WebPage::reinitializeWebPage() replaces this one, so this drawing area won't render again. Destroy its renderer
++    // now instead of keeping its swap chain, tiles and compositing GPU context for as long as the page stays cached.
++    m_renderer = nullptr;
++}
++
+ void DrawingAreaCoordinatedGraphics::setDeviceScaleFactor(float deviceScaleFactor, CompletionHandler<void()>&& completionHandler)
+ {
+     Ref webPage = m_webPage;
+diff --git a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.h b/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.h
+index 966a06fa7991..a177c25e72db 100644
+--- a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.h
++++ b/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphicsGLib.h
+@@ -70,6 +70,7 @@ private:
+     void backgroundColorDidChange() override;
+ 
+     void releaseMemory(WTF::Critical) override;
++    void didSuspendForProcessSwap() override;
+ 
+ #if PLATFORM(WPE) && ENABLE(WPE_PLATFORM) && (USE(GBM)|| OS(ANDROID))
+     void preferredBufferFormatsDidChange() override;
+diff --git a/Source/WebKit/WebProcess/WebPage/DrawingArea.h b/Source/WebKit/WebProcess/WebPage/DrawingArea.h
+index 95ce151c5c4a..d84a5f868c24 100644
+--- a/Source/WebKit/WebProcess/WebPage/DrawingArea.h
++++ b/Source/WebKit/WebProcess/WebPage/DrawingArea.h
+@@ -178,6 +178,7 @@ public:
+ 
+ #if USE(COORDINATED_GRAPHICS)
+     virtual void releaseMemory(WTF::Critical) { }
++    virtual void didSuspendForProcessSwap() { }
+ #endif
+ 
+ #if PLATFORM(WPE) && ENABLE(WPE_PLATFORM) && (USE(GBM) || OS(ANDROID))
+diff --git a/Source/WebKit/WebProcess/WebPage/WebPage.cpp b/Source/WebKit/WebProcess/WebPage/WebPage.cpp
+index 5e6c2ce0f222..9c0894c9097e 100644
+--- a/Source/WebKit/WebProcess/WebPage/WebPage.cpp
++++ b/Source/WebKit/WebProcess/WebPage/WebPage.cpp
+@@ -9379,7 +9379,14 @@ void WebPage::setIsSuspended(bool suspended, CompletionHandler<void(std::optiona
+ 
+     WebProcess::singleton().sendPrewarmInformation(m_mainFrame->url());
+ 
+-    completionHandler(suspendForProcessSwap());
++    bool didSuspend = suspendForProcessSwap();
++#if USE(COORDINATED_GRAPHICS)
++    if (didSuspend) {
++        if (RefPtr drawingArea = m_drawingArea)
++            drawingArea->didSuspendForProcessSwap();
++    }
++#endif
++    completionHandler(didSuspend);
+ }
+ 
+ void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, CompletionHandler<void(bool)>&& completionHandler)
+
+base-commit: 82698439da7980187f771a6e52b96d2089b48649
+-- 
+2.53.0
+
+
+From 7f16801d4d3e52a538fb365150918da227498c83 Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Sat, 17 Oct 2026 18:09:46 +0900
+Subject: [PATCH 2/2] Don't put a web process that has not committed any
+ meaningful load in the WebProcessCache
+
+The site of a web process is set when a navigation starts in it, so a process can have a site although it never
+committed a load other than about: URLs: its provisional navigation failed or was cancelled, or the navigation from the
+initial about:blank page was moved to another process because of a Cross-Origin-Opener-Policy browsing context group
+switch (x.com, youtube.com). When such a process became unused (for example when the back/forward cache entry of its
+about:blank page was evicted or expired), it was kept in the WebProcessCache for up to 5 minutes (GLib ports) with its GPU memory
+although it holds nothing of its site.
+
+Don't cache a non-shared process that has not committed any meaningful (non-about:) load, so it exits instead. Such
+processes left over from failed or cancelled provisional navigations are no longer cached either, so a later navigation
+to their site uses a new process.
+
+* Source/WebKit/UIProcess/WebProcessCache.cpp:
+(WebKit::WebProcessCache::canCacheProcess const):
+---
+ Source/WebKit/UIProcess/WebProcessCache.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/Source/WebKit/UIProcess/WebProcessCache.cpp b/Source/WebKit/UIProcess/WebProcessCache.cpp
+index c8f3d17fdbcd..e7b36a39c156 100644
+--- a/Source/WebKit/UIProcess/WebProcessCache.cpp
++++ b/Source/WebKit/UIProcess/WebProcessCache.cpp
+@@ -107,6 +107,15 @@ bool WebProcessCache::canCacheProcess(WebProcessProxy& process) const
+         return false;
+     }
+ 
++    // The site of a process is set when a navigation starts, so a process may have a site without having committed any
++    // load other than about: URLs, e.g. when its provisional navigation failed or was cancelled, or when the navigation
++    // from the initial about:blank page was moved to another process because of a Cross-Origin-Opener-Policy header.
++    // Such a process has nothing of its site worth keeping.
++    if (!process.isSharedProcess() && !process.hasCommittedAnyMeaningfulProvisionalLoads()) {
++        WEBPROCESSCACHE_RELEASE_LOG("canCacheProcess: Not caching process because it has not committed any meaningful load", process.processID());
++        return false;
++    }
++
+     if (RefPtr websiteDataStore = process.websiteDataStore()) {
+         // Network process might wait for this web process to exit before clearing data.
+         if (websiteDataStore->isRemovingData()) {
+-- 
+2.53.0
+

@@ -1,0 +1,62 @@
+From 8df7c35cc28bd270d3c2d752c4471d0eb89f3e31 Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Sun, 18 Oct 2026 06:03:56 +0900
+Subject: [PATCH] [WPE] Make the Adwaita ButtonFace and Highlight system colors
+ follow the used color-scheme
+
+ButtonFace fell back to RenderTheme's lightGray and Highlight was a fixed
+blue, so neither reacted to color-scheme: dark, and
+css-color/system-color-support.html failed for both colors.
+
+Return the Adwaita dark button background for ButtonFace and a darker
+Adwaita selection blue for Highlight when the element uses the dark
+appearance. Light values are unchanged. Highlight still does not depend on
+any user preference, only on the color-scheme the page selects, so this
+does not expose a fingerprinting bit.
+
+* LayoutTests/platform/wpe/TestExpectations: system-color-support.html passes.
+* Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp:
+(WebCore::RenderThemeAdwaita::systemColor const):
+---
+ LayoutTests/platform/wpe/TestExpectations               | 1 -
+ Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp | 8 ++++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/LayoutTests/platform/wpe/TestExpectations b/LayoutTests/platform/wpe/TestExpectations
+index 6d8c29bc28db..34f9c0264774 100644
+--- a/LayoutTests/platform/wpe/TestExpectations
++++ b/LayoutTests/platform/wpe/TestExpectations
+@@ -590,7 +590,6 @@ Bug(WPE) security/contentSecurityPolicy/video-with-blob-url-allowed-by-media-src
+ # ========
+ 
+ imported/w3c/web-platform-tests/css/css-color/system-color-consistency.html [ Failure ]
+-imported/w3c/web-platform-tests/css/css-color/system-color-support.html [ Failure ]
+ imported/w3c/web-platform-tests/css/css-color/t32-opacity-offscreen-multiple-boxes-1-c.xht [ ImageOnlyFailure ]
+ imported/w3c/web-platform-tests/css/css-color/t32-opacity-offscreen-multiple-boxes-2-c.xht [ ImageOnlyFailure ]
+ 
+diff --git a/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp b/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp
+index a6fb2e3ceb84..9b7e591935f0 100644
+--- a/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp
++++ b/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp
+@@ -303,8 +303,16 @@ Color RenderThemeAdwaita::systemColor(CSSValueID cssValueID, OptionSet<StyleColo
+             return { Color::white, Color::Flags::Semantic };
+         return { Color::black, Color::Flags::Semantic };
+ 
++    case CSSValueButtonface:
++        if (useDarkAppearance)
++            return { buttonBackgroundColorDark, Color::Flags::Semantic };
++        return RenderTheme::systemColor(cssValueID, options);
++
+     case CSSValueHighlight:
+         // Hardcoded to avoid exposing a user appearance preference to the web for fingerprinting.
++        // It only depends on the used color-scheme of the element, which the page controls.
++        if (useDarkAppearance)
++            return { SRGBA<uint8_t> { 21, 83, 158 }, Color::Flags::Semantic };
+         return { SRGBA<uint8_t> { 52, 132, 228 }, Color::Flags::Semantic };
+ 
+     case CSSValueHighlighttext:
+
+base-commit: 7f9da4b263a3000be2681606b1408ceccd187e7c
+-- 
+2.53.0
+

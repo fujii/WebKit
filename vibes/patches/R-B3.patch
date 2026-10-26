@@ -1,0 +1,153 @@
+From 2c9b505d755a91ccd02cde8b2b2c95bcac9bae70 Mon Sep 17 00:00:00 2001
+From: Fujii Hironori <fujii@igalia.com>
+Date: Sat, 17 Oct 2026 01:39:09 +0900
+Subject: [PATCH] Reduce per-draw dirty rect overhead of HTML canvas 2D drawing
+
+Every canvas 2D draw call reports a dirty rect. HTMLCanvasElement maps it to
+the renderer's replaced content rect, which evaluates the border widths,
+padding and object-position from the style each time, and CanvasBase computes
+an enclosing integer rect even when nothing consumes it. In MotionMark
+CanvasLines this takes about 10% of the main thread.
+
+* Source/WebCore/rendering/RenderHTMLCanvas.h:
+* Source/WebCore/rendering/RenderHTMLCanvas.cpp:
+(WebCore::RenderHTMLCanvas::layout):
+(WebCore::RenderHTMLCanvas::cachedReplacedContentRect const):
+Cache replacedContentRect(). The rect depends only on the box geometry, the
+style and the intrinsic size. The cache is dropped on layout, style change and
+intrinsic size change, and is also keyed on the document's style recalc
+count, the frame view's layout update count, the box size and the intrinsic
+size.
+(WebCore::RenderHTMLCanvas::canvasSizeChanged):
+(WebCore::RenderHTMLCanvas::styleDidChange):
+* Source/WebCore/html/HTMLCanvasElement.cpp:
+(WebCore::HTMLCanvasElement::willUpdateContents):
+Use the cached rect.
+* Source/WebCore/html/CanvasBase.cpp:
+(WebCore::CanvasBase::willUpdateContents):
+Return early when there are no observers and no noise injection, since the
+integer dirty rect is only used by them.
+
+(cherry picked from commit e5f5fc5dd48c389e8e986110cfc05fb83c5d8779)
+---
+ Source/WebCore/html/CanvasBase.cpp            |  5 ++++
+ Source/WebCore/html/HTMLCanvasElement.cpp     |  4 +++-
+ Source/WebCore/rendering/RenderHTMLCanvas.cpp | 23 +++++++++++++++++++
+ Source/WebCore/rendering/RenderHTMLCanvas.h   | 13 +++++++++++
+ 4 files changed, 44 insertions(+), 1 deletion(-)
+
+diff --git a/Source/WebCore/html/CanvasBase.cpp b/Source/WebCore/html/CanvasBase.cpp
+index 754d68eb5e7d..3dc89c83e9bd 100644
+--- a/Source/WebCore/html/CanvasBase.cpp
++++ b/Source/WebCore/html/CanvasBase.cpp
+@@ -166,6 +166,11 @@ void CanvasBase::notifyObserversContentsWillChange(const FloatRect& rect)
+ void CanvasBase::willUpdateContents(const std::optional<FloatRect>& rect, ShouldApplyPostProcessingToDirtyRect shouldApplyPostProcessingToDirtyRect)
+ {
+     addCanvasNeedingPreparationForDisplayOrFlush();
++
++    // This runs for every draw. Skip computing the dirty rect when nothing uses it.
++    if (m_observers.isEmptyIgnoringNullReferences() && !shouldInjectNoiseBeforeReadback())
++        return;
++
+     IntRect dirtyRect { { }, size() };
+     if (rect)
+         dirtyRect.intersect(enclosingIntRect(*rect));
+diff --git a/Source/WebCore/html/HTMLCanvasElement.cpp b/Source/WebCore/html/HTMLCanvasElement.cpp
+index 1044962d404a..525701838658 100644
+--- a/Source/WebCore/html/HTMLCanvasElement.cpp
++++ b/Source/WebCore/html/HTMLCanvasElement.cpp
+@@ -628,7 +628,9 @@ void HTMLCanvasElement::willUpdateContents(const std::optional<FloatRect>& rect,
+         std::optional<FloatRect> dirtyRect;
+         if (rect && needsDirtyRect) {
+             FloatRect destRect;
+-            if (CheckedPtr renderReplaced = dynamicDowncast<RenderReplaced>(*renderer))
++            if (CheckedPtr renderCanvas = dynamicDowncast<RenderHTMLCanvas>(*renderer))
++                destRect = renderCanvas->cachedReplacedContentRect();
++            else if (CheckedPtr renderReplaced = dynamicDowncast<RenderReplaced>(*renderer))
+                 destRect = renderReplaced->replacedContentRect();
+             else
+                 destRect = renderer->contentBoxRect();
+diff --git a/Source/WebCore/rendering/RenderHTMLCanvas.cpp b/Source/WebCore/rendering/RenderHTMLCanvas.cpp
+index 82b537086bdb..275cc56d37bf 100644
+--- a/Source/WebCore/rendering/RenderHTMLCanvas.cpp
++++ b/Source/WebCore/rendering/RenderHTMLCanvas.cpp
+@@ -102,6 +102,27 @@ void RenderHTMLCanvas::layout()
+         innerRenderer->layoutIfNeeded();
+ 
+     m_canvasDrawableRecorderMap.clear();
++    m_cachedReplacedContentRect = std::nullopt;
++}
++
++LayoutRect RenderHTMLCanvas::cachedReplacedContentRect() const
++{
++    // The rect only depends on the box geometry, the style and the intrinsic size. The box geometry
++    // and the style only change during layout and style resolution, which the counters track.
++    unsigned styleRecalcCount = document().styleRecalcCount();
++    unsigned layoutUpdateCount = view().frameView().layoutUpdateCount();
++    auto size = borderBoxSize();
++    auto intrinsicSize = this->intrinsicSize();
++    if (m_cachedReplacedContentRect
++        && m_cachedReplacedContentRect->styleRecalcCount == styleRecalcCount
++        && m_cachedReplacedContentRect->layoutUpdateCount == layoutUpdateCount
++        && m_cachedReplacedContentRect->size == size
++        && m_cachedReplacedContentRect->intrinsicSize == intrinsicSize)
++        return m_cachedReplacedContentRect->rect;
++
++    auto rect = replacedContentRect();
++    m_cachedReplacedContentRect = CachedReplacedContentRect { rect, size, intrinsicSize, styleRecalcCount, layoutUpdateCount };
++    return rect;
+ }
+ 
+ void RenderHTMLCanvas::paintReplaced(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
+@@ -193,6 +214,7 @@ void RenderHTMLCanvas::canvasSizeChanged()
+         return;
+ 
+     setIntrinsicSize(zoomedSize);
++    m_cachedReplacedContentRect = std::nullopt;
+ 
+     if (!parent())
+         return;
+@@ -202,6 +224,7 @@ void RenderHTMLCanvas::canvasSizeChanged()
+ void RenderHTMLCanvas::styleDidChange(Style::Difference difference, const Style::ComputedStyle* oldStyle)
+ {
+     RenderReplaced::styleDidChange(difference, oldStyle);
++    m_cachedReplacedContentRect = std::nullopt;
+ 
+     if (!oldStyle || style().dynamicRangeLimit() != oldStyle->dynamicRangeLimit())
+         protect(canvasElement())->dynamicRangeLimitDidChange(style().dynamicRangeLimit().toPlatformDynamicRangeLimit());
+diff --git a/Source/WebCore/rendering/RenderHTMLCanvas.h b/Source/WebCore/rendering/RenderHTMLCanvas.h
+index aa2500e2a8d6..20ad53ecb659 100644
+--- a/Source/WebCore/rendering/RenderHTMLCanvas.h
++++ b/Source/WebCore/rendering/RenderHTMLCanvas.h
+@@ -58,6 +58,10 @@ public:
+     DisplayList::RecorderImpl* canvasDrawableRecorder(RenderElement&, GraphicsContext&, const IntRect& elementRelativeBounds) const;
+     std::optional<CanvasElementSnapshot> canvasDrawableSnapshot(RenderElement&) const;
+ 
++    // Same as replacedContentRect(), but cached until the next layout or style change.
++    // Canvas drawing calls this for every draw to map dirty rects.
++    LayoutRect cachedReplacedContentRect() const;
++
+ private:
+     void element() const = delete;
+ 
+@@ -77,6 +81,15 @@ private:
+ 
+     SingleThreadWeakPtr<RenderBlock> m_innerRenderer;
+     mutable HashMap<SingleThreadWeakRef<RenderElement>, Ref<DisplayList::RecorderImpl>> m_canvasDrawableRecorderMap;
++
++    struct CachedReplacedContentRect {
++        LayoutRect rect;
++        LayoutSize size;
++        LayoutSize intrinsicSize;
++        unsigned styleRecalcCount;
++        unsigned layoutUpdateCount;
++    };
++    mutable std::optional<CachedReplacedContentRect> m_cachedReplacedContentRect;
+ };
+ 
+ } // namespace WebCore
+
+base-commit: 265f57b72451756352251fd7226ed08a59a51386
+-- 
+2.53.0
+
