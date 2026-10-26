@@ -5,14 +5,14 @@
 #   qgate.sh check <wt> <label> lt <test>...                  layout tests, run with --repeat-each=5
 #   qgate.sh check <wt> <label> api <run-wpe-tests args>...   API tests, run 3 times
 #   qgate.sh check <wt> <label> webdriver <run-webdriver-tests args>...   WebDriver tests, run 3 times
-#       Normally run by gate-run.sh: <wt> = $VIBES_GATE (<main>-gate) with the task commits on top of $VIBES_BRANCH.
+#       Normally run by gate-run.sh: <wt> = $VIBES_GATE (<main>-gate) with the task patch applied on top of $VIBES_BRANCH.
 #       Requires: builds; every target passes every time (layout tests: every target runs at least one test;
 #       API/WebDriver: the targets are named and no expectation of them allows anything but PASS on WPE, so a
 #       still failing target fails the run); layout test subset has no new failures.
 #       Writes vibes/gates/<label>.txt, whose last line is the verdict. Exit 0 = PASS (still needs the reviewer),
 #       1 = REJECT, 75 = killed by memwatch.
-#   qgate.sh merge <branch> <label>    after reviewer approval: cherry-pick onto $VIBES_BRANCH, rebuild
-#       The branch must have the same changes as the gated commits, and $VIBES_BRANCH must not have moved since the gate.
+#   qgate.sh merge <label>             after reviewer approval: fast-forward $VIBES_BRANCH to the commit the gate passed, rebuild
+#       $VIBES_BRANCH must not have moved since the gate.
 #
 # Paths: see check_paths in gate-lib.sh. TestExpectations files may only lose lines (removing the expectation of a
 # fixed test); existing tests and expected results cannot change.
@@ -127,10 +127,10 @@ check)
     *) echo "REJECT: unknown kind $kind"; exit 2 ;;
     esac
     gate_lt_subset
-    echo "PASS $rev (needs reviewer approval, then: qgate.sh merge <task-branch> $label)"
+    echo "PASS $rev (needs reviewer approval, then: qgate.sh merge $label)"
     ;;
 merge)
-    gate_merge "$2" "$3" Q
+    gate_merge "$2" Q
     ;;
 *)
     sed -n '/^# usage:/,/^set -u/{/^#/p}' "$0"; exit 2 ;;

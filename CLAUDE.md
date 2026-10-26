@@ -10,10 +10,10 @@ All paths below are relative to the main worktree (the one with the branch `wpe-
 it themselves (`vibes/limits.sh`), so they can be run from any worktree.
 - main worktree, branch `wpe-vibes`. Its build is the "before" side of every A/B measurement.
   Only `gate.sh merge` / `qgate.sh merge` put commits here. vibes/ state is left uncommitted during a run.
-- `../wpe-vibes-w1`: the only worker worktree. Per task: `git switch -C task-<id> wpe-vibes`.
+- `../wpe-vibes-w1`: the only worker worktree, always on a detached HEAD (no task branches; see "Patches").
 - `../wpe-vibes-gate`: gates (detached HEAD).
 - `vibes/` (always the main worktree's copy):
-  `BACKLOG.md` (tasks), `KNOWLEDGE.md` (profiles, findings), `LOG.md` (events; both created on first write), `ITERATION.md` (orchestrator prompt),
+  `BACKLOG.md` (tasks), `patches/` (the changes of the tasks, see "Patches"), `KNOWLEDGE.md` (profiles, findings), `LOG.md` (events; both created on first write), `ITERATION.md` (orchestrator prompt),
   `metrics/` (MotionMark JSON, `noise.json`, `lt-flaky.txt`, `usage.tsv`), `lt/`, `gates/`, `logs/`, `run/` (locks,
   pids, the tools pin and control files). Machine-specific settings go in `vibes/limits.local.sh` (see `vibes/limits.sh`).
 
@@ -25,6 +25,19 @@ it themselves (`vibes/limits.sh`), so they can be run from any worktree.
 - **Q quality**: WPE layout tests marked Failure/Crash/Timeout in TestExpectations, crashes and flakiness seen on the
   bots (results.webkit.org, build.webkit.org), TestWebKitAPI and WebDriver failures. Only issues that reproduce on this
   branch's base. Gate: `qgate.sh`.
+
+## Patches
+The change of a task lives in `vibes/patches/<ID>.patch` of the main worktree (`<ID>` = the BACKLOG ID), made by
+`git format-patch`; it may hold several commits. It is the only copy: there are no task branches.
+- Start or resume a task in w1: `git -C ../wpe-vibes-w1 switch -q --detach --discard-changes wpe-vibes`, then, if the
+  patch exists, `git -C ../wpe-vibes-w1 am -3 --keep-non-patch "$PWD/vibes/patches/<ID>.patch"` (from the main
+  worktree; `--keep-non-patch` keeps title prefixes such as `[GTK][WPE]`). This also rebases it onto the current
+  `wpe-vibes`. Never use w1's own `vibes/patches/` copy.
+- After committing in w1 (and after every rework or rebase), write the patch back:
+  `git -C ../wpe-vibes-w1 format-patch --stdout --base=wpe-vibes wpe-vibes..HEAD > vibes/patches/<ID>.patch`.
+  The reviewer and the gate read this file, so it must match what was built and measured.
+- A merged, dropped or replaced patch stays in `vibes/patches/` until the human commits the state; the BACKLOG row
+  says what happened to it.
 
 ## Commands
 - Every heavy job goes through `vibes/heavy.sh <name> <cmd...>` (global lock, memory checks, oom_score_adj 1000).
@@ -43,14 +56,17 @@ it themselves (`vibes/limits.sh`), so they can be run from any worktree.
 - Layout tests: `vibes/heavy.sh lt vibes/lt-run.sh <wt> <name> <tests...>`; compare with
   `vibes/lt-diff.py vibes/lt/baseline-subset* -- vibes/lt/<name>`.
 - API tests: `vibes/heavy.sh api bash -c 'cd <wt> && Tools/Scripts/run-wpe-tests --release <TestPath>'`.
-- Gates (orchestrator only, detached): `nohup setsid vibes/gate-run.sh <label> "<commits>" <Suite/Test>... &`
-  (P/M), `GATE_SCRIPT=qgate.sh nohup setsid vibes/gate-run.sh <label> "<commits>" lt|api|webdriver <args>... &` (Q).
+- Gates (orchestrator only, detached): `nohup setsid vibes/gate-run.sh <label> vibes/patches/<ID>.patch <Suite/Test>... &`
+  (P/M), `GATE_SCRIPT=qgate.sh nohup setsid vibes/gate-run.sh <label> vibes/patches/<ID>.patch lt|api|webdriver <args>... &` (Q).
+  It applies the patch onto `wpe-vibes` in the gate worktree (`git am -3`; several patches: quote them as one argument)
+  and keeps the gated commit as `refs/vibes/gates/<label>`.
   Labels: `g<N>-<task>`, each used once (the gate's job names must match `g[0-9]`). Gates wait for `vibes/baseline.sh`
   to finish and run one at a time: a second gate waits for the running one. `vibes/gates/<label>.txt` ends with the
   verdict: `PASS <commit>`, `REJECT: ...` or `BORDERLINE: ...` (MotionMark too close to call: run the gate again with
   a new label and `MM_ROUNDS_TARGET=10 MM_ROUNDS_ALL=6` before `nohup`). After reviewer approval:
-  `vibes/gate.sh merge <branch> <label>` (or `qgate.sh merge`); it refuses when the branch changed after the gate or
-  `wpe-vibes` moved since (then run the gate again with a new label).
+  `vibes/gate.sh merge <label>` (or `qgate.sh merge <label>`): it fast-forwards `wpe-vibes` to the gated commit, so
+  what is merged is exactly what the gate ran. It refuses when `wpe-vibes` moved since the gate (then rebase the patch,
+  see "Patches", and run the gate again with a new label). A patch changed after its gate needs a new gate too.
 - Profiling: `vibes/heavy.sh prof vibes/mm-profile.sh <wt> <label> <Suite/Test>` then `vibes/prof-report.sh <wt> <label>`.
   Read the report with `head -80`, never whole.
 
@@ -100,7 +116,7 @@ it themselves (`vibes/limits.sh`), so they can be run from any worktree.
 - A change that legitimately needs rebaselines is put on hold (recorded in `vibes/LOG.md`), not merged.
 
 ## Starting a run
-1. Create the worktrees: `git worktree add ../wpe-vibes-w1 -b task-init wpe-vibes`,
+1. Create the worktrees: `git worktree add --detach ../wpe-vibes-w1 wpe-vibes`,
    `git worktree add --detach ../wpe-vibes-gate wpe-vibes`. Put machine-specific values in `vibes/limits.local.sh`.
 2. `mkdir -p vibes/logs`, start memwatch (see Commands), build the main worktree
    (`vibes/heavy.sh build-main vibes/build.sh .`), then `nohup setsid vibes/baseline.sh > vibes/logs/baseline.log 2>&1 &`
@@ -113,5 +129,6 @@ it themselves (`vibes/limits.sh`), so they can be run from any worktree.
 1. `tail -40 vibes/LOG.md`, `cat vibes/BACKLOG.md`, `git log --oneline origin/main..wpe-vibes`.
 2. Check `ps -p "$(cat vibes/run/memwatch.pid)" -o args=` (restart memwatch if missing), `cat vibes/run/heavy.job`,
    `pgrep -af 'gate-run.sh|gate.sh|qgate.sh'` (a running gate).
-3. Check the worker worktree: `git -C ../wpe-vibes-w1 status`.
+3. Check the worker worktree: `git -C ../wpe-vibes-w1 status`, `git -C ../wpe-vibes-w1 log --oneline wpe-vibes..HEAD`
+   (commits of an interrupted task not yet written to `vibes/patches/`).
 4. Continue from the BACKLOG state (In progress / Gate / Review).

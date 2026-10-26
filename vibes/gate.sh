@@ -1,16 +1,16 @@
 #!/bin/bash
-# Acceptance gate for a task branch (P and M tracks). Agents must NOT edit this file.
+# Acceptance gate for a task patch (P and M tracks). Agents must NOT edit this file.
 #
 # usage:
 #   gate.sh paths <rev>                            diff path check only (see check_paths in gate-lib.sh)
 #   gate.sh check <wt> <label> <target>...         build, MotionMark A/B, layout test subset
-#       Normally run by gate-run.sh: <wt> = $VIBES_GATE (<main>-gate) with the task commits on top of $VIBES_BRANCH.
+#       Normally run by gate-run.sh: <wt> = $VIBES_GATE (<main>-gate) with the task patch applied on top of $VIBES_BRANCH.
 #       <target> = Suite/Test the change should improve, e.g. MotionMark/Paths; none = regressions only (M track).
 #       Writes vibes/gates/<label>.txt, whose last line is the verdict. Exit 0 = PASS (still needs the reviewer),
 #       1 = REJECT, 3 = BORDERLINE (MotionMark; run the gate again with MM_ROUNDS_TARGET=10 MM_ROUNDS_ALL=6),
 #       75 = killed by memwatch.
-#   gate.sh merge <branch> <label>                 after reviewer approval: cherry-pick onto $VIBES_BRANCH, rebuild
-#       The branch must have the same changes as the gated commits, and $VIBES_BRANCH must not have moved since the gate.
+#   gate.sh merge <label>                          after reviewer approval: fast-forward $VIBES_BRANCH to the commit the gate passed, rebuild
+#       $VIBES_BRANCH must not have moved since the gate.
 set -u
 here=$(dirname "$(readlink -f "$0")")
 source "$here/limits.sh"
@@ -50,10 +50,10 @@ check)
 
     gate_lt_subset
     if [ $mmrc -eq 3 ]; then echo "BORDERLINE: MotionMark; run the gate again with MM_ROUNDS_TARGET=10 MM_ROUNDS_ALL=6"; exit 3; fi
-    echo "PASS $rev (needs reviewer approval, then: gate.sh merge <task-branch> $label)"
+    echo "PASS $rev (needs reviewer approval, then: gate.sh merge $label)"
     ;;
 merge)
-    gate_merge "$2" "$3" P/M
+    gate_merge "$2" P/M
     ;;
 *)
     sed -n '/^# usage:/,/^set -u/{/^#/p}' "$0"; exit 2 ;;

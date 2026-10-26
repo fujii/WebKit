@@ -11,7 +11,9 @@ Raspberry Pi 4.
 ## How it works
 - `loop.sh` starts one non-interactive `claude -p` orchestrator session per iteration with the prompt `ITERATION.md`.
   The orchestrator picks a task from `BACKLOG.md`, runs the `vibes-worker` agent on it in a worker worktree, has the
-  `vibes-reviewer` agent review the result, and runs a gate.
+  `vibes-reviewer` agent review the result, and runs a gate. The change of each task is kept as a patch file in
+  `patches/` (named by its BACKLOG ID), not as a branch; a passing gate is merged by fast-forwarding to the gated
+  commit.
 - Gates (`gate.sh`, `qgate.sh`) decide merges from numbers: interleaved MotionMark A/B with noise-aware thresholds,
   a layout test subset with no new failures, target tests passing every time. The agents may not edit the gate
   scripts or their own rules (`.claude/settings.json` denies it, the gates check the diff paths, and they refuse to run

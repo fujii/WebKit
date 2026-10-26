@@ -139,21 +139,19 @@ gate_lt_subset() {
     fi
 }
 
-# After reviewer approval: cherry-pick <branch> onto $B, rebuild. The branch must have the same changes as the
-# gated commits, and $B must not have moved since the gate.
-gate_merge() {   # <branch> <label> <kind>
-    local branch=$1 label=$2 kind=$3 gated
+# After reviewer approval: fast-forward $B to the commit gate <label> passed, rebuild. $B must not have moved since
+# the gate.
+gate_merge() {   # <label> <kind>
+    local label=$1 kind=$2 gated
     check_scripts || exit 1
     gated=$(awk '/^PASS / {print $2; exit}' "$GATES/$label.txt" 2>/dev/null)
     [ -n "$gated" ] || { echo "gate $label did not pass"; exit 1; }
-    check_paths "$branch" || exit 1
+    git -C "$MAIN" cat-file -e "$gated^{commit}" || { echo "the commit $gated of gate $label is gone; run the gate again"; exit 1; }
+    check_paths "$gated" || exit 1
     cd "$MAIN" || exit 1
     git diff --quiet HEAD -- . ':!vibes' || { echo "$B has uncommitted source changes"; exit 1; }
     git merge-base --is-ancestor "$B" "$gated" || { echo "$B moved since gate $label ran on it; run the gate again"; exit 1; }
-    patch_id() { git diff "$1" "$2" | git patch-id --stable | cut -d' ' -f1; }
-    [ "$(patch_id "$(git merge-base "$B" "$branch")" "$branch")" = "$(patch_id "$B" "$gated")" ] \
-        || { echo "the changes of $branch differ from the ones gate $label passed ($gated); run the gate again"; exit 1; }
-    git cherry-pick "$B..$branch" || { git cherry-pick --abort; echo "cherry-pick failed"; exit 1; }
-    echo "$(date -Is) merged $branch ($label, $kind): $(git log --oneline -1)" >> "$VIBES_STATE/logs/merges.log"
+    git merge -q --ff-only "$gated" || { echo "fast-forward to $gated failed"; exit 1; }
+    echo "$(date -Is) merged $label ($kind): $(git log --oneline -1)" >> "$VIBES_STATE/logs/merges.log"
     "$here/heavy.sh" build-main "$here/build.sh" "$MAIN"
 }
