@@ -1,0 +1,2 @@
+
+(WPEWebProcess:1719276): GLib-GIO-WARNING **: 00:50:25.564: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-0ba39fbe-c33e-4ae1-8b87-dc5ecaa19e6d: The connection is closed

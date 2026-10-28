@@ -1,0 +1,8236 @@
+{
+ "browser": "minibrowser",
+ "options": {
+  "browser": "minibrowser",
+  "platform": "wpe",
+  "configuration": "Release",
+  "build_dir": "/home/fujii/webkit-wt/wpe-vibes-w1/WebKitBuild/WPE/Release",
+  "browser_binary": null,
+  "browser_arg": [],
+  "profile": null,
+  "keep_x11": false,
+  "urls_file": null,
+  "size": "1920x1080",
+  "load_wait": 3.0,
+  "scroll_steps": 0,
+  "scroll_interval": 1.0,
+  "idle": 10.0,
+  "interval": 1.0,
+  "repeat": 3,
+  "json": "/home/fujii/webkit-wt/wpe-vibes-w1/vibes-m3/out/m3a-gm.json",
+  "startup_timeout": 30.0,
+  "verbose": false,
+  "width": 1920,
+  "height": 1080
+ },
+ "runs": [
+  {
+   "url": "http://127.0.0.1:18768/coop",
+   "metrics": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "scrollY": 0,
+    "scrollHeight": 3029,
+    "title": ""
+   },
+   "layers": null,
+   "samples": [
+    {
+     "time": 1792338627.277397,
+     "phase": "start",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 10883072,
+      "vram": 89657344,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 100540416,
+     "private_bytes": 64954368
+    },
+    {
+     "time": 1792338627.542978,
+     "phase": "loaded",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 17199104,
+      "vram": 145903616,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 163102720,
+     "private_bytes": 127516672
+    },
+    {
+     "time": 1792338628.5481412,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338629.553432,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338630.5482066,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338631.5552871,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338632.5604386,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338633.5669973,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338634.572245,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338635.577392,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338636.5828915,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338637.588101,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338638.5934813,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338639.5986385,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338640.5553327,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719522,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719573,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719625,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    }
+   ],
+   "index": 1
+  },
+  {
+   "url": "http://127.0.0.1:18768/plain",
+   "metrics": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "scrollY": 0,
+    "scrollHeight": 3029,
+    "title": ""
+   },
+   "layers": null,
+   "samples": [
+    {
+     "time": 1792338641.2273533,
+     "phase": "start",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 10883072,
+      "vram": 89657344,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 100540416,
+     "private_bytes": 64954368
+    },
+    {
+     "time": 1792338641.251964,
+     "phase": "loaded",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 74039296,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 12980224,
+      "vram": 114143232,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 127123456,
+     "private_bytes": 91537408
+    },
+    {
+     "time": 1792338642.2556977,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338643.259272,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338644.255724,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338645.2615128,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338646.2651658,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338647.2687507,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338648.2726154,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338649.2763221,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338650.2798405,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338651.2835684,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338652.2872274,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338653.291062,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338654.261545,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1719747,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1719831,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    }
+   ],
+   "index": 1
+  },
+  {
+   "url": "http://127.0.0.1:18768/coop",
+   "metrics": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "scrollY": 0,
+    "scrollHeight": 3029,
+    "title": ""
+   },
+   "layers": null,
+   "samples": [
+    {
+     "time": 1792338654.9403028,
+     "phase": "start",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 10883072,
+      "vram": 89657344,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 100540416,
+     "private_bytes": 64954368
+    },
+    {
+     "time": 1792338655.2119539,
+     "phase": "loaded",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 28983296,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 17199104,
+      "vram": 125333504,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 142532608,
+     "private_bytes": 106946560
+    },
+    {
+     "time": 1792338656.2172298,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338657.2225113,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338658.2169795,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338659.224125,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338660.2291832,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338661.234501,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338662.2397497,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338663.2449973,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338664.2502406,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338665.2561088,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338666.2613235,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338667.2664926,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338668.2241347,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720013,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720065,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720117,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    }
+   ],
+   "index": 2
+  },
+  {
+   "url": "http://127.0.0.1:18768/plain",
+   "metrics": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "scrollY": 0,
+    "scrollHeight": 3029,
+    "title": ""
+   },
+   "layers": null,
+   "samples": [
+    {
+     "time": 1792338668.885335,
+     "phase": "start",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 10883072,
+      "vram": 89657344,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 100540416,
+     "private_bytes": 64954368
+    },
+    {
+     "time": 1792338668.9064374,
+     "phase": "loaded",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 71942144,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 12980224,
+      "vram": 112046080,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 125026304,
+     "private_bytes": 89440256
+    },
+    {
+     "time": 1792338669.9107146,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338670.9145184,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338671.910063,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338672.9156063,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338673.9193833,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338674.923455,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338675.927271,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338676.9309564,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338677.9345586,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338678.9385161,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338679.9421294,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338680.946104,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338681.9156568,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720216,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720268,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    }
+   ],
+   "index": 2
+  },
+  {
+   "url": "http://127.0.0.1:18768/coop",
+   "metrics": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "scrollY": 0,
+    "scrollHeight": 3029,
+    "title": ""
+   },
+   "layers": null,
+   "samples": [
+    {
+     "time": 1792338682.5763066,
+     "phase": "start",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 10883072,
+      "vram": 89657344,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 100540416,
+     "private_bytes": 64954368
+    },
+    {
+     "time": 1792338682.8407512,
+     "phase": "loaded",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 28983296,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 17199104,
+      "vram": 125333504,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 142532608,
+     "private_bytes": 106946560
+    },
+    {
+     "time": 1792338683.845854,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338684.8511124,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338685.8456118,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338686.852589,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338687.857579,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338688.8626952,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338689.8683412,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338690.873477,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338691.8785868,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338692.8839867,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338693.8892407,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338694.8943434,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    },
+    {
+     "time": 1792338695.852515,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720415,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720467,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 56246272,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720519,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 21393408,
+      "vram": 203780096,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 225173504,
+     "private_bytes": 171794432
+    }
+   ],
+   "index": 3
+  },
+  {
+   "url": "http://127.0.0.1:18768/plain",
+   "metrics": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "scrollY": 0,
+    "scrollHeight": 3029,
+    "title": ""
+   },
+   "layers": null,
+   "samples": [
+    {
+     "time": 1792338696.512443,
+     "phase": "start",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 4218880,
+        "vram": 49553408,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 10883072,
+      "vram": 89657344,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 100540416,
+     "private_bytes": 64954368
+    },
+    {
+     "time": 1792338696.5337183,
+     "phase": "loaded",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 6316032,
+        "vram": 71942144,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 0,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 12980224,
+      "vram": 112046080,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 35586048,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 125026304,
+     "private_bytes": 89440256
+    },
+    {
+     "time": 1792338697.5378785,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338698.5415635,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338699.5372167,
+     "phase": "load",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338700.5421715,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338701.5458996,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338702.549414,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338703.5542116,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338704.558231,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338705.5618577,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338706.5655537,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338707.5697553,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338708.5734296,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    },
+    {
+     "time": 1792338709.5428467,
+     "phase": "idle",
+     "devices": [
+      "0000:44:00.0 (amdgpu)"
+     ],
+     "processes": [
+      {
+       "pid": 1720601,
+       "name": "MiniBrowser",
+       "total": {
+        "cpu": 0,
+        "gtt": 6664192,
+        "vram": 40103936,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 35586048,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      },
+      {
+       "pid": 1720652,
+       "name": "WPEWebProcess",
+       "total": {
+        "cpu": 0,
+        "gtt": 8413184,
+        "vram": 107429888,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       },
+       "shared": {
+        "cpu": 0,
+        "gtt": 0,
+        "vram": 17793024,
+        "gds": 0,
+        "gws": 0,
+        "oa": 0,
+        "doorbell": 0,
+        "mmioremap": 0
+       }
+      }
+     ],
+     "total": {
+      "cpu": 0,
+      "gtt": 15077376,
+      "vram": 147533824,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "shared": {
+      "cpu": 0,
+      "gtt": 0,
+      "vram": 53379072,
+      "gds": 0,
+      "gws": 0,
+      "oa": 0,
+      "doorbell": 0,
+      "mmioremap": 0
+     },
+     "total_bytes": 162611200,
+     "private_bytes": 109232128
+    }
+   ],
+   "index": 3
+  }
+ ]
+}

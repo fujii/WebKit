@@ -1,0 +1,18 @@
+== run
+A shown:
+pid 1717419: 110.5 MiB (shared 17.0)
+B shown, A suspended:
+pid 1717419: 91.5 MiB (shared 0.0)
+pid 1717491: 84.7 MiB (shared 8.5)
+back to A:
+pid 1717419: 100.5 MiB (shared 17.0)
+pid 1717491: 67.7 MiB (shared 0.0)
+== run
+A shown:
+pid 1719083: 110.5 MiB (shared 17.0)
+B shown, A suspended:
+pid 1719083: 91.5 MiB (shared 0.0)
+pid 1719225: 84.7 MiB (shared 8.5)
+back to A:
+pid 1719083: 100.5 MiB (shared 17.0)
+pid 1719225: 67.7 MiB (shared 0.0)

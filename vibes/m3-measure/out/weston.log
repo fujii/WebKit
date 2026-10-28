@@ -1,0 +1,63 @@
+Date: 2026-10-19 JST
+[00:52:19.197] weston 14.0.2
+               https://wayland.freedesktop.org
+               Bug reports to: https://gitlab.freedesktop.org/wayland/weston/issues/
+               Build: 14.0.2
+[00:52:19.197] Command line: weston --backend=headless --renderer=gl --width=1920 --height=1080 --shell=kiosk --socket=wl-gpumem --no-config
+[00:52:19.197] OS: Linux, 7.2.10-200.fc44.x86_64, #1 SMP PREEMPT_DYNAMIC Sun Oct 11 18:11:51 UTC 2026, x86_64
+[00:52:19.197] Flight recorder: enabled
+[00:52:19.197] Starting with no config file.
+[00:52:19.197] Output repaint window is 7 ms maximum.
+[00:52:19.197] Loading module '/usr/lib/x86_64-linux-gnu/libweston-14/headless-backend.so'
+[00:52:19.200] Loading module '/usr/lib/x86_64-linux-gnu/libweston-14/gl-renderer.so'
+libEGL warning: pci id for fd 10: 10de:28b0, driver (null)
+
+pci id for fd 11: 10de:28b0, driver (null)
+pci id for fd 12: 10de:28b0, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+[00:52:19.232] Using rendering device: /dev/dri/renderD128
+[00:52:19.236] EGL version: 1.5
+[00:52:19.236] EGL vendor: Mesa Project
+[00:52:19.236] EGL client APIs: OpenGL OpenGL_ES 
+[00:52:19.236] EGL features:
+               EGL Wayland extension: no
+               context priority: yes
+               buffer age: no
+               partial update: no
+               swap buffers with damage: no
+               configless context: yes
+               surfaceless context: yes
+               dmabuf support: modifiers
+[00:52:19.238] GL version: OpenGL ES 3.2 Mesa 26.0.8-1ubuntu0.3
+[00:52:19.238] GLSL version: OpenGL ES GLSL ES 3.20
+[00:52:19.238] GL vendor: AMD
+[00:52:19.238] GL renderer: AMD Radeon RX 6400 (radeonsi, navi24, ACO, DRM 3.64, 7.2.10-200.fc44.x86_64)
+[00:52:19.242] GL ES 3.2 - renderer features:
+               read-back format: ARGB8888
+               glReadPixels supports y-flip: yes
+               glReadPixels supports PBO: yes
+               wl_shm 10 bpc formats: yes
+               wl_shm 16 bpc formats: yes
+               wl_shm half-float formats: yes
+               internal R and RG formats: yes
+               OES_EGL_image_external: yes
+[00:52:19.242] Using GL renderer
+[00:52:19.242] Registered plugin API 'weston_windowed_output_api_headless_v2' of size 16
+[00:52:19.242] Color manager: no-op
+                 protocol support: no
+[00:52:19.242] Output 'headless' attempts EOTF mode SDR and colorimetry mode default.
+[00:52:19.242] Output 'headless' using color profile: stock sRGB color profile
+[00:52:19.243] Output 'headless' enabled with head(s) headless
+[00:52:19.243] Compositor capabilities:
+               arbitrary surface rotation: yes
+               screen capture uses y-flip: yes
+               cursor planes: no
+               arbitrary resolutions: no
+               view mask clipping: yes
+               explicit sync: yes
+               color operations: yes
+               presentation clock: CLOCK_MONOTONIC_RAW, id 4
+               presentation clock resolution: 0.000000001 s
+[00:52:19.244] Loading module '/usr/lib/x86_64-linux-gnu/weston/kiosk-shell.so'
+[00:56:06.434] caught signal 15

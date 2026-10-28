@@ -79,12 +79,14 @@ Ramp noise with the host idle (0.9-2.0%) is far below the noise seen in daytime 
   chain of 4 cross-site COOP navigations evicting the initial process from the back/forward cache (capacity 2).
 - Run 3 numbers (/tmp/m3, same machine, plain PSON A -> B, A suspended): A's process 110.5 -> 91.5 MiB GPU (shared
   swap chain 17 -> 0); WebDriver COOP leftover about:blank process 76.6 -> 59.7 MiB (first m3a version).
-- Scripts (untracked): ../wpe-vibes-w1/vibes-m3/{chain.sh,measure.sh,chain-server.py,procmem.py,nav-*}; chain.sh
+- Scripts: vibes/m3-measure/{chain.sh,measure.sh,chain-server.py,procmem.py,nav-*} (moved on 2026-10-28 from the untracked
+  ../wpe-vibes-w1/vibes-m3; chain.sh still uses the old w1 path and the deleted task-m3 branch: apply
+  vibes/patches/M3.patch in w1 instead); chain.sh
   measures base (main build), builds and measures +m3a (detached task-m3~1) and +m3a+m3b (task-m3), all via heavy.sh;
-  results in vibes-m3/out/<tag>-{coop,chain,go204,nav,gm}.txt (procs/GPU MiB/PSS MiB per process).
+  results in vibes/m3-measure/out/<tag>-{coop,chain,go204,nav,gm}.txt (procs/GPU MiB/PSS MiB per process).
 - 2026-10-18 22:55: BLOCKED, no measurement yet (g17-m1a held the heavy lock, priority gate-only, 12 target runs done
-  by 22:46). Run after the gate: `nohup setsid ../wpe-vibes-w1/vibes-m3/chain.sh > ../wpe-vibes-w1/vibes-m3/out/chain-stdout.log 2>&1 &`
-  (~2 incremental w1 builds + 3 x ~3 min measurements; it leaves w1 on task-m3; steps in vibes-m3/out/chain.log).
+  by 22:46). Run after the gate: `nohup setsid vibes/m3-measure/chain.sh > vibes/m3-measure/out/chain-stdout.log 2>&1 &`
+  (~2 incremental w1 builds + 3 x ~3 min measurements; it leaves w1 on task-m3; steps in vibes/m3-measure/out/chain.log).
 - 2026-10-19 chain results (old base 1c6fb3c6bdf2, all rc=0; n=2 MiniBrowser reps per scenario, gm n=3; values were
   identical between reps for GPU, PSS within ~2 MiB). Total GPU MiB / total PSS MiB at the last sample, base / +m3a / +m3a+m3b:
   - nav (PSON A -> B, A suspended): A's process 110.5 / 91.5 / 91.5 GPU (shared 17 -> 0); back to A: B's process

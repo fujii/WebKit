@@ -1,0 +1,12 @@
+browser: minibrowser  (MiB; "private" = total minus buffers shared with another process)
+url                                           run         viewport |    load    peak    idle | idle private | idle by process
+http://127.0.0.1:18768/coop                     1      1920x1080@1 |   231.7   231.7   231.7 |        172.3 | MiniBrowser=44.6(gtt:6.4,vram:38.2; shared 33.9), WPEWebProcess=76.6(gtt:6.0,vram:70.6; shared 8.5), WPEWebProcess=110.5(gtt:8.0,vram:102.5; shared 17.0)
+http://127.0.0.1:18768/plain                    1      1920x1080@1 |   155.1   155.1   155.1 |        104.2 | MiniBrowser=44.6(gtt:6.4,vram:38.2; shared 33.9), WPEWebProcess=110.5(gtt:8.0,vram:102.5; shared 17.0)
+http://127.0.0.1:18768/coop                     2      1920x1080@1 |   231.7   231.7   231.7 |        172.3 | MiniBrowser=44.6(gtt:6.4,vram:38.2; shared 33.9), WPEWebProcess=76.6(gtt:6.0,vram:70.6; shared 8.5), WPEWebProcess=110.5(gtt:8.0,vram:102.5; shared 17.0)
+http://127.0.0.1:18768/plain                    2      1920x1080@1 |   155.1   155.1   155.1 |        104.2 | MiniBrowser=44.6(gtt:6.4,vram:38.2; shared 33.9), WPEWebProcess=110.5(gtt:8.0,vram:102.5; shared 17.0)
+http://127.0.0.1:18768/coop                     3      1920x1080@1 |   231.7   231.7   231.7 |        172.3 | MiniBrowser=44.6(gtt:6.4,vram:38.2; shared 33.9), WPEWebProcess=76.6(gtt:6.0,vram:70.6; shared 8.5), WPEWebProcess=110.5(gtt:8.0,vram:102.5; shared 17.0)
+http://127.0.0.1:18768/plain                    3      1920x1080@1 |   155.1   155.1   155.1 |        104.2 | MiniBrowser=44.6(gtt:6.4,vram:38.2; shared 33.9), WPEWebProcess=110.5(gtt:8.0,vram:102.5; shared 17.0)
+DRM devices: 0000:44:00.0 (amdgpu)
+medians (total):
+  http://127.0.0.1:18768/coop                   n=3 load=231.7 peak=231.7 idle=231.7
+  http://127.0.0.1:18768/plain                  n=3 load=155.1 peak=155.1 idle=155.1

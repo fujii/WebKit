@@ -1,0 +1,78 @@
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+
+(WPEWebProcess:1717049): GLib-GIO-WARNING **: 00:48:41.006: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-54d1f3fc-52d8-4b5c-9be6-1e392077b611: The connection is closed
+
+(WPEWebProcess:1716777): GLib-GIO-WARNING **: 00:48:41.006: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-8aa1b2e0-df6c-4d3f-94a8-2ee5c5528104: The connection is closed
+
+(WPEWebProcess:1716703): GLib-GIO-WARNING **: 00:48:41.006: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-10dc259d-b543-4dc6-b9f4-edaac0b928d1: The connection is closed
+
+(WPEWebProcess:1716929): GLib-GIO-WARNING **: 00:48:41.006: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-fd29da01-d350-4c49-aa37-43fcf2273b42: The connection is closed
+
+(WPEWebProcess:1716578): GLib-GIO-WARNING **: 00:48:41.007: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-14c1dbdc-94e7-4927-9363-de874baf5a87: The connection is closed
+
+(WPEWebProcess:1716865): GLib-GIO-WARNING **: 00:48:41.007: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-a5a9015f-5d42-44d0-93fd-6b428147be16: The connection is closed
+
+(WPEWebProcess:1716841): GLib-GIO-WARNING **: 00:48:41.007: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-b9e6c5c4-d097-4f1a-bc3b-07c2de5b7117: The connection is closed
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+Unknown logging channel: ProcessSwapping
+
+(WPEWebProcess:1718263): GLib-GIO-WARNING **: 00:49:53.018: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-aff03793-2d89-4190-aefe-45d50b516b71: The connection is closed
+
+(WPEWebProcess:1718461): GLib-GIO-WARNING **: 00:49:53.018: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-c09046bc-d093-4cdf-be76-849ad645c93a: The connection is closed
+
+(WPEWebProcess:1718199): GLib-GIO-WARNING **: 00:49:53.019: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-bcc167dc-295c-4611-985b-45a09cea60b5: The connection is closed
+
+(WPEWebProcess:1718172): GLib-GIO-WARNING **: 00:49:53.019: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-5337914b-124d-41c5-967a-207b43757321: The connection is closed
+
+(WPEWebProcess:1718351): GLib-GIO-WARNING **: 00:49:53.019: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-a6edb7ab-380d-49e4-86ff-d80abfbf89c4: The connection is closed
+
+(WPEWebProcess:1718287): GLib-GIO-WARNING **: 00:49:53.019: Error releasing name org.wpewebkit.MiniBrowser.Sandboxed.WebProcess-aa643e7f-c946-44b6-ada1-33410d9b40cb: The connection is closed
