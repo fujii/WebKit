@@ -1299,6 +1299,40 @@ static void testWebKitInputMethodContextSurroundingLongText(InputMethodTest* tes
     g_assert_cmpuint(test->surroundingSelectionIndex(), ==, 4);
 }
 
+static void testWebKitInputMethodContextSurroundingLongTextEditableStart(InputMethodTest* test, gconstpointer)
+{
+    // The editable content starts with an element, not with text, and the page has more than
+    // 1000 characters before it. None of the page text is sent.
+    test->loadHtml("<html><body><p id='page'></p><div id='editable' contenteditable><p><br></p><p>xyz</p></div>"
+        "<script>page.textContent = 'a'.repeat(1500)</script></body></html>", nullptr);
+    test->waitUntilLoadFinished();
+    test->focusEditableAndWaitUntilInputMethodEnabled();
+    test->waitForSurroundingCount(1, 5000);
+    g_assert_cmpstr(test->surroundingText(), ==, "\nxyz");
+    g_assert_cmpuint(test->surroundingCursorIndex(), ==, 0);
+    g_assert_cmpuint(test->surroundingSelectionIndex(), ==, 0);
+}
+
+static void testWebKitInputMethodContextSurroundingLongTextUncountedContent(InputMethodTest* test, gconstpointer)
+{
+    // Images count as one character each when the limit is applied before the selection, but they are not
+    // part of the surrounding text. An unpaired surrogate after the caret is kept, and the caret stays at 0.
+    test->loadHtml("<html><body><div id='editable' contenteditable><p id='paragraph'>x<span id='tail'></span></p></div><script>"
+        "tail.textContent = '\\uDC00b';"
+        "for (let i = 0; i < 1100; ++i) paragraph.insertBefore(document.createElement('img'), tail);"
+        "</script></body></html>", nullptr);
+    test->waitUntilLoadFinished();
+    test->focusEditableAndWaitUntilInputMethodEnabled();
+    test->waitForSurroundingCount(1, 5000);
+    test->clearInputMethodCounters();
+
+    test->runJavaScriptAndWaitUntilFinished("getSelection().collapse(tail.firstChild, 0)", nullptr);
+    test->waitForSurroundingCount(1, 5000);
+    g_assert_cmpstr(test->surroundingText(), ==, "\xEF\xBF\xBD" "b");
+    g_assert_cmpuint(test->surroundingCursorIndex(), ==, 0);
+    g_assert_cmpuint(test->surroundingSelectionIndex(), ==, 0);
+}
+
 static void testWebKitInputMethodContextDeleteSurroundingContentEditable(InputMethodTest* test, gconstpointer)
 {
     test->loadHtml("<html><body><h1>Title</h1><div id='editable' contenteditable></div></body></html>", nullptr);
@@ -2265,6 +2299,8 @@ void beforeAll()
     InputMethodTest::add("WebKitInputMethodContext", "cancel-sequence", testWebKitInputMethodContextCancelSequence);
     InputMethodTest::add("WebKitInputMethodContext", "surrounding", testWebKitInputMethodContextSurrounding);
     InputMethodTest::add("WebKitInputMethodContext", "surrounding-long-text", testWebKitInputMethodContextSurroundingLongText);
+    InputMethodTest::add("WebKitInputMethodContext", "surrounding-long-text-editable-start", testWebKitInputMethodContextSurroundingLongTextEditableStart);
+    InputMethodTest::add("WebKitInputMethodContext", "surrounding-long-text-uncounted-content", testWebKitInputMethodContextSurroundingLongTextUncountedContent);
     InputMethodTest::add("WebKitInputMethodContext", "delete-surrounding-contenteditable", testWebKitInputMethodContextDeleteSurroundingContentEditable);
     InputMethodTest::add("WebKitInputMethodContext", "delete-surrounding-before-start", testWebKitInputMethodContextDeleteSurroundingBeforeStart);
     InputMethodTest::add("WebKitInputMethodContext", "delete-surrounding-utf16", testWebKitInputMethodContextDeleteSurroundingUTF16);

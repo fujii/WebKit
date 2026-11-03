@@ -128,6 +128,11 @@ static constexpr unsigned maxSurroundingTextLength = 1000;
 
 static BoundaryPoint surroundingTextStart(const BoundaryPoint& editableStart, const BoundaryPoint& position)
 {
+    // An empty range that starts before a child node is not handled by BackwardsCharacterIterator:
+    // it walks out of the editable content, through the text before it.
+    if (editableStart == position)
+        return editableStart;
+
     BackwardsCharacterIterator iterator({ editableStart, position });
     if (!iterator.atEnd())
         iterator.advance(maxSurroundingTextLength);
@@ -196,7 +201,7 @@ void WebPage::getPlatformEditorState(LocalFrame& frame, EditorState& result) con
             auto surroundingEnd = surroundingTextEnd(compositionRange->end, editableRange->end);
             auto beforeText = plainText({ surroundingStart, compositionRange->start });
             auto text = makeString(beforeText, plainText({ compositionRange->end, surroundingEnd }));
-            auto removedLength = removeSplitSurrogatePairs(text, surroundingStart != editableRange->start, surroundingEnd != editableRange->end);
+            auto removedLength = removeSplitSurrogatePairs(text, surroundingStart != editableRange->start && !beforeText.isEmpty(), surroundingEnd != editableRange->end);
             postLayoutData.surroundingContext = WTF::move(text);
             postLayoutData.surroundingContextCursorPosition = beforeText.length() - removedLength;
             postLayoutData.surroundingContextSelectionPosition = postLayoutData.surroundingContextCursorPosition;
@@ -204,9 +209,10 @@ void WebPage::getPlatformEditorState(LocalFrame& frame, EditorState& result) con
             auto surroundingStart = surroundingTextStart(editableRange->start, selectionRange->start);
             auto surroundingEnd = surroundingTextEnd(selectionRange->end, editableRange->end);
             auto text = plainText({ surroundingStart, surroundingEnd });
-            auto removedLength = removeSplitSurrogatePairs(text, surroundingStart != editableRange->start, surroundingEnd != editableRange->end);
+            auto cursorPosition = characterCount({ surroundingStart, selectionRange->start });
+            auto removedLength = removeSplitSurrogatePairs(text, surroundingStart != editableRange->start && cursorPosition, surroundingEnd != editableRange->end);
             postLayoutData.surroundingContext = WTF::move(text);
-            postLayoutData.surroundingContextCursorPosition = characterCount({ surroundingStart, selectionRange->start }) - removedLength;
+            postLayoutData.surroundingContextCursorPosition = cursorPosition - removedLength;
             postLayoutData.surroundingContextSelectionPosition = characterCount({ surroundingStart, selectionRange->end }) - removedLength;
         } else
             postLayoutData.surroundingContext = emptyString();
